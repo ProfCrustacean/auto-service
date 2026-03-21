@@ -30,6 +30,7 @@ Service defaults:
 - Vehicle CRUD API: `GET|POST /api/v1/vehicles`, `GET|PATCH|DELETE /api/v1/vehicles/:id`
 - Vehicle ownership history API: `GET /api/v1/vehicles/:id/ownership-history`
 - Appointment API: `GET|POST /api/v1/appointments`, `GET|PATCH /api/v1/appointments/:id`
+- Walk-in intake API: `POST /api/v1/intake/walk-ins`
 - Russian dashboard UI: `GET /`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
 

@@ -2,7 +2,7 @@
   - generic [ref=e3]:
     - generic [ref=e4]:
       - heading "Автосервис Саранск" [level=1] [ref=e5]
-      - paragraph [ref=e6]: "Город: Саранск · Посты: 2 · Обновлено: 21.03, 22:16"
+      - paragraph [ref=e6]: "Город: Саранск · Посты: 2 · Обновлено: 21.03, 22:35"
     - generic [ref=e7]:
       - link "Новая запись" [ref=e8] [cursor=pointer]:
         - /url: /appointments/new
@@ -18,7 +18,7 @@
         - strong [ref=e15]: "3"
       - article [ref=e16]:
         - text: Активные заказ-наряды
-        - strong [ref=e17]: "4"
+        - strong [ref=e17]: "5"
       - article [ref=e18]:
         - text: Ожидают запчасти
         - strong [ref=e19]: "1"
@@ -43,14 +43,14 @@
             - columnheader "Актив" [ref=e36]
             - columnheader "Блок" [ref=e37]
         - rowgroup [ref=e38]:
-          - row "Пост 1 3 2 1" [ref=e39]:
-            - cell "Пост 1" [ref=e40]
-            - cell "3" [ref=e41]
-            - cell "2" [ref=e42]
-            - cell "1" [ref=e43]
-          - row "Пост 2 0 2 1" [ref=e44]:
-            - cell "Пост 2" [ref=e45]
-            - cell "0" [ref=e46]
+          - row "Пост 2 0 3 2" [ref=e39]:
+            - cell "Пост 2" [ref=e40]
+            - cell "0" [ref=e41]
+            - cell "3" [ref=e42]
+            - cell "2" [ref=e43]
+          - row "Пост 1 3 2 1" [ref=e44]:
+            - cell "Пост 1" [ref=e45]
+            - cell "3" [ref=e46]
             - cell "2" [ref=e47]
             - cell "1" [ref=e48]
     - article [ref=e49]:
@@ -63,23 +63,23 @@
             - columnheader "Актив" [ref=e57]
             - columnheader "Блок" [ref=e58]
         - rowgroup [ref=e59]:
-          - row "Иван Петров 2 1 0" [ref=e60]:
-            - cell "Иван Петров" [ref=e61]
-            - cell "2" [ref=e62]
-            - cell "1" [ref=e63]
-            - cell "0" [ref=e64]
-          - row "Алексей Соколов 1 1 0" [ref=e65]:
-            - cell "Алексей Соколов" [ref=e66]
-            - cell "1" [ref=e67]
+          - row "Сергей Кузнецов 0 2 2" [ref=e60]:
+            - cell "Сергей Кузнецов" [ref=e61]
+            - cell "0" [ref=e62]
+            - cell "2" [ref=e63]
+            - cell "2" [ref=e64]
+          - row "Иван Петров 2 1 0" [ref=e65]:
+            - cell "Иван Петров" [ref=e66]
+            - cell "2" [ref=e67]
             - cell "1" [ref=e68]
             - cell "0" [ref=e69]
-          - row "Дмитрий Орлов 0 1 1" [ref=e70]:
-            - cell "Дмитрий Орлов" [ref=e71]
-            - cell "0" [ref=e72]
+          - row "Алексей Соколов 1 1 0" [ref=e70]:
+            - cell "Алексей Соколов" [ref=e71]
+            - cell "1" [ref=e72]
             - cell "1" [ref=e73]
-            - cell "1" [ref=e74]
-          - row "Сергей Кузнецов 0 1 1" [ref=e75]:
-            - cell "Сергей Кузнецов" [ref=e76]
+            - cell "0" [ref=e74]
+          - row "Дмитрий Орлов 0 1 1" [ref=e75]:
+            - cell "Дмитрий Орлов" [ref=e76]
             - cell "0" [ref=e77]
             - cell "1" [ref=e78]
             - cell "1" [ref=e79]

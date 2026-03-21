@@ -8,6 +8,7 @@ import { DashboardService } from "../src/services/dashboardService.js";
 import { ReferenceDataService } from "../src/services/referenceDataService.js";
 import { CustomerVehicleService } from "../src/services/customerVehicleService.js";
 import { AppointmentService } from "../src/services/appointmentService.js";
+import { WalkInIntakeService } from "../src/services/walkInIntakeService.js";
 import { createApp } from "../src/app.js";
 
 function makeServer({ port = 0, databasePath }) {
@@ -22,6 +23,7 @@ function makeServer({ port = 0, databasePath }) {
   const referenceDataService = new ReferenceDataService(repository);
   const customerVehicleService = new CustomerVehicleService(repository);
   const appointmentService = new AppointmentService(repository);
+  const walkInIntakeService = new WalkInIntakeService(repository);
   const app = createApp({
     config,
     logger,
@@ -29,6 +31,7 @@ function makeServer({ port = 0, databasePath }) {
     referenceDataService,
     customerVehicleService,
     appointmentService,
+    walkInIntakeService,
   });
   const server = app.listen(port);
   return { server, database };

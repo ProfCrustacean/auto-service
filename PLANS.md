@@ -104,6 +104,108 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-10 Walk-in intake API and active queue insertion
+
+### Objective
+
+Deliver Phase 1 walk-in intake API behavior that allows same-day unscheduled visits to be accepted without a prior appointment and inserted into active operational flow immediately.
+
+### Why now
+
+`AUT-9` completed appointment lifecycle behavior. `AUT-10` is the next required intake slice to ensure non-scheduled demand can enter the system and appear on the day board/active queue.
+
+### Scope
+
+- Add API endpoint for walk-in intake creation.
+- Persist walk-in intake event (`source = walk_in`) without requiring appointment linkage.
+- Create associated active work-order record from walk-in intake.
+- Ensure walk-in result is visible in dashboard active queue/day board response.
+- Add validation and deterministic error contracts.
+- Add integration tests and local/deployed verification evidence.
+- Update Linear and repository state files.
+
+### Out of scope
+
+- Full work-order editing/details flow.
+- Walk-in UI form implementation.
+- Auth/permissions enforcement changes.
+- Parts/payment workflow changes.
+
+### Current-state validation
+
+- Intake placeholder UI route exists (`/intake/walk-in`), but no walk-in API path exists.
+- `intake_events` table exists and is seeded, but there is no create API behavior.
+- Dashboard active queue is sourced from `work_orders`; walk-ins cannot currently create active queue entries.
+
+### Relevant packet rules and defaults
+
+- Walk-ins are allowed and important by default.
+- No real car should be “nowhere”; accepted walk-ins must enter active flow visibly.
+- Meaningful behavior must be deterministic, test-backed, and evidence-backed.
+- Repository state files and deployment verification must be updated on completion.
+
+### Target outcome
+
+- `POST /api/v1/intake/walk-ins` accepts same-day walk-ins without appointment.
+- API creates:
+  - intake event (`source: walk_in`),
+  - active work order (`waiting_diagnosis`) with customer/vehicle snapshots.
+- New walk-in appears in dashboard active queue/day board immediately.
+- Local and Render verification pass and are captured in evidence.
+
+### Ordered execution slices
+
+1. Extend repository with intake-event and work-order create methods.
+2. Add walk-in intake service with reference checks and deterministic code generation.
+3. Add walk-in validator and HTTP route.
+4. Wire route/service into app/server/test harness.
+5. Add integration tests for acceptance criteria and error behavior.
+6. Run local checks + smoke + walk-in lifecycle smoke evidence.
+7. Deploy to Render and run deployed verification + evidence capture.
+8. Update `PLANS.md`, `STATUS.md`, and Linear issue state/comment.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run smoke`
+- `npm run verify`
+- local walk-in smoke: `evidence/local-walkin-intake-smoke.json`
+- local browser snapshot refresh
+- Render deploy + poll
+- deployed smoke + deployed walk-in smoke:
+  - `evidence/render-smoke-output.txt`
+  - `evidence/render-walkin-intake-smoke.json`
+  - `evidence/render-browser-snapshot.md`
+
+### Deployment / update plan
+
+- Commit AUT-10 implementation to `main`.
+- Push and trigger Render deploy for `srv-d6vcmt7diees73d0j04g`.
+- Poll deployment to `live`, run post-deploy checks, record evidence.
+- Keep rollback path via prior live deploy.
+
+### Risks and fallback plan
+
+- Walk-in insertion could miss active queue visibility:
+  - create work-order in active status and verify through dashboard API test.
+- Work-order code collisions:
+  - derive next code from existing persisted code set with deterministic increment.
+- Invalid customer/vehicle pairing:
+  - enforce ownership check and return stable conflict response.
+
+### Progress log
+
+- 2026-03-21: Plan opened for `AUT-10`; Linear moved to `In Progress`.
+- 2026-03-21: Implemented repository write path for atomic walk-in intake + work-order creation.
+- 2026-03-21: Added walk-in intake service, validator, and route (`POST /api/v1/intake/walk-ins`).
+- 2026-03-21: Added integration coverage in `tests/walkInIntake.test.js` and updated app/server wiring.
+- 2026-03-21: Local verification passed (`npm test`, `npm run smoke`, `npm run verify`, local walk-in intake smoke, browser snapshot).
+- 2026-03-21: Next step: push commit, deploy to Render, run deployed verification, and finalize status + Linear updates.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — AUT-9 Appointment lifecycle API with deterministic capacity conflicts (2026-03-21)
 
 ### Objective

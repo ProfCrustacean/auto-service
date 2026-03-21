@@ -4,6 +4,7 @@ import { renderSimpleDetailPage } from "./ui/detailPage.js";
 import { registerReferenceRoutes } from "./http/referenceRoutes.js";
 import { registerCustomerVehicleRoutes } from "./http/customerVehicleRoutes.js";
 import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
+import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
 
 export function createApp({
   config,
@@ -12,6 +13,7 @@ export function createApp({
   referenceDataService,
   customerVehicleService,
   appointmentService,
+  walkInIntakeService,
 }) {
   const app = express();
 
@@ -51,6 +53,7 @@ export function createApp({
   registerReferenceRoutes(app, { logger, referenceDataService });
   registerCustomerVehicleRoutes(app, { logger, customerVehicleService });
   registerAppointmentRoutes(app, { logger, appointmentService });
+  registerWalkInIntakeRoutes(app, { logger, walkInIntakeService });
 
   app.get("/", (_req, res) => {
     const model = dashboardService.getTodayDashboard();

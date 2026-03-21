@@ -99,6 +99,24 @@ function mapAppointmentRecord(row) {
   };
 }
 
+function mapIntakeEventRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    source: row.source,
+    sourceAppointmentId: row.sourceAppointmentId,
+    customerId: row.customerId,
+    vehicleId: row.vehicleId,
+    complaint: row.complaint,
+    status: row.status,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
 export class SqliteRepository {
   constructor(database) {
     this.database = database;
@@ -464,6 +482,32 @@ export class SqliteRepository {
          ORDER BY w.code ASC`,
       )
       .all();
+  }
+
+  getWorkOrderById(id) {
+    return this.database
+      .prepare(
+        `SELECT
+          w.id,
+          w.code,
+          w.customer_id AS customerId,
+          w.customer_name_snapshot AS customerName,
+          w.vehicle_id AS vehicleId,
+          w.vehicle_label_snapshot AS vehicleLabel,
+          COALESCE(w.bay_name_snapshot, b.name, 'Без поста') AS bayName,
+          w.status,
+          w.status_label_ru AS statusLabelRu,
+          COALESCE(w.primary_assignee, 'Без ответственного') AS primaryAssignee,
+          w.complaint,
+          w.balance_due_rub AS balanceDueRub,
+          w.blocked_since_iso AS blockedSinceIso,
+          w.created_at AS createdAt,
+          w.updated_at AS updatedAt
+         FROM work_orders w
+         LEFT JOIN bays b ON b.id = w.bay_id
+         WHERE w.id = ?`,
+      )
+      .get(id);
   }
 
   listVehicles() {
@@ -1116,6 +1160,117 @@ export class SqliteRepository {
     }));
   }
 
+  getIntakeEventById(id) {
+    const row = this.database
+      .prepare(
+        `SELECT
+          id,
+          source,
+          source_appointment_id AS sourceAppointmentId,
+          customer_id AS customerId,
+          vehicle_id AS vehicleId,
+          complaint,
+          status,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+         FROM intake_events
+         WHERE id = ?`,
+      )
+      .get(id);
+
+    return mapIntakeEventRecord(row);
+  }
+
+  createWalkInIntakeBundle({
+    intakeEventId,
+    workOrderId,
+    workOrderCode,
+    customerId,
+    customerNameSnapshot,
+    vehicleId,
+    vehicleLabelSnapshot,
+    complaint,
+    status,
+    statusLabelRu,
+    bayId,
+    bayNameSnapshot,
+    primaryAssignee,
+  }) {
+    const nowIso = new Date().toISOString();
+
+    try {
+      this.database.exec("BEGIN TRANSACTION;");
+
+      this.database
+        .prepare(
+          `INSERT INTO intake_events(
+            id,
+            source,
+            source_appointment_id,
+            customer_id,
+            vehicle_id,
+            complaint,
+            status,
+            created_at,
+            updated_at
+          ) VALUES (?, 'walk_in', NULL, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(intakeEventId, customerId, vehicleId, complaint, status, nowIso, nowIso);
+
+      this.database
+        .prepare(
+          `INSERT INTO work_orders(
+            id,
+            code,
+            customer_id,
+            customer_name_snapshot,
+            vehicle_id,
+            vehicle_label_snapshot,
+            status,
+            status_label_ru,
+            bay_id,
+            bay_name_snapshot,
+            primary_assignee,
+            complaint,
+            findings,
+            internal_notes,
+            customer_notes,
+            blocked_since_iso,
+            balance_due_rub,
+            created_at,
+            closed_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, 0, ?, NULL, ?)`,
+        )
+        .run(
+          workOrderId,
+          workOrderCode,
+          customerId,
+          customerNameSnapshot,
+          vehicleId,
+          vehicleLabelSnapshot,
+          status,
+          statusLabelRu,
+          bayId ?? null,
+          bayNameSnapshot ?? null,
+          primaryAssignee ?? null,
+          complaint,
+          nowIso,
+          nowIso,
+        );
+
+      this.database.exec("COMMIT;");
+    } catch (error) {
+      this.database.exec("ROLLBACK;");
+      throw error;
+    }
+
+    return {
+      intakeEvent: this.getIntakeEventById(intakeEventId),
+      workOrder: this.getWorkOrderById(workOrderId),
+    };
+  }
+
   listIntakeEvents() {
     return this.database
       .prepare(
@@ -1132,6 +1287,7 @@ export class SqliteRepository {
          FROM intake_events
          ORDER BY created_at DESC, id DESC`,
       )
-      .all();
+      .all()
+      .map(mapIntakeEventRecord);
   }
 }
