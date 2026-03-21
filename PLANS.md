@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-16 pin Render Node runtime to LTS
+## Completed Plan — AUT-16 pin Render Node runtime to LTS (2026-03-21)
 
 ### Objective
 
@@ -179,10 +179,19 @@ Render log audit found deployments running Node `25.8.1` due permissive engine r
 ### Progress log
 
 - 2026-03-21: Plan opened for `AUT-16`.
+- 2026-03-21: Pinned runtime policy in-repo (`package.json` engines `22.x`, `.node-version` set to `22`).
+- 2026-03-21: Added guard test `tests/nodeRuntimePolicy.test.js` to enforce Node policy.
+- 2026-03-21: Local verification passed (`npm test`, `npm run verify`); local policy evidence saved (`evidence/local-node-runtime-policy.json`).
+- 2026-03-21: Changes pushed on `main` as commit `121df5f`.
+- 2026-03-21: Render deploy `dep-d6vg51buibrs73f0tth0` reached `live`.
+- 2026-03-21: Render build logs confirmed Node 22 policy:
+  - `Requesting Node.js version 22`
+  - `Using Node.js version 22.22.1 via /opt/render/project/src/.node-version`
+  - evidence: `evidence/render-aut16-node-runtime-summary.json`.
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21.
 
 ## Completed Plan — AUT-17 health-check log noise reduction (2026-03-21)
 
