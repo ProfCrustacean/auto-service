@@ -1,0 +1,72 @@
+{
+  "timestamp": "20260321183448",
+  "employee": {
+    "id": "emp-7abbd6c0",
+    "create": {
+      "item": {
+        "id": "emp-7abbd6c0",
+        "name": "Проверка AUT7 20260321183448",
+        "roles": [
+          "mechanic"
+        ],
+        "isActive": true,
+        "createdAt": "2026-03-21T18:34:48.868Z",
+        "updatedAt": "2026-03-21T18:34:48.868Z"
+      }
+    },
+    "patch": {
+      "item": {
+        "id": "emp-7abbd6c0",
+        "name": "Проверка AUT7 20260321183448",
+        "roles": [
+          "electrician"
+        ],
+        "isActive": true,
+        "createdAt": "2026-03-21T18:34:48.868Z",
+        "updatedAt": "2026-03-21T18:34:49.054Z"
+      }
+    },
+    "delete": {
+      "item": {
+        "id": "emp-7abbd6c0",
+        "name": "Проверка AUT7 20260321183448",
+        "roles": [
+          "electrician"
+        ],
+        "isActive": false,
+        "createdAt": "2026-03-21T18:34:48.868Z",
+        "updatedAt": "2026-03-21T18:34:49.324Z"
+      }
+    }
+  },
+  "bay": {
+    "id": "bay-b29d4927",
+    "create": {
+      "item": {
+        "id": "bay-b29d4927",
+        "name": "Пост AUT7 20260321183448",
+        "isActive": true,
+        "createdAt": "2026-03-21T18:34:49.506Z",
+        "updatedAt": "2026-03-21T18:34:49.506Z"
+      }
+    },
+    "patch": {
+      "item": {
+        "id": "bay-b29d4927",
+        "name": "Пост AUT7 20260321183448-A",
+        "isActive": true,
+        "createdAt": "2026-03-21T18:34:49.506Z",
+        "updatedAt": "2026-03-21T18:34:49.784Z"
+      }
+    },
+    "delete": {
+      "item": {
+        "id": "bay-b29d4927",
+        "name": "Пост AUT7 20260321183448-A",
+        "isActive": false,
+        "createdAt": "2026-03-21T18:34:49.506Z",
+        "updatedAt": "2026-03-21T18:34:49.975Z"
+      }
+    }
+  }
+}

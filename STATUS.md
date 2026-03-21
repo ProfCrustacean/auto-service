@@ -78,11 +78,13 @@ Codex must keep this file current enough that a new Codex run can answer:
 - local browser smoke snapshot: passed on 2026-03-21.
 - deployed Render smoke (`APP_BASE_URL="https://auto-service-foundation.onrender.com" npm run smoke`): passed on 2026-03-21.
 - deployed Render browser smoke snapshot: passed on 2026-03-21.
+- deployed Render CRUD smoke for employees/bays (create/update/soft-delete): passed on 2026-03-21.
 - evidence:
   - `evidence/smoke-output.txt`
   - `evidence/browser-snapshot.md`
   - `evidence/render-smoke-output.txt`
   - `evidence/render-browser-snapshot.md`
+  - `evidence/render-crud-smoke.json`
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
@@ -133,6 +135,7 @@ Most recent useful evidence:
 - `evidence/render-bays-list.json`
 - `evidence/render-smoke-output.txt`
 - `evidence/render-browser-snapshot.md`
+- `evidence/render-crud-smoke.json`
 
 ## Open blockers
 

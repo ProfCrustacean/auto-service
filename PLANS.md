@@ -199,6 +199,7 @@ Deliver Phase 1 API CRUD support for employees and bays with explicit validation
 - 2026-03-21: Added integration coverage for CRUD + validation boundaries (`tests/referenceCrud.test.js`).
 - 2026-03-21: Local verification passed (`npm test`, `npm run verify`, browser snapshot).
 - 2026-03-21: Render deploy `dep-d6ve6mf5r7bs73ep6rmg` reached `live` for commit `5b7b4a0`; deployed smoke and browser checks passed.
+- 2026-03-21: Deployed API CRUD smoke passed on Render (`evidence/render-crud-smoke.json`) with create→update→soft-delete for both employee and bay.
 - 2026-03-21: Linear `AUT-7` moved to `Done` with implementation and evidence comment.
 
 ### Completion checkpoint
