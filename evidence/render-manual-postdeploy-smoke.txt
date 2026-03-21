@@ -2,4 +2,4 @@
 > auto-service@0.1.0 smoke
 > node scripts/smoke.js
 
-{"status":"smoke_passed","baseUrl":"https://auto-service-foundation.onrender.com","checks":["healthz","dashboard_api","dashboard_ui"]}
+{"status":"smoke_passed","baseUrl":"https://auto-service-foundation.onrender.com","checks":["healthz","dashboard_api","appointments_api","dashboard_ui"]}

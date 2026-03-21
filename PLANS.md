@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
+## Completed Plan — AUT-9 Appointment lifecycle API with deterministic capacity conflicts (2026-03-21)
 
 ### Objective
 
@@ -197,11 +197,19 @@ Deliver Phase 1 appointment lifecycle APIs with explicit status transitions and 
 - 2026-03-21: Added appointment validators/routes and wired appointment service into app/server/test harness.
 - 2026-03-21: Added integration test coverage in `tests/appointmentLifecycle.test.js` and updated smoke harness to include appointments API.
 - 2026-03-21: Local verification passed (`npm test`, `npm run smoke`, `npm run verify`, local appointment lifecycle smoke, local browser snapshot).
-- 2026-03-21: Next step: push commit, deploy to Render, run deployed verification, and finalize status + Linear updates.
+- 2026-03-21: Pushed commit `ec63a57` to `main`.
+- 2026-03-21: Render deploy `dep-d6veugnafjfc73d0f96g` reached `live` for commit `ec63a57`.
+- 2026-03-21: Deployed verification passed (`APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke`, deployed appointment lifecycle smoke, deployed browser snapshot).
+- 2026-03-21: Linear `AUT-9` moved to `Done` with evidence comment (`comment id: 9180a0be-00a2-4462-8a41-367a41c6bf8a`).
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21:
+- appointment lifecycle API endpoints implemented (`GET|POST /api/v1/appointments`, `GET|PATCH /api/v1/appointments/:id`),
+- status model enforced (`booked`, `confirmed`, `arrived`, `cancelled`, `no-show`) with explicit transition rules,
+- deterministic bay/person slot conflict responses implemented and tested,
+- local and deployed verification passed,
+- evidence captured and Linear updated.
 
 ## Completed Plan — AUT-8 Customers and Vehicles CRUD API (2026-03-21)
 

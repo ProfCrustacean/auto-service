@@ -1,0 +1,12 @@
+{
+  "status": "render_appointment_lifecycle_smoke_passed",
+  "baseUrl": "https://auto-service-foundation.onrender.com",
+  "slot": "RENDER-AUT-1774120839963",
+  "createdAppointmentId": "apt-9358b9a1",
+  "checks": {
+    "createStatus": "booked",
+    "confirmStatus": "confirmed",
+    "arrivedStatus": "arrived",
+    "conflictCode": "conflict"
+  }
+}

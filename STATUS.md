@@ -22,16 +22,17 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Deterministic seed fixtures imported into SQLite on first bootstrap.
 - Phase 1 employee and bay CRUD APIs implemented with explicit validation boundaries.
 - Phase 1 customer and vehicle CRUD APIs implemented with ownership-history tracking and search-ready query filters.
+- Phase 1 appointment lifecycle APIs implemented with explicit status transitions and deterministic bay/person capacity conflict checks.
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-21: `AUT-8` accepted end-to-end (customer/vehicle CRUD + ownership-history behavior + snapshot-preservation tests + local/deployed verification + Linear update).
+- 2026-03-21: `AUT-9` accepted end-to-end (appointment lifecycle API + status model + deterministic capacity conflicts + local/deployed verification + Linear update).
 
 ### Current active objective
 - Continue Phase 1 scheduling and intake implementation beyond dashboard shell:
-  - appointment lifecycle and walk-in intake APIs,
+  - walk-in intake APIs,
   - planning board and search experience completion,
   - search and scenario verification expansion.
 
@@ -53,7 +54,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-21, commit `5d6ef0b`
+- last validated date or commit: 2026-03-21, commit `ec63a57`
 - known caveats: no auth yet; single-node SQLite file model only
 
 2. `render-validation`
@@ -63,7 +64,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `5d6ef0b`
+- last validated date or commit: 2026-03-21, commit `ec63a57`
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -76,22 +77,26 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### End-to-end checks
 - local smoke (`npm run smoke`): passed on 2026-03-21.
+- local appointment lifecycle smoke: passed on 2026-03-21.
 - local browser smoke snapshot: passed on 2026-03-21.
 - deployed Render smoke (`APP_BASE_URL="https://auto-service-foundation.onrender.com" npm run smoke`): passed on 2026-03-21.
+- deployed Render appointment lifecycle smoke: passed on 2026-03-21.
 - deployed Render browser smoke snapshot: passed on 2026-03-21.
 - deployed Render CRUD smoke for employees/bays (create/update/soft-delete): passed on 2026-03-21.
 - deployed Render CRUD smoke for customers/vehicles (create/update/reassign/delete): passed on 2026-03-21.
 - evidence:
   - `evidence/smoke-output.txt`
+  - `evidence/local-appointment-lifecycle-smoke.json`
   - `evidence/browser-snapshot.md`
   - `evidence/render-smoke-output.txt`
+  - `evidence/render-appointment-lifecycle-smoke.json`
   - `evidence/render-browser-snapshot.md`
   - `evidence/render-crud-smoke.json`
   - `evidence/render-customer-vehicle-crud-smoke.json`
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: passed (`dep-d6vehq9r0fns73c89pc0` reached `live`, commit `5d6ef0b`).
+- Render deployment smoke: passed (`dep-d6veugnafjfc73d0f96g` reached `live`, commit `ec63a57`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
@@ -103,6 +108,7 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/local-customer-vehicle-crud-smoke.json`
   - `evidence/render-healthz.json`
   - `evidence/render-dashboard-today.json`
+  - `evidence/render-appointments-list.json`
   - `evidence/render-employees-list.json`
   - `evidence/render-bays-list.json`
   - `evidence/render-customers-list.json`
@@ -126,6 +132,7 @@ Most recent useful evidence:
 - `evidence/test-output.txt`
 - `evidence/verify-output.txt`
 - `evidence/smoke-output.txt`
+- `evidence/local-appointment-lifecycle-smoke.json`
 - `evidence/browser-snapshot.md`
 - `evidence/healthz.json`
 - `evidence/dashboard-today.json`
@@ -146,6 +153,7 @@ Most recent useful evidence:
 - `evidence/render-service-state.json`
 - `evidence/render-healthz.json`
 - `evidence/render-dashboard-today.json`
+- `evidence/render-appointments-list.json`
 - `evidence/render-employees-list.json`
 - `evidence/render-bays-list.json`
 - `evidence/render-customers-list.json`
@@ -153,6 +161,7 @@ Most recent useful evidence:
 - `evidence/render-vehicle-ownership-history.json`
 - `evidence/render-customer-vehicle-crud-smoke.json`
 - `evidence/render-smoke-output.txt`
+- `evidence/render-appointment-lifecycle-smoke.json`
 - `evidence/render-browser-snapshot.md`
 - `evidence/render-crud-smoke.json`
 
@@ -162,10 +171,9 @@ Most recent useful evidence:
 
 ## Next recommended milestone
 
-1. Execute `AUT-9` for appointment lifecycle APIs on top of current reference-data CRUD.
-2. Execute `AUT-10` for walk-in intake API path and board insertion behavior.
-3. Add day/week planning endpoint coverage and acceptance scenarios under `AUT-14`.
-4. Continue slice-by-slice deploy validation in `render-validation` for each Phase 1 milestone.
+1. Execute `AUT-10` for walk-in intake API path and board insertion behavior.
+2. Add day/week planning endpoint coverage and acceptance scenarios under `AUT-14`.
+3. Continue slice-by-slice deploy validation in `render-validation` for each Phase 1 milestone.
 
 ## Update rule
 
