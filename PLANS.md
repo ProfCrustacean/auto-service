@@ -104,6 +104,96 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-8 Customers and Vehicles CRUD API (2026-03-21)
+
+### Objective
+
+Deliver Phase 1 CRUD APIs for customers and vehicles with explicit ownership linkage and test-proven snapshot-preservation behavior.
+
+### Why now
+
+`AUT-7` completed reference-data CRUD for employees/bays. `AUT-8` is the next prerequisite for intake and scheduling flows that depend on customer and vehicle records.
+
+### Scope
+
+- Implement customer CRUD API endpoints with validation boundaries.
+- Implement vehicle CRUD API endpoints with owner linkage to customers.
+- Add vehicle ownership-history tracking for owner reassignment.
+- Add list filtering/search query support aligned with existing indexed fields.
+- Add tests covering CRUD behavior and ownership/snapshot rules.
+- Re-run local and deployed verification and update project state/evidence.
+
+### Out of scope
+
+- Appointment lifecycle APIs.
+- Walk-in intake APIs.
+- UI forms for customer/vehicle management.
+- Auth/permissions enforcement.
+
+### Current-state validation
+
+- API currently supports dashboard + employee/bay CRUD only.
+- Customers/vehicles exist in DB but only read via dashboard repository methods.
+- No ownership-history table or API behavior exists yet.
+
+### Relevant packet rules and defaults
+
+- Preserve historical business snapshots (work-order-time facts remain stable).
+- Keep operational state explicit and deterministic.
+- Use small testable slices with evidence-backed acceptance.
+- Keep repository and state docs synchronized after completion.
+
+### Target outcome
+
+- `/api/v1/customers` and `/api/v1/vehicles` expose CRUD with stable error contracts.
+- Vehicle owner changes are trackable through ownership history.
+- Tests prove customer/vehicle edits do not rewrite existing work-order snapshots.
+- Local + Render verification pass, with evidence and state updates recorded.
+
+### Ordered execution slices
+
+1. Extend schema with ownership-history storage and seed/bootstrap updates.
+2. Extend SQLite repository with customer/vehicle CRUD + search + ownership-history methods.
+3. Add service and route layer for customer/vehicle endpoints with explicit validators.
+4. Add tests for CRUD, owner reassignment history, and snapshot-preservation rule.
+5. Run local verification and capture evidence.
+6. Deploy to Render, run deployed smoke + CRUD smoke + browser checks, capture evidence.
+7. Update `PLANS.md`, `STATUS.md`, and Linear issue state/comments.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run verify`
+- local browser snapshot: `evidence/browser-snapshot.md`
+- local API payloads for customer/vehicle endpoints in `evidence/`
+- Render deploy + poll to live
+- deployed smoke and API payload captures
+- deployed browser snapshot
+
+### Deployment / update plan
+
+- Push implementation commit to `main`.
+- Trigger Render deploy for `srv-d6vcmt7diees73d0j04g`.
+- Validate deployment and endpoint behavior.
+- Keep rollback path via previous live deployment.
+
+### Risks and fallback plan
+
+- Owner reassignment could break foreign-key assumptions:
+  - require customer existence before write and preserve relational checks.
+- Snapshot rule could regress inadvertently:
+  - add explicit test that work-order snapshots remain unchanged after profile edits.
+- Search behavior could become inconsistent:
+  - centralize query parsing/validation in route validators.
+
+### Progress log
+
+- 2026-03-21: Plan opened for AUT-8; Linear issue moved to `In Progress`.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — AUT-7 Employees and Bays CRUD API (2026-03-21)
 
 ### Objective

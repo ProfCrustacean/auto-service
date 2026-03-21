@@ -2,6 +2,7 @@ import { loadConfig } from "./config.js";
 import { createLogger } from "./logger.js";
 import { DashboardService } from "./services/dashboardService.js";
 import { ReferenceDataService } from "./services/referenceDataService.js";
+import { CustomerVehicleService } from "./services/customerVehicleService.js";
 import { createApp } from "./app.js";
 import { bootstrapPersistence } from "./persistence/bootstrapPersistence.js";
 
@@ -10,7 +11,8 @@ const logger = createLogger({ app: "auto-service" });
 const { repository, database } = bootstrapPersistence({ config, logger });
 const dashboardService = new DashboardService(repository);
 const referenceDataService = new ReferenceDataService(repository);
-const app = createApp({ config, logger, dashboardService, referenceDataService });
+const customerVehicleService = new CustomerVehicleService(repository);
+const app = createApp({ config, logger, dashboardService, referenceDataService, customerVehicleService });
 
 const server = app.listen(config.port, "0.0.0.0", () => {
   logger.info("server_started", { port: config.port, appEnv: config.appEnv });

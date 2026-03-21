@@ -149,6 +149,11 @@ Phase 1 reference-data APIs:
 - `GET|PATCH|DELETE /api/v1/employees/:id`
 - `GET|POST /api/v1/bays`
 - `GET|PATCH|DELETE /api/v1/bays/:id`
+- `GET|POST /api/v1/customers`
+- `GET|PATCH|DELETE /api/v1/customers/:id`
+- `GET|POST /api/v1/vehicles`
+- `GET|PATCH|DELETE /api/v1/vehicles/:id`
+- `GET /api/v1/vehicles/:id/ownership-history`
 
 Default local DB path:
 - `data/auto-service.sqlite` (override with `DB_PATH`)

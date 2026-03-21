@@ -27,6 +27,7 @@ function getSummaryCounts(database) {
     employees: getRowCount(database, "employees"),
     customers: getRowCount(database, "customers"),
     vehicles: getRowCount(database, "vehicles"),
+    vehicleOwnershipHistory: getRowCount(database, "vehicle_ownership_history"),
     appointments: getRowCount(database, "appointments"),
     intakeEvents: getRowCount(database, "intake_events"),
     workOrders: getRowCount(database, "work_orders"),
@@ -34,6 +35,7 @@ function getSummaryCounts(database) {
 }
 
 function clearAllData(database) {
+  database.exec("DELETE FROM vehicle_ownership_history;");
   database.exec("DELETE FROM intake_events;");
   database.exec("DELETE FROM appointments;");
   database.exec("DELETE FROM work_orders;");
@@ -91,6 +93,16 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
       created_at,
       updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 1, ?, ?)`,
+  );
+  const insertVehicleOwnershipHistory = database.prepare(
+    `INSERT INTO vehicle_ownership_history(
+      id,
+      vehicle_id,
+      customer_id,
+      changed_at,
+      change_reason,
+      source
+    ) VALUES (?, ?, ?, ?, ?, ?)`,
   );
   const insertAppointment = database.prepare(
     `INSERT INTO appointments(
@@ -184,6 +196,15 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
         parsedLabel.model,
         nowIso,
         nowIso,
+      );
+
+      insertVehicleOwnershipHistory.run(
+        `ownership-${vehicle.id}-seed`,
+        vehicle.id,
+        vehicle.customerId,
+        nowIso,
+        "initial_seed_owner",
+        "seed",
       );
     }
 

@@ -6,18 +6,19 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ DashboardService returns expected queue counts from fixtures (22.734875ms)
-✔ health and dashboard endpoints return successful responses (134.18325ms)
-✔ migrations are idempotent and seed runs only once by default (9.417875ms)
-✔ employee and bay CRUD endpoints enforce validation and stable error contracts (152.914417ms)
-ℹ tests 4
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (138.446125ms)
+✔ DashboardService returns expected queue counts from fixtures (25.109125ms)
+✔ health and dashboard endpoints return successful responses (109.02025ms)
+✔ migrations are idempotent and seed runs only once by default (11.419125ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (123.644708ms)
+ℹ tests 5
 ℹ suites 0
-ℹ pass 4
+ℹ pass 5
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 355.617125
+ℹ duration_ms 334.711
 
 > auto-service@0.1.0 smoke
 > node scripts/smoke.js

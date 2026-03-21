@@ -23,9 +23,9 @@ test("migrations are idempotent and seed runs only once by default", () => {
 
   try {
     const firstMigration = runMigrations({ database, logger });
-    assert.equal(firstMigration.appliedVersions.length, 2);
-    assert.deepEqual(firstMigration.appliedVersions, ["001", "002"]);
-    assert.equal(firstMigration.currentVersion, "002");
+    assert.equal(firstMigration.appliedVersions.length, 3);
+    assert.deepEqual(firstMigration.appliedVersions, ["001", "002", "003"]);
+    assert.equal(firstMigration.currentVersion, "003");
 
     const secondMigration = runMigrations({ database, logger });
     assert.equal(secondMigration.appliedVersions.length, 0);
@@ -34,6 +34,7 @@ test("migrations are idempotent and seed runs only once by default", () => {
     assert.equal(firstSeed.seeded, true);
     assert.equal(firstSeed.counts.customers, 4);
     assert.equal(firstSeed.counts.vehicles, 4);
+    assert.equal(firstSeed.counts.vehicleOwnershipHistory, 4);
     assert.equal(firstSeed.counts.appointments, 1);
     assert.equal(firstSeed.counts.workOrders, 8);
     assert.equal(firstSeed.counts.intakeEvents, 2);

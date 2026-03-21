@@ -6,6 +6,7 @@ import path from "node:path";
 import { bootstrapPersistence } from "../src/persistence/bootstrapPersistence.js";
 import { DashboardService } from "../src/services/dashboardService.js";
 import { ReferenceDataService } from "../src/services/referenceDataService.js";
+import { CustomerVehicleService } from "../src/services/customerVehicleService.js";
 import { createApp } from "../src/app.js";
 
 function makeServer({ port = 0, databasePath }) {
@@ -18,7 +19,8 @@ function makeServer({ port = 0, databasePath }) {
   const { repository, database } = bootstrapPersistence({ config, logger });
   const dashboardService = new DashboardService(repository);
   const referenceDataService = new ReferenceDataService(repository);
-  const app = createApp({ config, logger, dashboardService, referenceDataService });
+  const customerVehicleService = new CustomerVehicleService(repository);
+  const app = createApp({ config, logger, dashboardService, referenceDataService, customerVehicleService });
   const server = app.listen(port);
   return { server, database };
 }

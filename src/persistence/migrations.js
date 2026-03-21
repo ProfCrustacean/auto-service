@@ -161,4 +161,25 @@ export const MIGRATIONS = [
       -- Intentionally a no-op rollback for timestamp columns.
     `,
   },
+  {
+    version: "003",
+    name: "add_vehicle_ownership_history",
+    up: `
+      CREATE TABLE IF NOT EXISTS vehicle_ownership_history (
+        id TEXT PRIMARY KEY,
+        vehicle_id TEXT NOT NULL REFERENCES vehicles(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        customer_id TEXT NOT NULL REFERENCES customers(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        changed_at TEXT NOT NULL,
+        change_reason TEXT NOT NULL,
+        source TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_vehicle_ownership_history_vehicle_changed
+      ON vehicle_ownership_history(vehicle_id, changed_at DESC);
+    `,
+    down: `
+      DROP INDEX IF EXISTS idx_vehicle_ownership_history_vehicle_changed;
+      DROP TABLE IF EXISTS vehicle_ownership_history;
+    `,
+  },
 ];
