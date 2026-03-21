@@ -47,7 +47,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-21, commit `3382123`
+- last validated date or commit: 2026-03-21, commit `325af43`
 - known caveats: seed-fixture data only; no auth yet; no persistent transactional storage yet
 
 2. `render-validation`
@@ -57,7 +57,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `3382123`
+- last validated date or commit: 2026-03-21, commit `325af43`
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
 
@@ -80,7 +80,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: passed (`dep-d6vcmtvdiees73d0j0fg` reached `live`).
+- Render deployment smoke: passed (`dep-d6vd167diees73d0pc00` reached `live`, commit `325af43`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
@@ -88,6 +88,10 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/render-create-service-response.json`
   - `evidence/render-deploy-poll.txt`
   - `evidence/render-deploy-latest.json`
+  - `evidence/render-manual-deploy-response.json`
+  - `evidence/render-manual-deploy-poll.txt`
+  - `evidence/render-manual-deploy-final.json`
+  - `evidence/render-manual-postdeploy-smoke.txt`
   - `evidence/render-service-state.json`
   - `evidence/render-validate-response.json`
 
@@ -102,6 +106,10 @@ Most recent useful evidence:
 - `evidence/render-create-service-response.json`
 - `evidence/render-deploy-poll.txt`
 - `evidence/render-deploy-latest.json`
+- `evidence/render-manual-deploy-response.json`
+- `evidence/render-manual-deploy-poll.txt`
+- `evidence/render-manual-deploy-final.json`
+- `evidence/render-manual-postdeploy-smoke.txt`
 - `evidence/render-service-state.json`
 - `evidence/render-smoke-output.txt`
 - `evidence/render-browser-snapshot.md`
