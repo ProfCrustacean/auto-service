@@ -6,24 +6,25 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (211.987791ms)
-✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (260.592291ms)
-✔ DashboardService returns expected queue counts from fixtures (55.931ms)
-✔ domain services support scheduling and walk-in acceptance scenario (18.037584ms)
-✔ health and dashboard endpoints return successful responses (201.136541ms)
-✔ request logging suppresses successful health checks and keeps business-path logs (152.819208ms)
-✔ migrations are idempotent and seed runs only once by default (18.296541ms)
-✔ employee and bay CRUD endpoints enforce validation and stable error contracts (97.149042ms)
-✔ API acceptance scenario covers appointment scheduling and walk-in intake (111.437584ms)
-✔ walk-in intake API creates active flow without prior appointment (91.787333ms)
-ℹ tests 10
+✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (218.357417ms)
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (251.266125ms)
+✔ DashboardService returns expected queue counts from fixtures (35.713708ms)
+✔ domain services support scheduling and walk-in acceptance scenario (18.184792ms)
+✔ health and dashboard endpoints return successful responses (132.941291ms)
+✔ request logging suppresses successful health checks and keeps business-path logs (143.431875ms)
+✔ runtime policy pins Node.js to 22 LTS for deterministic deploys (5.428125ms)
+✔ migrations are idempotent and seed runs only once by default (19.221375ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (80.710583ms)
+✔ API acceptance scenario covers appointment scheduling and walk-in intake (87.824083ms)
+✔ walk-in intake API creates active flow without prior appointment (71.91825ms)
+ℹ tests 11
 ℹ suites 0
-ℹ pass 10
+ℹ pass 11
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 609.987166
+ℹ duration_ms 622.766208
 
 > auto-service@0.1.0 smoke
 > node scripts/smoke.js

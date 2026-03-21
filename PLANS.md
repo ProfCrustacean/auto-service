@@ -104,6 +104,86 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-16 pin Render Node runtime to LTS
+
+### Objective
+
+Pin runtime policy to Node 22 LTS for deterministic Render deployments and enforce the policy in-repo.
+
+### Why now
+
+Render log audit found deployments running Node `25.8.1` due permissive engine range (`>=22`). This creates runtime drift risk and weakens repeatability.
+
+### Scope
+
+- Change repository runtime policy to explicit Node 22 LTS.
+- Add repository guard test to prevent future Node policy drift.
+- Run local verification.
+- Deploy to Render and verify build logs show Node 22.x.
+- Update state docs and Linear issue.
+
+### Out of scope
+
+- Re-architecting deployment.
+- Dependency upgrades unrelated to runtime pinning.
+- Fixing other observability backlog items (`AUT-18` remains separate).
+
+### Current-state validation
+
+- `package.json` currently has `engines.node: ">=22"`.
+- Render logs show `Using Node.js version 25.8.1`.
+- Existing deployment path and smoke checks are stable.
+
+### Relevant packet rules and defaults
+
+- Prioritize deterministic setup and operations.
+- Use testable/mechanically enforced policies over conventions.
+- Capture proof from deployed environment, not only local assertions.
+
+### Target outcome
+
+- Runtime policy pinned to Node 22 LTS in repository.
+- Automated test fails if Node policy drifts from pinned value.
+- Render deploy uses Node 22.x according to build logs.
+- `AUT-16` closed with evidence.
+
+### Ordered execution slices
+
+1. Pin Node runtime policy in repository config.
+2. Add guard test for runtime policy.
+3. Run local tests/verify and capture evidence.
+4. Deploy to Render and capture Node-version proof from build logs.
+5. Update `PLANS.md`, `STATUS.md`, and Linear issue state/comment.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run verify`
+- local runtime policy evidence from tests
+- Render deploy artifacts and log window proving Node 22.x
+
+### Deployment / update plan
+
+- Commit AUT-16 changes to `main`.
+- Trigger deploy for `srv-d6vcmt7diees73d0j04g`.
+- Poll to `live`.
+- Query deploy log window and extract Node version line.
+
+### Risks and fallback plan
+
+- Render build could fail on Node pin:
+  - choose semver-compatible LTS major (`22.x`) not fragile exact patch.
+- Policy can drift later:
+  - add test guard to catch unintended changes.
+
+### Progress log
+
+- 2026-03-21: Plan opened for `AUT-16`.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — AUT-17 health-check log noise reduction (2026-03-21)
 
 ### Objective

@@ -1,0 +1,5 @@
+{
+  "status": "local_node_policy_check",
+  "enginesNode": "22.x",
+  "nodeVersionFile": "22"
+}

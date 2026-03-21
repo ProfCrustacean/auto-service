@@ -5,7 +5,7 @@
   "description": "Agent-operable auto service operations system",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
     "bootstrap": "npm ci",
