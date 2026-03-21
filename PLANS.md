@@ -207,6 +207,90 @@ Completed on 2026-03-21:
 - deployed smoke + browser verification passed,
 - and `STATUS.md` updated with environment and evidence state.
 
+## Active Plan — Phase 1 Dashboard UX Refactor
+
+### Objective
+
+Upgrade the operational dashboard from a basic table view to a decision-first cockpit aligned with the project UI/UX and reporting rules.
+
+### Why now
+
+The current dashboard is functional but does not yet satisfy key Daily Board outcomes: triage clarity, load visibility, and action proximity for front-desk workflows.
+
+### Scope
+
+- Redesign dashboard information architecture for triage-first usage.
+- Add operational summary cards with queue and money visibility.
+- Add bay load and assignee load views for at-a-glance planning.
+- Improve waiting and pickup queue rows with action-oriented fields.
+- Add row-level navigation affordances for future detail screens.
+- Keep Russian-only UI.
+- Update tests, run local and deployed verification, and record evidence.
+
+### Out of scope
+
+- Full scheduling CRUD workflows and persistence model changes.
+- New auth/permission model.
+- New integrations.
+
+### Current-state validation
+
+- Dashboard is currently 3 tables + KPI strip.
+- Queue rows do not expose debt amount or blocking duration context.
+- No daily load view grouped by bay/person.
+- No action controls for core front-desk operations.
+
+### Relevant packet rules and defaults
+
+- UI must answer “what is waiting, what is ready, what is unpaid” quickly.
+- Daily board must show time/bays/people/planned vs active/blockers.
+- UX should be fast, low-ceremony, and Russian-ready.
+- Meaningful slice must stay end-to-end verifiable by Codex.
+
+### Target outcome
+
+Dashboard provides immediate operational triage and planning context:
+- urgent queues are visible with money/blocking indicators,
+- load by bay and assignee is visible,
+- primary actions are one click away,
+- and local + deployed smoke checks pass.
+
+### Ordered execution slices
+
+1. Extend dashboard service model with triage and load aggregates.
+2. Refactor dashboard UI layout and components for decision-first workflow.
+3. Update tests for new model/UI behavior.
+4. Run local validation and browser smoke evidence.
+5. Deploy to Render, verify smoke, and update status/evidence docs.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run smoke` (local)
+- Browser smoke snapshot (local)
+- Deploy latest commit to Render service and run deployed smoke.
+- Browser smoke snapshot (deployed)
+- Update `STATUS.md` with evidence paths.
+
+### Deployment / update plan
+
+- Push changes to `main`.
+- Trigger Render deploy via API for `srv-d6vcmt7diees73d0j04g`.
+- Verify live deploy ID and run post-deploy smoke check.
+
+### Risks and fallback plan
+
+- Layout complexity may reduce readability on small screens: keep responsive breakpoints and collapse less critical columns.
+- If deploy fails: capture deploy status JSON and roll back by redeploying previous known-good commit.
+
+### Progress log
+
+- 2026-03-21: Plan opened from UX audit request.
+
+### Completion checkpoint
+
+Complete when redesigned dashboard is implemented, verified locally and on Render, and status/evidence records are updated.
+
 ## Maintenance rule
 
 When a plan is completed:

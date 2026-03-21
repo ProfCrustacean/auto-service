@@ -38,7 +38,18 @@ test("health and dashboard endpoints return successful responses", async () => {
   const uiRes = await fetch(baseUrl);
   assert.equal(uiRes.status, 200);
   const html = await uiRes.text();
-  assert.match(html, /Ожидание запчастей/);
+  assert.match(html, /Диспетчер действий/);
+  assert.match(html, /Готово к выдаче, но не оплачено/);
+
+  const woRes = await fetch(`${baseUrl}/work-orders/wo-1005`);
+  assert.equal(woRes.status, 200);
+  const woHtml = await woRes.text();
+  assert.match(woHtml, /Заказ-наряд WO-1005/);
+
+  const intakeRes = await fetch(`${baseUrl}/intake/walk-in`);
+  assert.equal(intakeRes.status, 200);
+  const intakeHtml = await intakeRes.text();
+  assert.match(intakeHtml, /Прием walk-in/);
 
   await new Promise((resolve) => server.close(resolve));
 });

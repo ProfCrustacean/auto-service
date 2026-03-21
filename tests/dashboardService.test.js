@@ -13,4 +13,10 @@ test("DashboardService returns expected queue counts from fixtures", () => {
   assert.equal(payload.summary.waitingPartsCount, 1);
   assert.equal(payload.summary.readyForPickupCount, 1);
   assert.ok(payload.summary.activeWorkOrders >= 4);
+  assert.equal(payload.summary.unpaidReadyForPickupCount, 1);
+  assert.equal(payload.summary.unpaidReadyForPickupAmountRub, 6500);
+  assert.equal(payload.summary.totalOutstandingActiveRub, 27000);
+  assert.ok(payload.load.byBay.length >= 2);
+  assert.ok(payload.load.byAssignee.length >= 3);
+  assert.equal(payload.queues.waitingParts[0].nextActionLabel, "Уточнить поставку");
 });
