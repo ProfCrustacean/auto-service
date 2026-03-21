@@ -104,6 +104,99 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-7 Employees and Bays CRUD API (2026-03-21)
+
+### Objective
+
+Deliver Phase 1 API CRUD support for employees and bays with explicit validation boundaries and stable error contracts.
+
+### Why now
+
+`AUT-6` established persistence and migrations; `AUT-7` is the next dependency for scheduling/intake workflows that require managed staff and bay records.
+
+### Scope
+
+- Implement REST APIs for employees and bays:
+  - create,
+  - list,
+  - get by id,
+  - update,
+  - delete (soft deactivation to preserve history).
+- Add request validation and stable JSON error shape for invalid or conflicting inputs.
+- Add repository methods required for these APIs on top of SQLite.
+- Add tests covering successful CRUD paths and validation/error responses.
+- Re-run local and deployed verification and capture evidence.
+
+### Out of scope
+
+- Customer/vehicle CRUD (`AUT-8`).
+- Appointment lifecycle and walk-in APIs (`AUT-9`, `AUT-10`).
+- Auth/permission enforcement.
+- UI forms for employee/bay management.
+
+### Current-state validation
+
+- Current app serves dashboard/read-only endpoints and placeholder detail routes.
+- SQLite repository currently has read methods only for employees/bays.
+- No API endpoints for employee/bay mutation exist.
+
+### Relevant packet rules and defaults
+
+- Preserve history and avoid silent destructive behavior.
+- Keep business state explicit and validation boundaries mechanical.
+- Keep slices small, end-to-end verifiable, and evidence-backed.
+- Keep user-facing product UI Russian-only; API internals/docs remain English.
+
+### Target outcome
+
+- `/api/v1/employees` and `/api/v1/bays` support full CRUD semantics with soft-delete behavior.
+- Validation failures return deterministic structured errors and are covered by tests.
+- Existing dashboard behavior remains intact.
+- Local and Render verification paths pass with updated evidence.
+
+### Ordered execution slices
+
+1. Extend SQLite repository with employee/bay create/read/update/deactivate methods.
+2. Add API validation helpers and deterministic error response contract.
+3. Add employee and bay CRUD routes in Express app.
+4. Add automated integration tests for happy paths and validation/conflict/not-found errors.
+5. Run local verification and capture evidence.
+6. Deploy to Render, run deployed smoke/browser checks, capture evidence, update state files, and close Linear issue.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run verify`
+- local browser snapshot: `evidence/browser-snapshot.md`
+- Render deploy for `srv-d6vcmt7diees73d0j04g`
+- deployed smoke: `APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke`
+- deployed browser snapshot: `evidence/render-browser-snapshot.md`
+- deployment and API outputs in `evidence/`
+
+### Deployment / update plan
+
+- Commit changes to `main` and push.
+- Trigger Render deploy via API and poll to `live`.
+- Re-run deployed smoke and browser checks.
+- If deploy fails, keep previous live revision and record failure evidence.
+
+### Risks and fallback plan
+
+- Name uniqueness collisions (bays) could produce DB constraint errors:
+  - map to stable API `conflict` errors with message and field.
+- Hard-delete could break historical references:
+  - use soft-delete (`isActive=false`) and keep record visibility options explicit.
+- Validation drift risk:
+  - centralize request validators and cover negative cases in tests.
+
+### Progress log
+
+- 2026-03-21: Plan opened for AUT-7; Linear issue moved to `In Progress`.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — AUT-6 Persistent Data Model and Migrations (2026-03-21)
 
 ### Objective

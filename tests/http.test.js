@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { bootstrapPersistence } from "../src/persistence/bootstrapPersistence.js";
 import { DashboardService } from "../src/services/dashboardService.js";
+import { ReferenceDataService } from "../src/services/referenceDataService.js";
 import { createApp } from "../src/app.js";
 
 function makeServer({ port = 0, databasePath }) {
@@ -16,7 +17,8 @@ function makeServer({ port = 0, databasePath }) {
   const config = { appEnv: "test", port, seedPath: "./data/seed-fixtures.json", databasePath };
   const { repository, database } = bootstrapPersistence({ config, logger });
   const dashboardService = new DashboardService(repository);
-  const app = createApp({ config, logger, dashboardService });
+  const referenceDataService = new ReferenceDataService(repository);
+  const app = createApp({ config, logger, dashboardService, referenceDataService });
   const server = app.listen(port);
   return { server, database };
 }

@@ -2,14 +2,15 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ DashboardService returns expected queue counts from fixtures (19.467459ms)
-✔ health and dashboard endpoints return successful responses (57.665833ms)
-✔ migrations are idempotent and seed runs only once by default (6.702167ms)
-ℹ tests 3
+✔ DashboardService returns expected queue counts from fixtures (27.129917ms)
+✔ health and dashboard endpoints return successful responses (87.221333ms)
+✔ migrations are idempotent and seed runs only once by default (10.694625ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (91.75225ms)
+ℹ tests 4
 ℹ suites 0
-ℹ pass 3
+ℹ pass 4
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 225.264667
+ℹ duration_ms 287.355625

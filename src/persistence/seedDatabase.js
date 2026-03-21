@@ -63,7 +63,10 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
   const insertService = database.prepare(
     "INSERT INTO service_meta(id, display_name_ru, city_ru) VALUES (?, ?, ?)",
   );
-  const insertBay = database.prepare("INSERT INTO bays(id, name, is_active) VALUES (?, ?, 1)");
+  const insertBay = database.prepare(
+    `INSERT INTO bays(id, name, is_active, created_at, updated_at)
+     VALUES (?, ?, 1, ?, ?)`,
+  );
   const insertEmployee = database.prepare(
     `INSERT INTO employees(id, name, roles_json, is_active, created_at, updated_at)
      VALUES (?, ?, ?, 1, ?, ?)`,
@@ -158,7 +161,7 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
     insertService.run(fixtures.service.id, fixtures.service.displayNameRu, fixtures.service.cityRu);
 
     for (const bay of fixtures.service.bays ?? []) {
-      insertBay.run(bay.id, bay.name);
+      insertBay.run(bay.id, bay.name, nowIso, nowIso);
     }
 
     for (const employee of fixtures.employees ?? []) {

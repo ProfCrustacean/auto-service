@@ -144,4 +144,21 @@ export const MIGRATIONS = [
       DROP TABLE IF EXISTS schema_migrations;
     `,
   },
+  {
+    version: "002",
+    name: "add_bay_timestamps",
+    up: `
+      ALTER TABLE bays ADD COLUMN created_at TEXT;
+      ALTER TABLE bays ADD COLUMN updated_at TEXT;
+
+      UPDATE bays
+      SET
+        created_at = COALESCE(created_at, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+        updated_at = COALESCE(updated_at, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+    `,
+    down: `
+      -- SQLite does not support DROP COLUMN in a straightforward reversible way for this table.
+      -- Intentionally a no-op rollback for timestamp columns.
+    `,
+  },
 ];

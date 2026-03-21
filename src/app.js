@@ -1,8 +1,9 @@
 import express from "express";
 import { renderDashboardPage } from "./ui/dashboardPage.js";
 import { renderSimpleDetailPage } from "./ui/detailPage.js";
+import { registerReferenceRoutes } from "./http/referenceRoutes.js";
 
-export function createApp({ config, logger, dashboardService }) {
+export function createApp({ config, logger, dashboardService, referenceDataService }) {
   const app = express();
 
   app.use(express.json());
@@ -37,6 +38,8 @@ export function createApp({ config, logger, dashboardService }) {
     const payload = dashboardService.getTodayDashboard();
     res.json(payload);
   });
+
+  registerReferenceRoutes(app, { logger, referenceDataService });
 
   app.get("/", (_req, res) => {
     const model = dashboardService.getTodayDashboard();
