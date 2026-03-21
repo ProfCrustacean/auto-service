@@ -24,17 +24,18 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Phase 1 customer and vehicle CRUD APIs implemented with ownership-history tracking and search-ready query filters.
 - Phase 1 appointment lifecycle APIs implemented with explicit status transitions and deterministic bay/person capacity conflict checks.
 - Phase 1 walk-in intake API implemented with active queue/day board insertion behavior.
+- Phase 1 scheduling + walk-in acceptance verification harness implemented (domain/API scenario tests, reusable scenario runner, local/deployed browser evidence).
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-21: `AUT-10` accepted end-to-end (walk-in intake API + active queue insertion + local/deployed verification + Linear update).
+- 2026-03-21: `AUT-14` accepted end-to-end (scheduling + walk-in verification scenarios with domain/API tests, local/deployed scenario runs, browser evidence, and Linear update).
 
 ### Current active objective
 - Continue Phase 1 scheduling and intake implementation beyond dashboard shell:
   - planning board and search experience completion,
-  - search and scenario verification expansion.
+  - day/week planning workflows and operational search UX.
 
 ## Confirmed decisions (human input)
 
@@ -54,7 +55,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-21, commit `91c13d6`
+- last validated date or commit: 2026-03-21, commit `be35d5a`
 - known caveats: no auth yet; single-node SQLite file model only
 
 2. `render-validation`
@@ -64,7 +65,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `91c13d6`
+- last validated date or commit: 2026-03-21, commit `be35d5a`
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -80,27 +81,39 @@ Codex must keep this file current enough that a new Codex run can answer:
 - local appointment lifecycle smoke: passed on 2026-03-21.
 - local walk-in intake smoke: passed on 2026-03-21.
 - local browser smoke snapshot: passed on 2026-03-21.
+- local scheduling + walk-in scenario script (`node scripts/scheduling-walkin-scenario.js`): passed on 2026-03-21.
+- local scheduling + walk-in browser path snapshots (dashboard + appointment + work-order): passed on 2026-03-21.
 - deployed Render smoke (`APP_BASE_URL="https://auto-service-foundation.onrender.com" npm run smoke`): passed on 2026-03-21.
 - deployed Render appointment lifecycle smoke: passed on 2026-03-21.
 - deployed Render walk-in intake smoke: passed on 2026-03-21.
 - deployed Render browser smoke snapshot: passed on 2026-03-21.
 - deployed Render CRUD smoke for employees/bays (create/update/soft-delete): passed on 2026-03-21.
 - deployed Render CRUD smoke for customers/vehicles (create/update/reassign/delete): passed on 2026-03-21.
+- deployed scheduling + walk-in scenario script (`APP_BASE_URL="https://auto-service-foundation.onrender.com" node scripts/scheduling-walkin-scenario.js`): passed on 2026-03-21.
+- deployed scheduling + walk-in browser path snapshots (dashboard + appointment + work-order): passed on 2026-03-21.
 - evidence:
   - `evidence/smoke-output.txt`
   - `evidence/local-appointment-lifecycle-smoke.json`
   - `evidence/local-walkin-intake-smoke.json`
   - `evidence/browser-snapshot.md`
+  - `evidence/local-scheduling-walkin-scenario.json`
+  - `evidence/local-scheduling-walkin-browser-dashboard.md`
+  - `evidence/local-scheduling-walkin-browser-appointment.md`
+  - `evidence/local-scheduling-walkin-browser-workorder.md`
   - `evidence/render-smoke-output.txt`
   - `evidence/render-appointment-lifecycle-smoke.json`
   - `evidence/render-walkin-intake-smoke.json`
   - `evidence/render-browser-snapshot.md`
   - `evidence/render-crud-smoke.json`
   - `evidence/render-customer-vehicle-crud-smoke.json`
+  - `evidence/render-scheduling-walkin-scenario.json`
+  - `evidence/render-scheduling-walkin-browser-dashboard.md`
+  - `evidence/render-scheduling-walkin-browser-appointment.md`
+  - `evidence/render-scheduling-walkin-browser-workorder.md`
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: passed (`dep-d6vf6pa4d50c73fvc2h0` reached `live`, commit `91c13d6`).
+- Render deployment smoke: passed (`dep-d6vfe9ea2pns73aiapqg` reached `live`, commit `be35d5a`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
@@ -127,6 +140,9 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/render-manual-deploy-poll.txt`
   - `evidence/render-manual-deploy-final.json`
   - `evidence/render-manual-postdeploy-smoke.txt`
+  - `evidence/render-aut14-deploy-response.json`
+  - `evidence/render-aut14-deploy-poll.txt`
+  - `evidence/render-aut14-deploy-final.json`
   - `evidence/render-service-state.json`
   - `evidence/render-validate-response.json`
 
@@ -139,6 +155,10 @@ Most recent useful evidence:
 - `evidence/local-appointment-lifecycle-smoke.json`
 - `evidence/local-walkin-intake-smoke.json`
 - `evidence/browser-snapshot.md`
+- `evidence/local-scheduling-walkin-scenario.json`
+- `evidence/local-scheduling-walkin-browser-dashboard.md`
+- `evidence/local-scheduling-walkin-browser-appointment.md`
+- `evidence/local-scheduling-walkin-browser-workorder.md`
 - `evidence/healthz.json`
 - `evidence/dashboard-today.json`
 - `evidence/employees-list.json`
@@ -155,6 +175,9 @@ Most recent useful evidence:
 - `evidence/render-manual-deploy-poll.txt`
 - `evidence/render-manual-deploy-final.json`
 - `evidence/render-manual-postdeploy-smoke.txt`
+- `evidence/render-aut14-deploy-response.json`
+- `evidence/render-aut14-deploy-poll.txt`
+- `evidence/render-aut14-deploy-final.json`
 - `evidence/render-service-state.json`
 - `evidence/render-healthz.json`
 - `evidence/render-dashboard-today.json`
@@ -170,6 +193,10 @@ Most recent useful evidence:
 - `evidence/render-walkin-intake-smoke.json`
 - `evidence/render-browser-snapshot.md`
 - `evidence/render-crud-smoke.json`
+- `evidence/render-scheduling-walkin-scenario.json`
+- `evidence/render-scheduling-walkin-browser-dashboard.md`
+- `evidence/render-scheduling-walkin-browser-appointment.md`
+- `evidence/render-scheduling-walkin-browser-workorder.md`
 
 ## Open blockers
 
@@ -177,8 +204,9 @@ Most recent useful evidence:
 
 ## Next recommended milestone
 
-1. Add day/week planning endpoint coverage and acceptance scenarios under `AUT-14`.
-2. Continue slice-by-slice deploy validation in `render-validation` for each Phase 1 milestone.
+1. Implement day/week planning board endpoint and Russian UI entry for dispatch planning (`AUT-11` scope).
+2. Add customer/vehicle operational search flow with deterministic filters and acceptance scenarios (`AUT-12` scope).
+3. Continue slice-by-slice deploy validation in `render-validation` for each Phase 1 milestone.
 
 ## Update rule
 

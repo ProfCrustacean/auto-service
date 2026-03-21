@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-14 verification scenarios for scheduling and walk-in
+## Completed Plan — AUT-14 verification scenarios for scheduling and walk-in (2026-03-21)
 
 ### Objective
 
@@ -191,11 +191,15 @@ Extend the verification harness with realistic acceptance scenarios covering app
 ### Progress log
 
 - 2026-03-21: Plan opened for `AUT-14`; Linear moved to `In Progress`.
-- 2026-03-21: Next step: implement scenario tests and evidence script.
+- 2026-03-21: Added domain scenario test (`tests/domainSchedulingWalkin.test.js`), API scenario test (`tests/schedulingWalkinApiScenario.test.js`), and scenario runner (`scripts/scheduling-walkin-scenario.js`).
+- 2026-03-21: Local verification passed (`npm test`, `npm run verify`); local scenario + browser artifacts captured.
+- 2026-03-21: Changes pushed on `main` as commit `be35d5a`.
+- 2026-03-21: Render deploy `dep-d6vfe9ea2pns73aiapqg` reached `live`; deployed scenario + browser artifacts captured.
+- 2026-03-21: Linear `AUT-14` moved to `Done`; evidence comment posted (`5097c936-60b0-4d2b-b53b-977fabfb6658`).
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21.
 
 ## Completed Plan — AUT-10 Walk-in intake API and active queue insertion (2026-03-21)
 

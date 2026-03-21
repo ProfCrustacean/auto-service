@@ -1,0 +1,15 @@
+{
+  "status": "scheduling_walkin_scenario_passed",
+  "baseUrl": "https://auto-service-foundation.onrender.com",
+  "plannedStartLocal": "SCENARIO-1774122857743",
+  "appointmentId": "apt-849a0751",
+  "appointmentCode": "APT-002",
+  "workOrderId": "wo-bf7c62c1",
+  "workOrderCode": "WO-1006",
+  "checks": {
+    "appointmentsBefore": 1,
+    "appointmentsAfter": 2,
+    "activeBefore": 4,
+    "activeAfter": 5
+  }
+}

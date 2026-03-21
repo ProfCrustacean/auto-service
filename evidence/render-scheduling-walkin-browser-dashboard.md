@@ -1,0 +1,169 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Автосервис Саранск" [level=1] [ref=e5]
+      - paragraph [ref=e6]: "Город: Саранск · Посты: 2 · Обновлено: 21.03, 19:54"
+    - generic [ref=e7]:
+      - link "Новая запись" [ref=e8] [cursor=pointer]:
+        - /url: /appointments/new
+      - link "Принять walk-in" [ref=e9] [cursor=pointer]:
+        - /url: /intake/walk-in
+      - link "Открыть активную очередь" [ref=e10] [cursor=pointer]:
+        - /url: /work-orders/active
+  - generic [ref=e11]:
+    - heading "Диспетчер действий" [level=2] [ref=e12]
+    - generic [ref=e13]:
+      - article [ref=e14]:
+        - text: Записи на сегодня
+        - strong [ref=e15]: "2"
+      - article [ref=e16]:
+        - text: Активные заказ-наряды
+        - strong [ref=e17]: "5"
+      - article [ref=e18]:
+        - text: Ожидают запчасти
+        - strong [ref=e19]: "1"
+      - article [ref=e20]:
+        - text: Готово к выдаче, но не оплачено
+        - strong [ref=e21]: "1"
+        - generic [ref=e22]: 6 500 руб.
+      - article [ref=e23]:
+        - text: Общая задолженность в активных
+        - strong [ref=e24]: 27 000 руб.
+      - article [ref=e25]:
+        - text: Просроченные блокировки
+        - strong [ref=e26]: "1"
+  - generic [ref=e27]:
+    - article [ref=e28]:
+      - heading "Нагрузка по постам (день)" [level=2] [ref=e29]
+      - table [ref=e31]:
+        - rowgroup [ref=e32]:
+          - row "Пост План Актив Блок" [ref=e33]:
+            - columnheader "Пост" [ref=e34]
+            - columnheader "План" [ref=e35]
+            - columnheader "Актив" [ref=e36]
+            - columnheader "Блок" [ref=e37]
+        - rowgroup [ref=e38]:
+          - row "Пост 2 0 3 2" [ref=e39]:
+            - cell "Пост 2" [ref=e40]
+            - cell "0" [ref=e41]
+            - cell "3" [ref=e42]
+            - cell "2" [ref=e43]
+          - row "Пост 1 2 2 1" [ref=e44]:
+            - cell "Пост 1" [ref=e45]
+            - cell "2" [ref=e46]
+            - cell "2" [ref=e47]
+            - cell "1" [ref=e48]
+    - article [ref=e49]:
+      - heading "Нагрузка по сотрудникам" [level=2] [ref=e50]
+      - table [ref=e52]:
+        - rowgroup [ref=e53]:
+          - row "Сотрудник План Актив Блок" [ref=e54]:
+            - columnheader "Сотрудник" [ref=e55]
+            - columnheader "План" [ref=e56]
+            - columnheader "Актив" [ref=e57]
+            - columnheader "Блок" [ref=e58]
+        - rowgroup [ref=e59]:
+          - row "Алексей Соколов 1 2 1" [ref=e60]:
+            - cell "Алексей Соколов" [ref=e61]
+            - cell "1" [ref=e62]
+            - cell "2" [ref=e63]
+            - cell "1" [ref=e64]
+          - row "Иван Петров 1 1 0" [ref=e65]:
+            - cell "Иван Петров" [ref=e66]
+            - cell "1" [ref=e67]
+            - cell "1" [ref=e68]
+            - cell "0" [ref=e69]
+          - row "Дмитрий Орлов 0 1 1" [ref=e70]:
+            - cell "Дмитрий Орлов" [ref=e71]
+            - cell "0" [ref=e72]
+            - cell "1" [ref=e73]
+            - cell "1" [ref=e74]
+          - row "Сергей Кузнецов 0 1 1" [ref=e75]:
+            - cell "Сергей Кузнецов" [ref=e76]
+            - cell "0" [ref=e77]
+            - cell "1" [ref=e78]
+            - cell "1" [ref=e79]
+  - generic [ref=e80]:
+    - heading "Запланированные записи" [level=2] [ref=e81]
+    - table [ref=e83]:
+      - rowgroup [ref=e84]:
+        - row "Код Время Клиент Авто Пост Ответственный" [ref=e85]:
+          - columnheader "Код" [ref=e86]
+          - columnheader "Время" [ref=e87]
+          - columnheader "Клиент" [ref=e88]
+          - columnheader "Авто" [ref=e89]
+          - columnheader "Пост" [ref=e90]
+          - columnheader "Ответственный" [ref=e91]
+      - rowgroup [ref=e92]:
+        - row "APT-002 SCENARIO-1774122857743 Павел Иванов Lada Vesta C789CC13 Пост 1 Иван Петров" [ref=e93]:
+          - cell "APT-002" [ref=e94]:
+            - link "APT-002" [ref=e95] [cursor=pointer]:
+              - /url: /appointments/apt-849a0751
+          - cell "SCENARIO-1774122857743" [ref=e96]
+          - cell "Павел Иванов" [ref=e97]
+          - cell "Lada Vesta C789CC13" [ref=e98]
+          - cell "Пост 1" [ref=e99]
+          - cell "Иван Петров" [ref=e100]
+        - row "APT-001 Завтра 09:00 Елена Смирнова Kia Rio A123AA13 Пост 1 Алексей Соколов" [ref=e101]:
+          - cell "APT-001" [ref=e102]:
+            - link "APT-001" [ref=e103] [cursor=pointer]:
+              - /url: /appointments/apt-1
+          - cell "Завтра 09:00" [ref=e104]
+          - cell "Елена Смирнова" [ref=e105]
+          - cell "Kia Rio A123AA13" [ref=e106]
+          - cell "Пост 1" [ref=e107]
+          - cell "Алексей Соколов" [ref=e108]
+  - generic [ref=e109]:
+    - 'heading "Очередь: ожидание запчастей" [level=2] [ref=e110]'
+    - table [ref=e112]:
+      - rowgroup [ref=e113]:
+        - row "Код Клиент Авто Пост Статус Блокировка Долг Следующий шаг" [ref=e114]:
+          - columnheader "Код" [ref=e115]
+          - columnheader "Клиент" [ref=e116]
+          - columnheader "Авто" [ref=e117]
+          - columnheader "Пост" [ref=e118]
+          - columnheader "Статус" [ref=e119]
+          - columnheader "Блокировка" [ref=e120]
+          - columnheader "Долг" [ref=e121]
+          - columnheader "Следующий шаг" [ref=e122]
+      - rowgroup [ref=e123]:
+        - row "WO-1003 Марина Козлова +7 927 400 40 40 Ford Focus E321EE13 Пост 1 Ожидает запчасти 3 дн 12 000 руб. Уточнить поставку" [ref=e124]:
+          - cell "WO-1003" [ref=e125]:
+            - link "WO-1003" [ref=e126] [cursor=pointer]:
+              - /url: /work-orders/wo-1003
+          - cell "Марина Козлова +7 927 400 40 40" [ref=e127]:
+            - strong [ref=e128]: Марина Козлова
+            - generic [ref=e129]: +7 927 400 40 40
+          - cell "Ford Focus E321EE13" [ref=e130]
+          - cell "Пост 1" [ref=e131]
+          - cell "Ожидает запчасти" [ref=e132]
+          - cell "3 дн" [ref=e133]
+          - cell "12 000 руб." [ref=e134]
+          - cell "Уточнить поставку" [ref=e135]
+  - generic [ref=e136]:
+    - 'heading "Очередь: готово к выдаче" [level=2] [ref=e137]'
+    - table [ref=e139]:
+      - rowgroup [ref=e140]:
+        - row "Код Клиент Авто Пост Статус Блокировка Долг Следующий шаг" [ref=e141]:
+          - columnheader "Код" [ref=e142]
+          - columnheader "Клиент" [ref=e143]
+          - columnheader "Авто" [ref=e144]
+          - columnheader "Пост" [ref=e145]
+          - columnheader "Статус" [ref=e146]
+          - columnheader "Блокировка" [ref=e147]
+          - columnheader "Долг" [ref=e148]
+          - columnheader "Следующий шаг" [ref=e149]
+      - rowgroup [ref=e150]:
+        - row "WO-1005 ООО Волга Трейд +7 927 300 30 30 Toyota Camry B456BB13 Пост 2 Готово к выдаче н/д 6 500 руб. Позвонить клиенту и закрыть оплату" [ref=e151]:
+          - cell "WO-1005" [ref=e152]:
+            - link "WO-1005" [ref=e153] [cursor=pointer]:
+              - /url: /work-orders/wo-1005
+          - cell "ООО Волга Трейд +7 927 300 30 30" [ref=e154]:
+            - strong [ref=e155]: ООО Волга Трейд
+            - generic [ref=e156]: +7 927 300 30 30
+          - cell "Toyota Camry B456BB13" [ref=e157]
+          - cell "Пост 2" [ref=e158]
+          - cell "Готово к выдаче" [ref=e159]
+          - cell "н/д" [ref=e160]
+          - cell "6 500 руб." [ref=e161]
+          - cell "Позвонить клиенту и закрыть оплату" [ref=e162]
