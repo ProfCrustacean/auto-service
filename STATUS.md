@@ -17,17 +17,20 @@ Codex must keep this file current enough that a new Codex run can answer:
 ### Repository maturity
 - Starter packet installed and preserved.
 - Phase 0 foundation slice implemented as runnable Node.js service.
-- Russian-only UI shell implemented for the operational dashboard.
+- Russian-only dashboard refactored to decision-first operational cockpit (actions, triage, load, queue context).
 - Deterministic seed fixtures implemented from packet scenario set.
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-21: Phase 0 accepted end-to-end (build, local verification, Render deploy, deployed smoke, browser smoke, evidence captured).
+- 2026-03-21: Phase 1 dashboard UX slice accepted end-to-end (implementation, local verification, Render deploy, deployed smoke, browser smoke, evidence captured).
 
 ### Current active objective
-- Start Phase 1 (scheduling and intake) on top of the accepted deployed foundation.
+- Continue Phase 1 scheduling and intake implementation beyond dashboard shell:
+  - persistent records and CRUD flows,
+  - appointment lifecycle and walk-in intake APIs,
+  - search and scenario verification expansion.
 
 ## Confirmed decisions (human input)
 
@@ -47,7 +50,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-21, commit `325af43`
+- last validated date or commit: 2026-03-21, commit `aaca232`
 - known caveats: seed-fixture data only; no auth yet; no persistent transactional storage yet
 
 2. `render-validation`
@@ -57,7 +60,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `325af43`
+- last validated date or commit: 2026-03-21, commit `aaca232`
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
 
@@ -80,7 +83,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: passed (`dep-d6vd167diees73d0pc00` reached `live`, commit `325af43`).
+- Render deployment smoke: passed (`dep-d6vdi894tr6s73dis1eg` reached `live`, commit `aaca232`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
@@ -120,13 +123,10 @@ Most recent useful evidence:
 
 ## Next recommended milestone
 
-1. Begin Phase 1 scheduling and intake slice:
-   - employee, bay, customer, vehicle records;
-   - appointment creation;
-   - walk-in intake;
-   - day/week board.
-2. Add acceptance-oriented end-to-end checks for scheduling + walk-in scenarios.
-3. Deploy Phase 1 slice to `render-validation` and re-run smoke + scenario checks.
+1. Execute `AUT-6` to establish persistent data model + migration path.
+2. Execute `AUT-7` and `AUT-8` for employee/bay and customer/vehicle CRUD APIs.
+3. Execute `AUT-9` and `AUT-10` for appointment lifecycle and walk-in intake.
+4. Extend acceptance scenarios under `AUT-14` and deploy each slice to `render-validation`.
 
 ## Update rule
 

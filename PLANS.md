@@ -207,7 +207,7 @@ Completed on 2026-03-21:
 - deployed smoke + browser verification passed,
 - and `STATUS.md` updated with environment and evidence state.
 
-## Active Plan — Phase 1 Dashboard UX Refactor
+## Completed Plan — Phase 1 Dashboard UX Refactor (2026-03-21)
 
 ### Objective
 
@@ -286,10 +286,21 @@ Dashboard provides immediate operational triage and planning context:
 ### Progress log
 
 - 2026-03-21: Plan opened from UX audit request.
+- 2026-03-21: Dashboard service model extended with triage, debt, overdue, and load aggregates.
+- 2026-03-21: Dashboard UI rebuilt into decision-first layout with action bar, triage cards, load tables, and queue action fields.
+- 2026-03-21: Added functional route targets for dashboard links (`/appointments/:id`, `/work-orders/:id`, action placeholders).
+- 2026-03-21: Automated tests updated and passed.
+- 2026-03-21: Local smoke and browser snapshot verification passed.
+- 2026-03-21: Render deploy `dep-d6vdi894tr6s73dis1eg` reached live with commit `aaca232`; deployed smoke and browser snapshot passed.
+- 2026-03-21: Linear observability updated: `AUT-5` moved to In Progress, `AUT-11` moved to Done with evidence comment.
 
 ### Completion checkpoint
 
-Complete when redesigned dashboard is implemented, verified locally and on Render, and status/evidence records are updated.
+Completed on 2026-03-21:
+- redesigned dashboard implemented,
+- local + deployed verification passed,
+- evidence captured,
+- and tracking updated in both repository state files and Linear tasks.
 
 ## Maintenance rule
 
