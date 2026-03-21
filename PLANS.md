@@ -104,6 +104,91 @@ Use this template for the active plan:
 
 ---
 
+## Completed Plan — Render build/runtime log investigation and follow-up triage (2026-03-21)
+
+### Objective
+
+Inspect Render build and runtime logs beyond deploy-state checks to verify operational health and produce actionable follow-up issues where needed.
+
+### Why now
+
+Post-AUT-14 deploy verification confirmed HTTP/e2e behavior. The next required confidence step was direct log-level validation of build/runtime conditions and failure signals.
+
+### Scope
+
+- Pull deploy/build event history from Render API.
+- Pull paginated service logs across the full available window.
+- Analyze for build failures, runtime errors, and observability quality risks.
+- Create Linear backlog cards only for confirmed findings.
+
+### Out of scope
+
+- Implementing fixes for discovered issues.
+- Runtime architecture changes.
+- Production incident response workflow design.
+
+### Current-state validation
+
+- Render service: `srv-d6vcmt7diees73d0j04g`.
+- Latest deploy: `dep-d6vfe9ea2pns73aiapqg` (`live`).
+- Render API network caveat handled via `curl --resolve api.render.com:443:216.24.57.7`.
+
+### Relevant packet rules and defaults
+
+- Operational claims require evidence, not assertions.
+- Prefer deterministic, agent-runnable verification steps with stored artifacts.
+- Record follow-up work in the project task system with explicit acceptance criteria.
+
+### Target outcome
+
+- Clear statement of build/runtime log health.
+- Evidence files in `evidence/` sufficient for replay/audit.
+- Linear cards created for every confirmed improvement need.
+
+### Ordered execution slices
+
+1. Retrieve Render deploy/build events and latest deploy log window.
+2. Retrieve paginated logs across the full service lifetime window.
+3. Quantify status/error/noise signals and identify concrete issues.
+4. Create Linear cards with acceptance criteria for each validated finding.
+5. Record evidence and state updates.
+
+### Verification and evidence plan
+
+- Event stream: `evidence/render-log-audit-events.json`
+- Latest deploy window: `evidence/render-log-audit-latest-deploy-window.json`
+- Full log extract: `evidence/render-log-audit-all.ndjson`
+- Computed metrics: `evidence/render-log-audit-summary.json`
+
+### Deployment / update plan
+
+- No deployment changes in this investigation.
+- Capture findings as backlog issues for execution in subsequent slices.
+
+### Risks and fallback plan
+
+- API endpoint mismatch risk:
+  - resolve with official Render OpenAPI/docs and endpoint probing.
+- High-volume log data risk:
+  - store both raw extract and compact summary metrics.
+
+### Progress log
+
+- 2026-03-21: Pulled Render service events and verified all 9 builds/deploys succeeded.
+- 2026-03-21: Pulled 2,828 log rows across service lifetime and generated summary metrics.
+- 2026-03-21: Identified three follow-up findings:
+  - Node runtime drift (`25.8.1` chosen from permissive engines),
+  - repeated repo-access fallback warning during clone,
+  - `/healthz` request logs dominating runtime signal (~99% of HTTP request logs).
+- 2026-03-21: Created Linear backlog cards:
+  - `AUT-16` (Node LTS pinning),
+  - `AUT-17` (health-check log noise reduction),
+  - `AUT-18` (repo-access fallback warning removal).
+
+### Completion checkpoint
+
+Completed on 2026-03-21.
+
 ## Completed Plan — AUT-14 verification scenarios for scheduling and walk-in (2026-03-21)
 
 ### Objective

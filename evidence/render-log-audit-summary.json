@@ -1,0 +1,92 @@
+{
+  "auditTimestampUtc": "2026-03-21T20:24:28.132119+00:00",
+  "serviceId": "srv-d6vcmt7diees73d0j04g",
+  "timeRange": {
+    "start": "2026-03-21T16:46:52.490852325Z",
+    "end": "2026-03-21T20:16:50.720482707Z"
+  },
+  "totals": {
+    "logRows": 2828,
+    "labelTypeCounts": {
+      "app": 2828
+    },
+    "instanceCount": 9,
+    "jsonLevelCounts": {
+      "info": 2551
+    },
+    "jsonWarnErrorCount": 0,
+    "textWarningLikeCount": 0,
+    "httpStatusCounts": {
+      "200": 2542,
+      "204": 2
+    },
+    "httpRequestTotal": 2544,
+    "healthzRequestCount": 2519,
+    "healthzRequestRatio": 0.990173
+  },
+  "deployEvents": {
+    "deployEndedCount": 9,
+    "deployStatusCounts": {
+      "succeeded": 9
+    },
+    "buildEndedCount": 9,
+    "buildStatusCounts": {
+      "succeeded": 9
+    }
+  },
+  "signals": {
+    "repoAccessWarningCount": 9,
+    "nodeVersionsSeen": [
+      "25.8.1"
+    ]
+  },
+  "topHttpPaths": [
+    {
+      "path": "/healthz",
+      "count": 2519
+    },
+    {
+      "path": "/",
+      "count": 17
+    },
+    {
+      "path": "/api/v1/dashboard/today",
+      "count": 4
+    },
+    {
+      "path": "/favicon.ico",
+      "count": 2
+    },
+    {
+      "path": "/api/v1/employees",
+      "count": 1
+    },
+    {
+      "path": "/api/v1/bays",
+      "count": 1
+    }
+  ],
+  "topJsonEvents": [
+    {
+      "event": "http_request",
+      "count": 2544
+    },
+    {
+      "event": "server_started",
+      "count": 3
+    },
+    {
+      "event": "db_migration_applied",
+      "count": 2
+    },
+    {
+      "event": "db_seed_applied",
+      "count": 1
+    },
+    {
+      "event": "db_bootstrap_complete",
+      "count": 1
+    }
+  ],
+  "sampleTextWarningLike": []
+}

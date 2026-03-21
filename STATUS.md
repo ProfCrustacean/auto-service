@@ -25,6 +25,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Phase 1 appointment lifecycle APIs implemented with explicit status transitions and deterministic bay/person capacity conflict checks.
 - Phase 1 walk-in intake API implemented with active queue/day board insertion behavior.
 - Phase 1 scheduling + walk-in acceptance verification harness implemented (domain/API scenario tests, reusable scenario runner, local/deployed browser evidence).
+- Render build/runtime log audit completed with evidence-backed follow-up triage.
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
 - Render deployment path is implemented and validated in a live environment.
@@ -35,7 +36,8 @@ Codex must keep this file current enough that a new Codex run can answer:
 ### Current active objective
 - Continue Phase 1 scheduling and intake implementation beyond dashboard shell:
   - planning board and search experience completion,
-  - day/week planning workflows and operational search UX.
+  - day/week planning workflows and operational search UX,
+  - observability/deploy hardening follow-ups from Render log audit (`AUT-16`..`AUT-18`).
 
 ## Confirmed decisions (human input)
 
@@ -110,6 +112,24 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/render-scheduling-walkin-browser-dashboard.md`
   - `evidence/render-scheduling-walkin-browser-appointment.md`
   - `evidence/render-scheduling-walkin-browser-workorder.md`
+
+### Operational log audit
+- Render API events and logs inspected directly on 2026-03-21.
+- build/deploy event result: 9/9 succeeded (`build_ended`, `deploy_ended`).
+- runtime warn/error signal: none observed in structured app logs (`json_warn_error_count = 0`).
+- findings requiring follow-up:
+  - Node runtime drift risk: Render selected `Node.js 25.8.1` from permissive `>=22` constraint.
+  - Repo-access fallback warning on every deploy clone step.
+  - health-check log noise (`/healthz`) dominates request logs (~99%).
+- Linear follow-up issues created in Backlog:
+  - `AUT-16` Node LTS pinning
+  - `AUT-17` health-check log noise reduction
+  - `AUT-18` repo-access warning removal
+- evidence:
+  - `evidence/render-log-audit-summary.json`
+  - `evidence/render-log-audit-events.json`
+  - `evidence/render-log-audit-latest-deploy-window.json`
+  - `evidence/render-log-audit-all.ndjson`
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
@@ -197,6 +217,10 @@ Most recent useful evidence:
 - `evidence/render-scheduling-walkin-browser-dashboard.md`
 - `evidence/render-scheduling-walkin-browser-appointment.md`
 - `evidence/render-scheduling-walkin-browser-workorder.md`
+- `evidence/render-log-audit-summary.json`
+- `evidence/render-log-audit-events.json`
+- `evidence/render-log-audit-latest-deploy-window.json`
+- `evidence/render-log-audit-all.ndjson`
 
 ## Open blockers
 
@@ -205,8 +229,10 @@ Most recent useful evidence:
 ## Next recommended milestone
 
 1. Implement day/week planning board endpoint and Russian UI entry for dispatch planning (`AUT-11` scope).
-2. Add customer/vehicle operational search flow with deterministic filters and acceptance scenarios (`AUT-12` scope).
-3. Continue slice-by-slice deploy validation in `render-validation` for each Phase 1 milestone.
+2. Execute `AUT-17`: reduce `/healthz` log noise while preserving business-path observability.
+3. Execute `AUT-16`: pin Node.js runtime to LTS and verify on next Render deploy.
+4. Execute `AUT-18`: remove repo-access fallback warning in Render build clone step.
+5. Add customer/vehicle operational search flow with deterministic filters and acceptance scenarios (`AUT-12` scope).
 
 ## Update rule
 
