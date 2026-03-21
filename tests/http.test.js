@@ -7,6 +7,7 @@ import { bootstrapPersistence } from "../src/persistence/bootstrapPersistence.js
 import { DashboardService } from "../src/services/dashboardService.js";
 import { ReferenceDataService } from "../src/services/referenceDataService.js";
 import { CustomerVehicleService } from "../src/services/customerVehicleService.js";
+import { AppointmentService } from "../src/services/appointmentService.js";
 import { createApp } from "../src/app.js";
 
 function makeServer({ port = 0, databasePath }) {
@@ -20,7 +21,15 @@ function makeServer({ port = 0, databasePath }) {
   const dashboardService = new DashboardService(repository);
   const referenceDataService = new ReferenceDataService(repository);
   const customerVehicleService = new CustomerVehicleService(repository);
-  const app = createApp({ config, logger, dashboardService, referenceDataService, customerVehicleService });
+  const appointmentService = new AppointmentService(repository);
+  const app = createApp({
+    config,
+    logger,
+    dashboardService,
+    referenceDataService,
+    customerVehicleService,
+    appointmentService,
+  });
   const server = app.listen(port);
   return { server, database };
 }

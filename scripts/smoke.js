@@ -20,6 +20,11 @@ async function main() {
   assert(dashJson.summary.waitingPartsCount >= 1, "expected waiting parts queue");
   assert(dashJson.summary.readyForPickupCount >= 1, "expected ready pickup queue");
 
+  const appointmentsRes = await fetch(`${baseUrl}/api/v1/appointments`);
+  assert(appointmentsRes.ok, "appointments endpoint failed");
+  const appointmentsJson = await appointmentsRes.json();
+  assert(appointmentsJson.count >= 1, "expected at least one appointment");
+
   const uiRes = await fetch(baseUrl);
   assert(uiRes.ok, "dashboard UI endpoint failed");
   const html = await uiRes.text();
@@ -29,7 +34,7 @@ async function main() {
     `${JSON.stringify({
       status: "smoke_passed",
       baseUrl,
-      checks: ["healthz", "dashboard_api", "dashboard_ui"],
+      checks: ["healthz", "dashboard_api", "appointments_api", "dashboard_ui"],
     })}\n`,
   );
 }

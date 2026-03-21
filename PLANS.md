@@ -104,6 +104,105 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
+
+### Objective
+
+Deliver Phase 1 appointment lifecycle APIs with explicit status transitions and deterministic double-booking conflict responses for bay and primary assignee capacity.
+
+### Why now
+
+`AUT-8` completed customer/vehicle CRUD and ownership constraints. Appointment lifecycle is the next required Phase 1 slice before walk-in intake and planning board completion.
+
+### Scope
+
+- Add appointment CRUD/lifecycle API endpoints.
+- Enforce appointment statuses: `booked`, `confirmed`, `arrived`, `cancelled`, `no-show`.
+- Enforce deterministic capacity conflict checks for same-slot bay and assignee double-booking attempts.
+- Add validators and service boundary rules for transitions and referential checks.
+- Add tests for lifecycle, conflicts, and failure contracts.
+- Run local verification, deploy to Render, run post-deploy verification, and capture evidence.
+- Update Linear, `STATUS.md`, and `PLANS.md` after validation.
+
+### Out of scope
+
+- Walk-in intake API (`AUT-10`).
+- UI appointment creation/edit forms.
+- Work-order creation from appointment.
+- Auth/permission enforcement changes.
+
+### Current-state validation
+
+- Appointments currently exist in seed data and are shown on dashboard/read-only pages.
+- No appointment API routes currently exist under `/api/v1/appointments`.
+- No capacity-conflict API behavior currently exists for appointment create/update.
+
+### Relevant packet rules and defaults
+
+- Bay and employee are real capacity constraints and should prevent accidental overbooking.
+- Appointment and work order remain separate objects in Phase 1.
+- Operational state transitions must be explicit, deterministic, and reviewable.
+- Meaningful slice must include runnable verification, evidence, and repo state updates.
+
+### Target outcome
+
+- `/api/v1/appointments` and `/api/v1/appointments/:id` support list/get/create/update.
+- Lifecycle statuses are constrained to the accepted set and transition rules are enforced.
+- Conflicts return deterministic `409` responses for bay/person double-booking attempts.
+- Local and Render verification pass with evidence captured and Linear updated.
+
+### Ordered execution slices
+
+1. Extend repository methods for appointment CRUD + slot conflict lookup.
+2. Add appointment service lifecycle logic and conflict enforcement.
+3. Add appointment validators and HTTP routes with stable error mapping.
+4. Wire new service/routes into app/server and test harness.
+5. Add integration tests for lifecycle and conflict contracts.
+6. Run local validation and capture evidence.
+7. Deploy to Render and run deployed validation and smoke/evidence collection.
+8. Update `PLANS.md`, `STATUS.md`, and Linear issue state/comment.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run verify`
+- local appointment lifecycle API checks saved to `evidence/local-appointment-lifecycle-smoke.json`
+- local browser snapshot refresh
+- Render deploy, then:
+  - `APP_BASE_URL="https://auto-service-foundation.onrender.com" npm run smoke`
+  - deployed appointment lifecycle checks saved to `evidence/render-appointment-lifecycle-smoke.json`
+  - deployed browser snapshot refresh
+
+### Deployment / update plan
+
+- Commit AUT-9 implementation to `main`.
+- Trigger Render deploy for `srv-d6vcmt7diees73d0j04g`.
+- Poll until live, then run post-deploy checks and evidence capture.
+- If deploy verification fails, keep previous known-good Render revision as rollback target.
+
+### Risks and fallback plan
+
+- Transition constraints could be too strict and block valid operations:
+  - enforce explicit matrix and test key allowed/denied transitions.
+- Conflict detection could produce false positives:
+  - scope conflicts to same slot and blocking statuses only, with deterministic details.
+- Reference mismatches (customer/vehicle/bay) could cause opaque failures:
+  - map service errors to stable API 404/409 responses.
+
+### Progress log
+
+- 2026-03-21: Plan opened for `AUT-9`; packet and current state validated.
+- 2026-03-21: Implemented repository appointment CRUD/search methods, slot-conflict lookup, and update support for appointment snapshots.
+- 2026-03-21: Added `AppointmentService` with lifecycle transition matrix and deterministic bay/assignee double-booking checks.
+- 2026-03-21: Added appointment validators/routes and wired appointment service into app/server/test harness.
+- 2026-03-21: Added integration test coverage in `tests/appointmentLifecycle.test.js` and updated smoke harness to include appointments API.
+- 2026-03-21: Local verification passed (`npm test`, `npm run smoke`, `npm run verify`, local appointment lifecycle smoke, local browser snapshot).
+- 2026-03-21: Next step: push commit, deploy to Render, run deployed verification, and finalize status + Linear updates.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — AUT-8 Customers and Vehicles CRUD API (2026-03-21)
 
 ### Objective

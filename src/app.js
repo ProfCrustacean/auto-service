@@ -3,8 +3,16 @@ import { renderDashboardPage } from "./ui/dashboardPage.js";
 import { renderSimpleDetailPage } from "./ui/detailPage.js";
 import { registerReferenceRoutes } from "./http/referenceRoutes.js";
 import { registerCustomerVehicleRoutes } from "./http/customerVehicleRoutes.js";
+import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
 
-export function createApp({ config, logger, dashboardService, referenceDataService, customerVehicleService }) {
+export function createApp({
+  config,
+  logger,
+  dashboardService,
+  referenceDataService,
+  customerVehicleService,
+  appointmentService,
+}) {
   const app = express();
 
   app.use(express.json());
@@ -42,6 +50,7 @@ export function createApp({ config, logger, dashboardService, referenceDataServi
 
   registerReferenceRoutes(app, { logger, referenceDataService });
   registerCustomerVehicleRoutes(app, { logger, customerVehicleService });
+  registerAppointmentRoutes(app, { logger, appointmentService });
 
   app.get("/", (_req, res) => {
     const model = dashboardService.getTodayDashboard();

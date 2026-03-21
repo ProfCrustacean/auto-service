@@ -2,16 +2,17 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (132.459042ms)
-✔ DashboardService returns expected queue counts from fixtures (26.8955ms)
-✔ health and dashboard endpoints return successful responses (113.295417ms)
-✔ migrations are idempotent and seed runs only once by default (14.762083ms)
-✔ employee and bay CRUD endpoints enforce validation and stable error contracts (112.445667ms)
-ℹ tests 5
+✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (93.770666ms)
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (133.403791ms)
+✔ DashboardService returns expected queue counts from fixtures (28.036917ms)
+✔ health and dashboard endpoints return successful responses (111.13375ms)
+✔ migrations are idempotent and seed runs only once by default (13.594666ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (111.360875ms)
+ℹ tests 6
 ℹ suites 0
-ℹ pass 5
+ℹ pass 6
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 332.938417
+ℹ duration_ms 333.634875

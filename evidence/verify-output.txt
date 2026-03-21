@@ -6,21 +6,22 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (138.446125ms)
-✔ DashboardService returns expected queue counts from fixtures (25.109125ms)
-✔ health and dashboard endpoints return successful responses (109.02025ms)
-✔ migrations are idempotent and seed runs only once by default (11.419125ms)
-✔ employee and bay CRUD endpoints enforce validation and stable error contracts (123.644708ms)
-ℹ tests 5
+✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (101.990291ms)
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (133.371584ms)
+✔ DashboardService returns expected queue counts from fixtures (24.391208ms)
+✔ health and dashboard endpoints return successful responses (96.019083ms)
+✔ migrations are idempotent and seed runs only once by default (15.637334ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (137.072208ms)
+ℹ tests 6
 ℹ suites 0
-ℹ pass 5
+ℹ pass 6
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 334.711
+ℹ duration_ms 326.15975
 
 > auto-service@0.1.0 smoke
 > node scripts/smoke.js
 
-{"status":"smoke_passed","baseUrl":"http://127.0.0.1:3000","checks":["healthz","dashboard_api","dashboard_ui"]}
+{"status":"smoke_passed","baseUrl":"http://127.0.0.1:3000","checks":["healthz","dashboard_api","appointments_api","dashboard_ui"]}

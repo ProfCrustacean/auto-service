@@ -73,6 +73,32 @@ function mapVehicleRecord(row) {
   };
 }
 
+function mapAppointmentRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    code: row.code,
+    plannedStartLocal: row.plannedStartLocal,
+    customerId: row.customerId,
+    customerName: row.customerName,
+    vehicleId: row.vehicleId,
+    vehicleLabel: row.vehicleLabel,
+    complaint: row.complaint,
+    status: row.status,
+    bayId: row.bayId,
+    bayName: row.bayName,
+    primaryAssignee: row.primaryAssignee,
+    source: row.source,
+    expectedDurationMin: row.expectedDurationMin,
+    notes: row.notes,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
 export class SqliteRepository {
   constructor(database) {
     this.database = database;
@@ -121,12 +147,300 @@ export class SqliteRepository {
           a.status,
           a.bay_id AS bayId,
           COALESCE(a.bay_name_snapshot, b.name, 'Без поста') AS bayName,
-          COALESCE(a.primary_assignee, 'Без ответственного') AS primaryAssignee
+          COALESCE(a.primary_assignee, 'Без ответственного') AS primaryAssignee,
+          a.source,
+          a.expected_duration_min AS expectedDurationMin,
+          a.notes,
+          a.created_at AS createdAt,
+          a.updated_at AS updatedAt
          FROM appointments a
          LEFT JOIN bays b ON b.id = a.bay_id
          ORDER BY a.planned_start_local ASC, a.code ASC`,
       )
-      .all();
+      .all()
+      .map(mapAppointmentRecord);
+  }
+
+  listAppointmentRecords({ status = null, customerId = null, vehicleId = null, bayId = null, query = "" } = {}) {
+    const conditions = [];
+    const values = [];
+
+    if (status) {
+      conditions.push("a.status = ?");
+      values.push(status);
+    }
+
+    if (customerId) {
+      conditions.push("a.customer_id = ?");
+      values.push(customerId);
+    }
+
+    if (vehicleId) {
+      conditions.push("a.vehicle_id = ?");
+      values.push(vehicleId);
+    }
+
+    if (bayId) {
+      conditions.push("a.bay_id = ?");
+      values.push(bayId);
+    }
+
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length > 0) {
+      const pattern = `%${trimmedQuery}%`;
+      conditions.push(
+        "(a.code LIKE ? OR a.customer_name_snapshot LIKE ? OR a.vehicle_label_snapshot LIKE ? OR a.complaint LIKE ? OR COALESCE(a.primary_assignee, '') LIKE ?)",
+      );
+      values.push(pattern, pattern, pattern, pattern, pattern);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    return this.database
+      .prepare(
+        `SELECT
+          a.id,
+          a.code,
+          a.planned_start_local AS plannedStartLocal,
+          a.customer_id AS customerId,
+          a.customer_name_snapshot AS customerName,
+          a.vehicle_id AS vehicleId,
+          a.vehicle_label_snapshot AS vehicleLabel,
+          a.complaint,
+          a.status,
+          a.bay_id AS bayId,
+          COALESCE(a.bay_name_snapshot, b.name) AS bayName,
+          a.primary_assignee AS primaryAssignee,
+          a.source,
+          a.expected_duration_min AS expectedDurationMin,
+          a.notes,
+          a.created_at AS createdAt,
+          a.updated_at AS updatedAt
+         FROM appointments a
+         LEFT JOIN bays b ON b.id = a.bay_id
+         ${whereClause}
+         ORDER BY a.planned_start_local ASC, a.code ASC`,
+      )
+      .all(...values)
+      .map(mapAppointmentRecord);
+  }
+
+  getAppointmentRecordById(id) {
+    const row = this.database
+      .prepare(
+        `SELECT
+          a.id,
+          a.code,
+          a.planned_start_local AS plannedStartLocal,
+          a.customer_id AS customerId,
+          a.customer_name_snapshot AS customerName,
+          a.vehicle_id AS vehicleId,
+          a.vehicle_label_snapshot AS vehicleLabel,
+          a.complaint,
+          a.status,
+          a.bay_id AS bayId,
+          COALESCE(a.bay_name_snapshot, b.name) AS bayName,
+          a.primary_assignee AS primaryAssignee,
+          a.source,
+          a.expected_duration_min AS expectedDurationMin,
+          a.notes,
+          a.created_at AS createdAt,
+          a.updated_at AS updatedAt
+         FROM appointments a
+         LEFT JOIN bays b ON b.id = a.bay_id
+         WHERE a.id = ?`,
+      )
+      .get(id);
+
+    return mapAppointmentRecord(row);
+  }
+
+  createAppointment({
+    id,
+    code,
+    plannedStartLocal,
+    customerId,
+    vehicleId,
+    customerNameSnapshot,
+    vehicleLabelSnapshot,
+    complaint,
+    status,
+    bayId,
+    bayNameSnapshot,
+    primaryAssignee,
+    source,
+    expectedDurationMin,
+    notes,
+  }) {
+    const nowIso = new Date().toISOString();
+
+    this.database
+      .prepare(
+        `INSERT INTO appointments(
+          id,
+          code,
+          planned_start_local,
+          customer_id,
+          vehicle_id,
+          customer_name_snapshot,
+          vehicle_label_snapshot,
+          complaint,
+          status,
+          bay_id,
+          bay_name_snapshot,
+          primary_assignee,
+          source,
+          expected_duration_min,
+          notes,
+          created_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        code,
+        plannedStartLocal,
+        customerId,
+        vehicleId,
+        customerNameSnapshot,
+        vehicleLabelSnapshot,
+        complaint,
+        status,
+        bayId,
+        bayNameSnapshot,
+        primaryAssignee,
+        source,
+        expectedDurationMin,
+        notes,
+        nowIso,
+        nowIso,
+      );
+
+    return this.getAppointmentRecordById(id);
+  }
+
+  updateAppointmentById(id, updates) {
+    const existing = this.getAppointmentRecordById(id);
+    if (!existing) {
+      return null;
+    }
+
+    const assignments = [];
+    const values = [];
+
+    if (updates.plannedStartLocal !== undefined) {
+      assignments.push("planned_start_local = ?");
+      values.push(updates.plannedStartLocal);
+    }
+
+    if (updates.customerId !== undefined) {
+      assignments.push("customer_id = ?");
+      values.push(updates.customerId);
+    }
+
+    if (updates.vehicleId !== undefined) {
+      assignments.push("vehicle_id = ?");
+      values.push(updates.vehicleId);
+    }
+
+    if (updates.customerNameSnapshot !== undefined) {
+      assignments.push("customer_name_snapshot = ?");
+      values.push(updates.customerNameSnapshot);
+    }
+
+    if (updates.vehicleLabelSnapshot !== undefined) {
+      assignments.push("vehicle_label_snapshot = ?");
+      values.push(updates.vehicleLabelSnapshot);
+    }
+
+    if (updates.complaint !== undefined) {
+      assignments.push("complaint = ?");
+      values.push(updates.complaint);
+    }
+
+    if (updates.status !== undefined) {
+      assignments.push("status = ?");
+      values.push(updates.status);
+    }
+
+    if (updates.bayId !== undefined) {
+      assignments.push("bay_id = ?");
+      values.push(updates.bayId);
+    }
+
+    if (updates.bayNameSnapshot !== undefined) {
+      assignments.push("bay_name_snapshot = ?");
+      values.push(updates.bayNameSnapshot);
+    }
+
+    if (updates.primaryAssignee !== undefined) {
+      assignments.push("primary_assignee = ?");
+      values.push(updates.primaryAssignee);
+    }
+
+    if (updates.source !== undefined) {
+      assignments.push("source = ?");
+      values.push(updates.source);
+    }
+
+    if (updates.expectedDurationMin !== undefined) {
+      assignments.push("expected_duration_min = ?");
+      values.push(updates.expectedDurationMin);
+    }
+
+    if (updates.notes !== undefined) {
+      assignments.push("notes = ?");
+      values.push(updates.notes);
+    }
+
+    if (assignments.length === 0) {
+      return existing;
+    }
+
+    assignments.push("updated_at = ?");
+    values.push(new Date().toISOString());
+    values.push(id);
+
+    this.database
+      .prepare(`UPDATE appointments SET ${assignments.join(", ")} WHERE id = ?`)
+      .run(...values);
+
+    return this.getAppointmentRecordById(id);
+  }
+
+  listSlotBlockingAppointments({ plannedStartLocal, excludeAppointmentId = null }) {
+    if (excludeAppointmentId) {
+      return this.database
+        .prepare(
+          `SELECT
+            id,
+            code,
+            bay_id AS bayId,
+            primary_assignee AS primaryAssignee,
+            status
+           FROM appointments
+           WHERE planned_start_local = ?
+             AND status IN ('booked', 'confirmed', 'arrived')
+             AND id != ?
+           ORDER BY code ASC`,
+        )
+        .all(plannedStartLocal, excludeAppointmentId);
+    }
+
+    return this.database
+      .prepare(
+        `SELECT
+          id,
+          code,
+          bay_id AS bayId,
+          primary_assignee AS primaryAssignee,
+          status
+         FROM appointments
+         WHERE planned_start_local = ?
+           AND status IN ('booked', 'confirmed', 'arrived')
+         ORDER BY code ASC`,
+      )
+      .all(plannedStartLocal);
   }
 
   listWorkOrders() {
