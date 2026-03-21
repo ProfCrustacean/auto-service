@@ -1,0 +1,72 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - heading "Автосервис Саранск" [level=1] [ref=e4]
+    - paragraph [ref=e5]: "Город: Саранск · Посты: 2 · Язык интерфейса: только русский"
+    - generic [ref=e6]:
+      - article [ref=e7]:
+        - text: Записи на сегодня
+        - strong [ref=e8]: "1"
+      - article [ref=e9]:
+        - text: Активные заказ-наряды
+        - strong [ref=e10]: "4"
+      - article [ref=e11]:
+        - text: Ожидают запчасти
+        - strong [ref=e12]: "1"
+      - article [ref=e13]:
+        - text: Готовы к выдаче
+        - strong [ref=e14]: "1"
+    - generic [ref=e15]:
+      - generic [ref=e16]: "Очередь: ожидание запчастей"
+      - generic [ref=e17]: "Очередь: готово к выдаче"
+      - generic [ref=e18]: "Очередь: активные работы"
+  - generic [ref=e19]:
+    - heading "Запланированные записи" [level=2] [ref=e20]
+    - table [ref=e21]:
+      - rowgroup [ref=e22]:
+        - row "Код Время Клиент Авто Пост" [ref=e23]:
+          - columnheader "Код" [ref=e24]
+          - columnheader "Время" [ref=e25]
+          - columnheader "Клиент" [ref=e26]
+          - columnheader "Авто" [ref=e27]
+          - columnheader "Пост" [ref=e28]
+      - rowgroup [ref=e29]:
+        - row "APT-001 Завтра 09:00 Елена Смирнова Kia Rio A123AA13 Пост 1" [ref=e30]:
+          - cell "APT-001" [ref=e31]
+          - cell "Завтра 09:00" [ref=e32]
+          - cell "Елена Смирнова" [ref=e33]
+          - cell "Kia Rio A123AA13" [ref=e34]
+          - cell "Пост 1" [ref=e35]
+  - generic [ref=e36]:
+    - heading "Ожидание запчастей" [level=2] [ref=e37]
+    - table [ref=e38]:
+      - rowgroup [ref=e39]:
+        - row "Код Клиент Авто Статус Ответственный" [ref=e40]:
+          - columnheader "Код" [ref=e41]
+          - columnheader "Клиент" [ref=e42]
+          - columnheader "Авто" [ref=e43]
+          - columnheader "Статус" [ref=e44]
+          - columnheader "Ответственный" [ref=e45]
+      - rowgroup [ref=e46]:
+        - row "WO-1003 Марина Козлова Ford Focus E321EE13 Ожидает запчасти Сергей Кузнецов" [ref=e47]:
+          - cell "WO-1003" [ref=e48]
+          - cell "Марина Козлова" [ref=e49]
+          - cell "Ford Focus E321EE13" [ref=e50]
+          - cell "Ожидает запчасти" [ref=e51]
+          - cell "Сергей Кузнецов" [ref=e52]
+  - generic [ref=e53]:
+    - heading "Готово к выдаче" [level=2] [ref=e54]
+    - table [ref=e55]:
+      - rowgroup [ref=e56]:
+        - row "Код Клиент Авто Статус Ответственный" [ref=e57]:
+          - columnheader "Код" [ref=e58]
+          - columnheader "Клиент" [ref=e59]
+          - columnheader "Авто" [ref=e60]
+          - columnheader "Статус" [ref=e61]
+          - columnheader "Ответственный" [ref=e62]
+      - rowgroup [ref=e63]:
+        - row "WO-1005 ООО Волга Трейд Toyota Camry B456BB13 Готово к выдаче Иван Петров" [ref=e64]:
+          - cell "WO-1005" [ref=e65]
+          - cell "ООО Волга Трейд" [ref=e66]
+          - cell "Toyota Camry B456BB13" [ref=e67]
+          - cell "Готово к выдаче" [ref=e68]
+          - cell "Иван Петров" [ref=e69]

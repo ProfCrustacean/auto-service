@@ -1,0 +1,22 @@
+{
+  "name": "auto-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent-operable auto service operations system",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "bootstrap": "npm ci",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.js",
+    "verify": "npm test && npm run smoke",
+    "up": "npm ci && npm run verify"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
