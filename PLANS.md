@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-6 Persistent Data Model and Migrations (2026-03-21)
+## Completed Plan — AUT-6 Persistent Data Model and Migrations (2026-03-21)
 
 ### Objective
 
@@ -198,10 +198,23 @@ Phase 1 work cannot proceed safely on fixture-only in-memory reads. We need a mi
 ### Progress log
 
 - 2026-03-21: Plan opened for AUT-6; context, packet rules, and current architecture validated.
+- 2026-03-21: Implemented SQLite persistence modules (`src/persistence/*`) with explicit migration runner and seed bootstrap.
+- 2026-03-21: Added initial schema migration `001` for scheduling/intake entities and dashboard compatibility entities.
+- 2026-03-21: Added idempotent seed import from `data/seed-fixtures.json`, including walk-in and appointment intake event seeding.
+- 2026-03-21: Replaced runtime fixture-file repository wiring with DB-backed `SqliteRepository` and server bootstrap integration.
+- 2026-03-21: Added `npm run db:init` plus bootstrap script update for one-command DB initialization.
+- 2026-03-21: Added persistence-focused tests and updated existing service/HTTP tests to run on SQLite-backed runtime.
+- 2026-03-21: Local verification passed (`npm test`, `npm run verify`, local browser snapshot).
+- 2026-03-21: Deploy `dep-d6vdv37gi27c73eut2h0` reached `live` for commit `400a62d`; deployed smoke and browser snapshot passed.
+- 2026-03-21: Linear observability updated: `AUT-6` moved to `Done` with evidence comment.
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21:
+- SQLite migration + seed foundation accepted,
+- local and deployed verification passed,
+- evidence captured,
+- and repository state files updated.
 
 ## Completed Plan — Phase 0 Foundation Slice (2026-03-21)
 

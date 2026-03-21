@@ -18,17 +18,18 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Starter packet installed and preserved.
 - Phase 0 foundation slice implemented as runnable Node.js service.
 - Russian-only dashboard refactored to decision-first operational cockpit (actions, triage, load, queue context).
-- Deterministic seed fixtures implemented from packet scenario set.
+- SQLite persistence foundation implemented with migration tracking and DB-backed repository reads.
+- Deterministic seed fixtures imported into SQLite on first bootstrap.
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-21: Phase 1 dashboard UX slice accepted end-to-end (implementation, local verification, Render deploy, deployed smoke, browser smoke, evidence captured).
+- 2026-03-21: `AUT-6` accepted end-to-end (SQLite migration path + idempotent seed + DB runtime wiring + local/deployed verification + Linear update).
 
 ### Current active objective
 - Continue Phase 1 scheduling and intake implementation beyond dashboard shell:
-  - persistent records and CRUD flows,
+  - employee/bay and customer/vehicle CRUD flows,
   - appointment lifecycle and walk-in intake APIs,
   - search and scenario verification expansion.
 
@@ -50,8 +51,8 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-21, commit `aaca232`
-- known caveats: seed-fixture data only; no auth yet; no persistent transactional storage yet
+- last validated date or commit: 2026-03-21, commit `400a62d`
+- known caveats: no auth yet; single-node SQLite file model only
 
 2. `render-validation`
 - purpose: first durable external deployment validation
@@ -60,9 +61,10 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `aaca232`
+- last validated date or commit: 2026-03-21, commit `400a62d`
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
+  - app persistence is local SQLite file per service instance; no managed multi-node database yet.
 
 ## Verification status
 
@@ -83,10 +85,12 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: passed (`dep-d6vdi894tr6s73dis1eg` reached `live`, commit `aaca232`).
+- Render deployment smoke: passed (`dep-d6vdv37gi27c73eut2h0` reached `live`, commit `400a62d`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
+  - `evidence/render-healthz.json`
+  - `evidence/render-dashboard-today.json`
   - `evidence/local-server.log`
   - `evidence/render-create-service-response.json`
   - `evidence/render-deploy-poll.txt`
@@ -105,6 +109,8 @@ Most recent useful evidence:
 - `evidence/verify-output.txt`
 - `evidence/smoke-output.txt`
 - `evidence/browser-snapshot.md`
+- `evidence/healthz.json`
+- `evidence/dashboard-today.json`
 - `evidence/render-validate-response.json`
 - `evidence/render-create-service-response.json`
 - `evidence/render-deploy-poll.txt`
@@ -114,6 +120,8 @@ Most recent useful evidence:
 - `evidence/render-manual-deploy-final.json`
 - `evidence/render-manual-postdeploy-smoke.txt`
 - `evidence/render-service-state.json`
+- `evidence/render-healthz.json`
+- `evidence/render-dashboard-today.json`
 - `evidence/render-smoke-output.txt`
 - `evidence/render-browser-snapshot.md`
 
@@ -123,9 +131,9 @@ Most recent useful evidence:
 
 ## Next recommended milestone
 
-1. Execute `AUT-6` to establish persistent data model + migration path.
-2. Execute `AUT-7` and `AUT-8` for employee/bay and customer/vehicle CRUD APIs.
-3. Execute `AUT-9` and `AUT-10` for appointment lifecycle and walk-in intake.
+1. Execute `AUT-7` for employee and bay CRUD APIs on top of SQLite persistence.
+2. Execute `AUT-8` for customer and vehicle CRUD APIs with search-friendly indexes.
+3. Execute `AUT-9` and `AUT-10` for appointment lifecycle and walk-in intake APIs.
 4. Extend acceptance scenarios under `AUT-14` and deploy each slice to `render-validation`.
 
 ## Update rule
