@@ -1,0 +1,15 @@
+{
+  "status": "render_walkin_intake_smoke_passed",
+  "baseUrl": "https://auto-service-foundation.onrender.com",
+  "complaint": "RENDER-WALKIN-AUT-1774121890803",
+  "intakeEventId": "intake-ecb7bcbc",
+  "workOrderId": "wo-2ab47ce7",
+  "checks": {
+    "intakeSource": "walk_in",
+    "intakeStatus": "waiting_diagnosis",
+    "workOrderStatus": "waiting_diagnosis",
+    "workOrderStatusLabelRu": "Ожидает диагностики",
+    "activeBefore": 4,
+    "activeAfter": 5
+  }
+}

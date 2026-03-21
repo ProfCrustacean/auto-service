@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-10 Walk-in intake API and active queue insertion
+## Completed Plan — AUT-10 Walk-in intake API and active queue insertion (2026-03-21)
 
 ### Objective
 
@@ -200,11 +200,19 @@ Deliver Phase 1 walk-in intake API behavior that allows same-day unscheduled vis
 - 2026-03-21: Added walk-in intake service, validator, and route (`POST /api/v1/intake/walk-ins`).
 - 2026-03-21: Added integration coverage in `tests/walkInIntake.test.js` and updated app/server wiring.
 - 2026-03-21: Local verification passed (`npm test`, `npm run smoke`, `npm run verify`, local walk-in intake smoke, browser snapshot).
-- 2026-03-21: Next step: push commit, deploy to Render, run deployed verification, and finalize status + Linear updates.
+- 2026-03-21: Pushed commit `91c13d6` to `main`.
+- 2026-03-21: Render deploy `dep-d6vf6pa4d50c73fvc2h0` reached `live` for commit `91c13d6`.
+- 2026-03-21: Deployed verification passed (`APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke`, deployed walk-in intake smoke, deployed browser snapshot).
+- 2026-03-21: Linear `AUT-10` moved to `Done` with evidence comment (`comment id: 622316f0-bdaa-4f8c-864a-5215298b576f`).
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21:
+- walk-in intake API implemented (`POST /api/v1/intake/walk-ins`),
+- walk-ins can be accepted without prior appointments,
+- accepted walk-ins create intake events and active work orders,
+- active queue/day board visibility verified locally and on Render,
+- evidence captured and project tracking updated.
 
 ## Completed Plan — AUT-9 Appointment lifecycle API with deterministic capacity conflicts (2026-03-21)
 
