@@ -104,6 +104,105 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-6 Persistent Data Model and Migrations (2026-03-21)
+
+### Objective
+
+Implement the first persistent data foundation for Phase 1 scheduling/intake by introducing SQLite schema migrations, deterministic seed import, and runtime repository wiring.
+
+### Why now
+
+Phase 1 work cannot proceed safely on fixture-only in-memory reads. We need a migration-backed storage boundary before CRUD, appointment lifecycle, and walk-in APIs.
+
+### Scope
+
+- Introduce SQLite runtime persistence with explicit migration tracking.
+- Create initial schema covering scheduling/intake entities:
+  - employees,
+  - bays,
+  - customers,
+  - vehicles,
+  - appointments,
+  - intake_events.
+- Preserve current dashboard slice by storing/reading compatible work-order and service metadata fields.
+- Seed database from existing deterministic fixture packet.
+- Switch runtime repository reads from raw fixture file to SQLite-backed queries.
+- Add focused automated tests for migration and seed behavior.
+- Re-run local and deployed verification and capture evidence.
+
+### Out of scope
+
+- New CRUD HTTP endpoints for Phase 1 entities.
+- Auth/permissions implementation.
+- Weekly board UI and advanced search API behavior.
+- Non-SQLite production data backends.
+
+### Current-state validation
+
+- Current runtime uses `FixtureRepository` over JSON file reads only.
+- No migration framework or persistent transactional storage exists yet.
+- Current accepted deployed commit is `aaca232` with dashboard UX slice complete.
+
+### Relevant packet rules and defaults
+
+- Every meaningful slice must be runnable and verified with evidence.
+- Keep history and state explicit; avoid hidden operational behavior.
+- Use small verifiable slices and maintain `STATUS.md` + `PLANS.md`.
+- Russian-only user-facing copy remains in effect.
+- Render remains the approved temporary deployment target.
+
+### Target outcome
+
+- App startup reliably creates/updates schema and seeds baseline data.
+- Dashboard and detail routes continue to function with DB-backed repository.
+- Local and deployed smoke checks pass on the new storage path.
+- Evidence and state documents reflect the new persistence baseline.
+
+### Ordered execution slices
+
+1. Add DB connection and migration runner modules using `node:sqlite`.
+2. Add initial schema migration for Phase 1 base entities and compatibility records.
+3. Add deterministic seed importer from `data/seed-fixtures.json` with idempotent behavior.
+4. Implement SQLite repository adapter matching current dashboard service contract.
+5. Wire startup to run migrations and seed, then serve via SQLite repository.
+6. Add/adjust tests for migration + seeded runtime behavior.
+7. Run local verification and capture evidence.
+8. Deploy to Render, run deployed verification, capture evidence, and update records.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run smoke`
+- local browser smoke snapshot into `evidence/browser-snapshot.md`
+- deploy to Render service `srv-d6vcmt7diees73d0j04g`
+- deployed smoke (`APP_BASE_URL=... npm run smoke`)
+- deployed browser smoke snapshot into `evidence/render-browser-snapshot.md`
+- store command outputs in `evidence/` and update `STATUS.md`
+
+### Deployment / update plan
+
+- Push migration-backed changes to `main`.
+- Trigger Render deploy for `auto-service-foundation`.
+- Validate deploy reaches `live` and smoke checks pass.
+- If deployment fails, redeploy last known-good commit and record incident.
+
+### Risks and fallback plan
+
+- SQLite schema mismatch risk during seeding:
+  - use single migration source and transactional seed writes.
+- Render runtime persistence caveat:
+  - keep seed idempotent; app should remain operable even if storage resets.
+- If migration fails in deployed environment:
+  - fail fast, inspect logs, fix schema, redeploy, and keep rollback path to previous commit.
+
+### Progress log
+
+- 2026-03-21: Plan opened for AUT-6; context, packet rules, and current architecture validated.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — Phase 0 Foundation Slice (2026-03-21)
 
 ### Objective

@@ -2,7 +2,7 @@
   - generic [ref=e3]:
     - generic [ref=e4]:
       - heading "Автосервис Саранск" [level=1] [ref=e5]
-      - paragraph [ref=e6]: "Город: Саранск · Посты: 2 · Обновлено: 21.03, 20:44"
+      - paragraph [ref=e6]: "Город: Саранск · Посты: 2 · Обновлено: 21.03, 21:09"
     - generic [ref=e7]:
       - link "Новая запись" [ref=e8] [cursor=pointer]:
         - /url: /appointments/new

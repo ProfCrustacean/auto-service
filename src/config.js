@@ -13,6 +13,8 @@ export function loadConfig() {
   return {
     appEnv: process.env.NODE_ENV ?? "development",
     port,
+    databasePath:
+      process.env.DB_PATH ?? path.resolve(dirname, "..", "data", "auto-service.sqlite"),
     seedPath:
       process.env.SEED_PATH ?? path.resolve(dirname, "..", "data", "seed-fixtures.json"),
   };

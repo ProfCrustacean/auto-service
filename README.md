@@ -114,12 +114,13 @@ This packet does not prescribe:
 
 It defines goals, rules, boundaries, defaults, and operational expectations only.
 
-## Current executable foundation (Phase 0)
+## Current executable foundation (Phase 1 in progress)
 
 The repository now includes a first runnable application slice with:
 - a Node.js service shell,
+- SQLite persistence with schema migrations and deterministic seed import,
 - Russian-only operational dashboard UI,
-- deterministic seed fixtures from packet scenarios,
+- deterministic packet fixtures loaded into DB on first bootstrap,
 - health and readiness endpoints,
 - structured JSON request logs,
 - automated tests and smoke checks,
@@ -132,10 +133,19 @@ The repository now includes a first runnable application slice with:
 npm start
 ```
 
+Optional explicit DB bootstrap:
+
+```bash
+npm run db:init
+```
+
 Open:
 - `http://127.0.0.1:3000/` (Russian dashboard UI)
 - `http://127.0.0.1:3000/healthz`
 - `http://127.0.0.1:3000/api/v1/dashboard/today`
+
+Default local DB path:
+- `data/auto-service.sqlite` (override with `DB_PATH`)
 
 ### Verification commands
 

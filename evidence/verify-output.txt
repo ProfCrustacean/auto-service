@@ -6,19 +6,17 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ DashboardService returns expected queue counts from fixtures (1.617667ms)
-{"timestamp":"2026-03-21T16:26:55.063Z","level":"info","event":"http_request","app":"test","method":"GET","path":"/healthz","statusCode":200,"durationMs":2}
-{"timestamp":"2026-03-21T16:26:55.071Z","level":"info","event":"http_request","app":"test","method":"GET","path":"/api/v1/dashboard/today","statusCode":200,"durationMs":1}
-{"timestamp":"2026-03-21T16:26:55.075Z","level":"info","event":"http_request","app":"test","method":"GET","path":"/","statusCode":200,"durationMs":1}
-✔ health and dashboard endpoints return successful responses (47.259958ms)
-ℹ tests 2
+✔ DashboardService returns expected queue counts from fixtures (18.643542ms)
+✔ health and dashboard endpoints return successful responses (57.320083ms)
+✔ migrations are idempotent and seed runs only once by default (5.241959ms)
+ℹ tests 3
 ℹ suites 0
-ℹ pass 2
+ℹ pass 3
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 215.238958
+ℹ duration_ms 210.720625
 
 > auto-service@0.1.0 smoke
 > node scripts/smoke.js

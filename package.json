@@ -9,6 +9,7 @@
   },
   "scripts": {
     "bootstrap": "npm ci",
+    "db:init": "node scripts/db-init.js",
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "node --test",

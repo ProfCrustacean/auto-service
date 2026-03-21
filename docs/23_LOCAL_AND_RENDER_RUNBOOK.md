@@ -13,12 +13,19 @@ From a clean checkout:
 npm start
 ```
 
+Optional explicit DB bootstrap:
+
+```bash
+npm run db:init
+```
+
 Service defaults:
 - URL: `http://127.0.0.1:3000`
 - Health: `GET /healthz`
 - Readiness: `GET /readyz`
 - Dashboard JSON: `GET /api/v1/dashboard/today`
 - Russian dashboard UI: `GET /`
+- DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
 
 ## Local verification
 
@@ -84,5 +91,5 @@ If deployment fails:
 ## Known current limits
 
 - No production auth yet.
-- No persistent transactional storage yet (seed fixtures only).
+- SQLite file persistence only (single-node local file model).
 - Render deployment execution requires account/project access not stored in repository.

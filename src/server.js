@@ -1,12 +1,12 @@
 import { loadConfig } from "./config.js";
 import { createLogger } from "./logger.js";
-import { FixtureRepository } from "./repositories/fixtureRepository.js";
 import { DashboardService } from "./services/dashboardService.js";
 import { createApp } from "./app.js";
+import { bootstrapPersistence } from "./persistence/bootstrapPersistence.js";
 
 const config = loadConfig();
 const logger = createLogger({ app: "auto-service" });
-const repository = new FixtureRepository(config.seedPath);
+const { repository, database } = bootstrapPersistence({ config, logger });
 const dashboardService = new DashboardService(repository);
 const app = createApp({ config, logger, dashboardService });
 
@@ -17,6 +17,7 @@ const server = app.listen(config.port, "0.0.0.0", () => {
 function shutdown(signal) {
   logger.info("server_stopping", { signal });
   server.close(() => {
+    database.close();
     logger.info("server_stopped", {});
     process.exit(0);
   });
