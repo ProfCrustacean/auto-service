@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-8 Customers and Vehicles CRUD API (2026-03-21)
+## Completed Plan — AUT-8 Customers and Vehicles CRUD API (2026-03-21)
 
 ### Objective
 
@@ -189,10 +189,23 @@ Deliver Phase 1 CRUD APIs for customers and vehicles with explicit ownership lin
 ### Progress log
 
 - 2026-03-21: Plan opened for AUT-8; Linear issue moved to `In Progress`.
+- 2026-03-21: Added migration `003` for vehicle ownership history and updated seed path with initial ownership entries.
+- 2026-03-21: Extended SQLite repository with customer/vehicle CRUD, search filters, owner reassignment tracking, and ownership-history reads.
+- 2026-03-21: Added customer/vehicle service and API routes with explicit validators and stable error contract behavior.
+- 2026-03-21: Added integration tests for CRUD, ownership history, and work-order snapshot preservation (`tests/customerVehicleCrud.test.js`).
+- 2026-03-21: Local verification passed (`npm test`, `npm run verify`, browser snapshot, local CRUD evidence).
+- 2026-03-21: Render deploy `dep-d6vehq9r0fns73c89pc0` reached `live` for commit `5d6ef0b`.
+- 2026-03-21: Deployed smoke, API checks, browser snapshot, and deployed CRUD smoke passed.
+- 2026-03-21: Linear `AUT-8` moved to `Done` with evidence comment.
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21:
+- customer/vehicle CRUD API contracts implemented,
+- ownership linkage and history behavior implemented,
+- snapshot-preservation rule verified by tests,
+- local and deployed verification passed,
+- evidence captured and project state updated.
 
 ## Completed Plan — AUT-7 Employees and Bays CRUD API (2026-03-21)
 

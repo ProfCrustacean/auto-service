@@ -1,0 +1,137 @@
+{
+  "timestamp": "20260321185356",
+  "customerA": {
+    "id": "cust-70e07c59",
+    "create": {
+      "item": {
+        "id": "cust-70e07c59",
+        "fullName": "Render AUT8 A 20260321185356",
+        "phone": "+7 955 185 35 6",
+        "messagingHandle": null,
+        "notes": null,
+        "isActive": true,
+        "createdAt": "2026-03-21T18:53:57.043Z",
+        "updatedAt": "2026-03-21T18:53:57.043Z"
+      }
+    },
+    "delete": {
+      "item": {
+        "id": "cust-70e07c59",
+        "fullName": "Render AUT8 A 20260321185356",
+        "phone": "+7 955 185 35 6",
+        "messagingHandle": null,
+        "notes": null,
+        "isActive": false,
+        "createdAt": "2026-03-21T18:53:57.043Z",
+        "updatedAt": "2026-03-21T18:53:58.234Z"
+      }
+    }
+  },
+  "customerB": {
+    "id": "cust-4321bee9",
+    "create": {
+      "item": {
+        "id": "cust-4321bee9",
+        "fullName": "Render AUT8 B 20260321185356",
+        "phone": "+7 956 185 35 6",
+        "messagingHandle": null,
+        "notes": null,
+        "isActive": true,
+        "createdAt": "2026-03-21T18:53:57.220Z",
+        "updatedAt": "2026-03-21T18:53:57.220Z"
+      }
+    },
+    "delete": {
+      "item": {
+        "id": "cust-4321bee9",
+        "fullName": "Render AUT8 B 20260321185356",
+        "phone": "+7 956 185 35 6",
+        "messagingHandle": null,
+        "notes": null,
+        "isActive": false,
+        "createdAt": "2026-03-21T18:53:57.220Z",
+        "updatedAt": "2026-03-21T18:53:58.418Z"
+      }
+    }
+  },
+  "vehicle": {
+    "id": "veh-9a577168",
+    "create": {
+      "item": {
+        "id": "veh-9a577168",
+        "customerId": "cust-70e07c59",
+        "customerName": "Render AUT8 A 20260321185356",
+        "label": "VW Polo V18AUT13",
+        "vin": null,
+        "plateNumber": null,
+        "make": "Volkswagen",
+        "model": "Polo",
+        "productionYear": null,
+        "engineOrTrim": null,
+        "mileageKm": null,
+        "isActive": true,
+        "createdAt": "2026-03-21T18:53:57.410Z",
+        "updatedAt": "2026-03-21T18:53:57.410Z"
+      }
+    },
+    "ownerPatch": {
+      "item": {
+        "id": "veh-9a577168",
+        "customerId": "cust-4321bee9",
+        "customerName": "Render AUT8 B 20260321185356",
+        "label": "VW Polo V18AUT13",
+        "vin": null,
+        "plateNumber": null,
+        "make": "Volkswagen",
+        "model": "Polo",
+        "productionYear": null,
+        "engineOrTrim": null,
+        "mileageKm": 83000,
+        "isActive": true,
+        "createdAt": "2026-03-21T18:53:57.410Z",
+        "updatedAt": "2026-03-21T18:53:57.664Z"
+      }
+    },
+    "history": {
+      "items": [
+        {
+          "id": "ownership-23da730e",
+          "vehicleId": "veh-9a577168",
+          "customerId": "cust-4321bee9",
+          "customerName": "Render AUT8 B 20260321185356",
+          "changedAt": "2026-03-21T18:53:57.664Z",
+          "changeReason": "owner_reassigned",
+          "source": "api"
+        },
+        {
+          "id": "ownership-3013a850",
+          "vehicleId": "veh-9a577168",
+          "customerId": "cust-70e07c59",
+          "customerName": "Render AUT8 A 20260321185356",
+          "changedAt": "2026-03-21T18:53:57.410Z",
+          "changeReason": "vehicle_created",
+          "source": "api"
+        }
+      ],
+      "count": 2
+    },
+    "delete": {
+      "item": {
+        "id": "veh-9a577168",
+        "customerId": "cust-4321bee9",
+        "customerName": "Render AUT8 B 20260321185356",
+        "label": "VW Polo V18AUT13",
+        "vin": null,
+        "plateNumber": null,
+        "make": "Volkswagen",
+        "model": "Polo",
+        "productionYear": null,
+        "engineOrTrim": null,
+        "mileageKm": 83000,
+        "isActive": false,
+        "createdAt": "2026-03-21T18:53:57.410Z",
+        "updatedAt": "2026-03-21T18:53:58.050Z"
+      }
+    }
+  }
+}
