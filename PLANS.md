@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-17 health-check log noise reduction
+## Completed Plan — AUT-17 health-check log noise reduction (2026-03-21)
 
 ### Objective
 
@@ -178,10 +178,18 @@ Render log audit showed `/healthz` requests account for ~99% of HTTP request log
 ### Progress log
 
 - 2026-03-21: Plan opened from `AUT-17` backlog issue.
+- 2026-03-21: Implemented `/healthz` log suppression in HTTP middleware (`src/app.js`) for successful health checks only.
+- 2026-03-21: Added automated behavior test (`tests/httpLoggingNoise.test.js`).
+- 2026-03-21: Local verification passed (`npm test`, `npm run verify`); local evidence captured (`evidence/local-healthz-log-filter-check.json`).
+- 2026-03-21: Changes pushed on `main` as commit `c023e10`.
+- 2026-03-21: Render deploy `dep-d6vg0e75r7bs73eq156g` reached `live`.
+- 2026-03-21: Deployed log audit confirmed health-check noise reduction:
+  - transition window ratio `0.142857` (`evidence/render-aut17-log-audit-summary.json`),
+  - stable window ratio `0.0` on current instance (`evidence/render-aut17-log-audit-summary-stable.json`).
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21.
 
 ## Completed Plan — Render build/runtime log investigation and follow-up triage (2026-03-21)
 

@@ -1,0 +1,14 @@
+{
+  "status": "render_aut17_log_audit",
+  "windowStart": "2026-03-21T20:33:07.147113317Z",
+  "windowEnd": "2026-03-21T20:33:11.981369283Z",
+  "rawLogCount": 7,
+  "httpRequestLogCount": 7,
+  "healthzHttpRequestLogCount": 1,
+  "dashboardHttpRequestLogCount": 4,
+  "rootHttpRequestLogCount": 1,
+  "healthzRatio": 0.14285714285714285,
+  "httpStatusCounts": {
+    "200": 7
+  }
+}

@@ -26,12 +26,13 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Phase 1 walk-in intake API implemented with active queue/day board insertion behavior.
 - Phase 1 scheduling + walk-in acceptance verification harness implemented (domain/API scenario tests, reusable scenario runner, local/deployed browser evidence).
 - Render build/runtime log audit completed with evidence-backed follow-up triage.
+- Phase 1 health-check log noise reduction implemented (successful `/healthz` request logs suppressed, business-path request logs preserved).
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-21: `AUT-14` accepted end-to-end (scheduling + walk-in verification scenarios with domain/API tests, local/deployed scenario runs, browser evidence, and Linear update).
+- 2026-03-21: `AUT-17` accepted end-to-end (health-check log-noise reduction with automated test coverage, local evidence, deployed verification, and Linear update).
 
 ### Current active objective
 - Continue Phase 1 scheduling and intake implementation beyond dashboard shell:
@@ -57,7 +58,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-21, commit `be35d5a`
+- last validated date or commit: 2026-03-21, commit `c023e10`
 - known caveats: no auth yet; single-node SQLite file model only
 
 2. `render-validation`
@@ -67,7 +68,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `be35d5a`
+- last validated date or commit: 2026-03-21, commit `c023e10`
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -85,6 +86,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - local browser smoke snapshot: passed on 2026-03-21.
 - local scheduling + walk-in scenario script (`node scripts/scheduling-walkin-scenario.js`): passed on 2026-03-21.
 - local scheduling + walk-in browser path snapshots (dashboard + appointment + work-order): passed on 2026-03-21.
+- local health-check log filter check (successful `/healthz` suppressed): passed on 2026-03-21.
 - deployed Render smoke (`APP_BASE_URL="https://auto-service-foundation.onrender.com" npm run smoke`): passed on 2026-03-21.
 - deployed Render appointment lifecycle smoke: passed on 2026-03-21.
 - deployed Render walk-in intake smoke: passed on 2026-03-21.
@@ -93,6 +95,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - deployed Render CRUD smoke for customers/vehicles (create/update/reassign/delete): passed on 2026-03-21.
 - deployed scheduling + walk-in scenario script (`APP_BASE_URL="https://auto-service-foundation.onrender.com" node scripts/scheduling-walkin-scenario.js`): passed on 2026-03-21.
 - deployed scheduling + walk-in browser path snapshots (dashboard + appointment + work-order): passed on 2026-03-21.
+- deployed AUT-17 log audit (stable window): passed on 2026-03-21 (`healthzRatio = 0.0`).
 - evidence:
   - `evidence/smoke-output.txt`
   - `evidence/local-appointment-lifecycle-smoke.json`
@@ -102,6 +105,7 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/local-scheduling-walkin-browser-dashboard.md`
   - `evidence/local-scheduling-walkin-browser-appointment.md`
   - `evidence/local-scheduling-walkin-browser-workorder.md`
+  - `evidence/local-healthz-log-filter-check.json`
   - `evidence/render-smoke-output.txt`
   - `evidence/render-appointment-lifecycle-smoke.json`
   - `evidence/render-walkin-intake-smoke.json`
@@ -112,6 +116,10 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/render-scheduling-walkin-browser-dashboard.md`
   - `evidence/render-scheduling-walkin-browser-appointment.md`
   - `evidence/render-scheduling-walkin-browser-workorder.md`
+  - `evidence/render-aut17-log-audit-summary.json`
+  - `evidence/render-aut17-log-audit-window.json`
+  - `evidence/render-aut17-log-audit-summary-stable.json`
+  - `evidence/render-aut17-log-audit-window-stable.json`
 
 ### Operational log audit
 - Render API events and logs inspected directly on 2026-03-21.
@@ -120,10 +128,8 @@ Codex must keep this file current enough that a new Codex run can answer:
 - findings requiring follow-up:
   - Node runtime drift risk: Render selected `Node.js 25.8.1` from permissive `>=22` constraint.
   - Repo-access fallback warning on every deploy clone step.
-  - health-check log noise (`/healthz`) dominates request logs (~99%).
 - Linear follow-up issues created in Backlog:
   - `AUT-16` Node LTS pinning
-  - `AUT-17` health-check log noise reduction
   - `AUT-18` repo-access warning removal
 - evidence:
   - `evidence/render-log-audit-summary.json`
@@ -131,9 +137,16 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/render-log-audit-latest-deploy-window.json`
   - `evidence/render-log-audit-all.ndjson`
 
+### AUT-17 observability verification
+- middleware behavior: successful `/healthz` requests are skipped in `http_request` logs; business-path requests remain logged.
+- local proof: `healthzHttpRequestLogCount = 0` with dashboard requests still present.
+- deployed proof:
+  - transition window (`evidence/render-aut17-log-audit-summary.json`): health-check ratio dropped to `0.142857` with one stale-instance health log during rollout overlap.
+  - stable window (`evidence/render-aut17-log-audit-summary-stable.json`): `healthzRatio = 0.0`, only new instance logs observed.
+
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: passed (`dep-d6vfe9ea2pns73aiapqg` reached `live`, commit `be35d5a`).
+- Render deployment smoke: passed (`dep-d6vg0e75r7bs73eq156g` reached `live`, commit `c023e10`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
@@ -163,6 +176,9 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/render-aut14-deploy-response.json`
   - `evidence/render-aut14-deploy-poll.txt`
   - `evidence/render-aut14-deploy-final.json`
+  - `evidence/render-aut17-deploy-response.json`
+  - `evidence/render-aut17-deploy-poll.txt`
+  - `evidence/render-aut17-deploy-final.json`
   - `evidence/render-service-state.json`
   - `evidence/render-validate-response.json`
 
@@ -179,6 +195,7 @@ Most recent useful evidence:
 - `evidence/local-scheduling-walkin-browser-dashboard.md`
 - `evidence/local-scheduling-walkin-browser-appointment.md`
 - `evidence/local-scheduling-walkin-browser-workorder.md`
+- `evidence/local-healthz-log-filter-check.json`
 - `evidence/healthz.json`
 - `evidence/dashboard-today.json`
 - `evidence/employees-list.json`
@@ -198,6 +215,9 @@ Most recent useful evidence:
 - `evidence/render-aut14-deploy-response.json`
 - `evidence/render-aut14-deploy-poll.txt`
 - `evidence/render-aut14-deploy-final.json`
+- `evidence/render-aut17-deploy-response.json`
+- `evidence/render-aut17-deploy-poll.txt`
+- `evidence/render-aut17-deploy-final.json`
 - `evidence/render-service-state.json`
 - `evidence/render-healthz.json`
 - `evidence/render-dashboard-today.json`
@@ -221,6 +241,10 @@ Most recent useful evidence:
 - `evidence/render-log-audit-events.json`
 - `evidence/render-log-audit-latest-deploy-window.json`
 - `evidence/render-log-audit-all.ndjson`
+- `evidence/render-aut17-log-audit-summary.json`
+- `evidence/render-aut17-log-audit-window.json`
+- `evidence/render-aut17-log-audit-summary-stable.json`
+- `evidence/render-aut17-log-audit-window-stable.json`
 
 ## Open blockers
 
@@ -229,10 +253,9 @@ Most recent useful evidence:
 ## Next recommended milestone
 
 1. Implement day/week planning board endpoint and Russian UI entry for dispatch planning (`AUT-11` scope).
-2. Execute `AUT-17`: reduce `/healthz` log noise while preserving business-path observability.
-3. Execute `AUT-16`: pin Node.js runtime to LTS and verify on next Render deploy.
-4. Execute `AUT-18`: remove repo-access fallback warning in Render build clone step.
-5. Add customer/vehicle operational search flow with deterministic filters and acceptance scenarios (`AUT-12` scope).
+2. Execute `AUT-16`: pin Node.js runtime to LTS and verify on next Render deploy.
+3. Execute `AUT-18`: remove repo-access fallback warning in Render build clone step.
+4. Add customer/vehicle operational search flow with deterministic filters and acceptance scenarios (`AUT-12` scope).
 
 ## Update rule
 
