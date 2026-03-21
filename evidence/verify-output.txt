@@ -6,23 +6,24 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (184.675375ms)
-✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (188.846125ms)
-✔ DashboardService returns expected queue counts from fixtures (55.380542ms)
-✔ domain services support scheduling and walk-in acceptance scenario (19.178541ms)
-✔ health and dashboard endpoints return successful responses (188.251209ms)
-✔ migrations are idempotent and seed runs only once by default (15.365959ms)
-✔ employee and bay CRUD endpoints enforce validation and stable error contracts (204.142708ms)
-✔ API acceptance scenario covers appointment scheduling and walk-in intake (78.114167ms)
-✔ walk-in intake API creates active flow without prior appointment (74.304042ms)
-ℹ tests 9
+✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (211.987791ms)
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (260.592291ms)
+✔ DashboardService returns expected queue counts from fixtures (55.931ms)
+✔ domain services support scheduling and walk-in acceptance scenario (18.037584ms)
+✔ health and dashboard endpoints return successful responses (201.136541ms)
+✔ request logging suppresses successful health checks and keeps business-path logs (152.819208ms)
+✔ migrations are idempotent and seed runs only once by default (18.296541ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (97.149042ms)
+✔ API acceptance scenario covers appointment scheduling and walk-in intake (111.437584ms)
+✔ walk-in intake API creates active flow without prior appointment (91.787333ms)
+ℹ tests 10
 ℹ suites 0
-ℹ pass 9
+ℹ pass 10
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 560.084084
+ℹ duration_ms 609.987166
 
 > auto-service@0.1.0 smoke
 > node scripts/smoke.js

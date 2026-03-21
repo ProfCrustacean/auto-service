@@ -6,6 +6,10 @@ import { registerCustomerVehicleRoutes } from "./http/customerVehicleRoutes.js";
 import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
 import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
 
+function shouldSkipHttpRequestLog(path, statusCode) {
+  return path === "/healthz" && statusCode < 400;
+}
+
 export function createApp({
   config,
   logger,
@@ -21,6 +25,10 @@ export function createApp({
   app.use((req, res, next) => {
     const startedAt = Date.now();
     res.on("finish", () => {
+      if (shouldSkipHttpRequestLog(req.path, res.statusCode)) {
+        return;
+      }
+
       logger.info("http_request", {
         method: req.method,
         path: req.path,

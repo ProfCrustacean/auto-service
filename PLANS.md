@@ -104,6 +104,85 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-17 health-check log noise reduction
+
+### Objective
+
+Reduce Render runtime log noise from repetitive health checks while preserving visibility for business-path requests and error conditions.
+
+### Why now
+
+Render log audit showed `/healthz` requests account for ~99% of HTTP request logs, masking useful operational signals. `AUT-17` is the direct follow-up to improve observability quality.
+
+### Scope
+
+- Update HTTP request logging middleware to suppress successful `/healthz` request logs.
+- Keep non-health endpoints logged as before.
+- Add automated tests covering log filtering behavior.
+- Re-run local checks, deploy, and verify log-noise reduction on Render.
+- Update state docs and Linear issue.
+
+### Out of scope
+
+- Replacing the current logger implementation.
+- Adding external log aggregation tooling.
+- Broad API/UI changes unrelated to logging.
+
+### Current-state validation
+
+- `src/app.js` logs every request in middleware via `logger.info("http_request", ...)`.
+- Render evidence confirms health-check dominance (`evidence/render-log-audit-summary.json`).
+- No runtime warnings/errors currently observed, but signal quality is poor due to noise.
+
+### Relevant packet rules and defaults
+
+- Prefer deterministic, testable behavior with explicit evidence.
+- Keep operational behavior observable and agent-maintainable.
+- Ensure meaningful slices are validated locally and in deployed environment.
+
+### Target outcome
+
+- Successful `/healthz` requests no longer flood runtime logs.
+- Business-path request logs remain intact.
+- Automated tests verify the behavior.
+- Deployed log audit shows significant reduction in health-check noise.
+
+### Ordered execution slices
+
+1. Implement health-check log suppression in request middleware.
+2. Add test coverage for log suppression and normal request logging.
+3. Run local tests/verification and capture evidence.
+4. Deploy to Render and capture post-deploy log audit evidence.
+5. Update `PLANS.md`, `STATUS.md`, and Linear (`AUT-17`).
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run verify`
+- local proof artifact for request-log behavior
+- Render post-deploy log audit artifacts with updated health-check ratio
+
+### Deployment / update plan
+
+- Commit AUT-17 change to `main`.
+- Trigger Render deploy for `srv-d6vcmt7diees73d0j04g`.
+- Poll to `live`, then audit Render logs for ratio change.
+
+### Risks and fallback plan
+
+- Over-filtering request logs:
+  - restrict suppression to successful `/healthz` only.
+- False confidence without deploy verification:
+  - measure pre/post healthz ratio directly from Render logs.
+
+### Progress log
+
+- 2026-03-21: Plan opened from `AUT-17` backlog issue.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — Render build/runtime log investigation and follow-up triage (2026-03-21)
 
 ### Objective

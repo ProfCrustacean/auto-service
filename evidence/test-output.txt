@@ -2,20 +2,21 @@
 > auto-service@0.1.0 test
 > node --test
 
-✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (166.244ms)
-✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (205.282917ms)
-✔ DashboardService returns expected queue counts from fixtures (47.21225ms)
-✔ domain services support scheduling and walk-in acceptance scenario (23.390166ms)
-✔ health and dashboard endpoints return successful responses (199.757583ms)
-✔ migrations are idempotent and seed runs only once by default (15.828792ms)
-✔ employee and bay CRUD endpoints enforce validation and stable error contracts (142.05375ms)
-✔ API acceptance scenario covers appointment scheduling and walk-in intake (79.396042ms)
-✔ walk-in intake API creates active flow without prior appointment (101.811917ms)
-ℹ tests 9
+✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (218.030084ms)
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (185.6095ms)
+✔ DashboardService returns expected queue counts from fixtures (36.45225ms)
+✔ domain services support scheduling and walk-in acceptance scenario (15.633833ms)
+✔ health and dashboard endpoints return successful responses (230.067292ms)
+✔ request logging suppresses successful health checks and keeps business-path logs (165.646416ms)
+✔ migrations are idempotent and seed runs only once by default (15.056125ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (128.499583ms)
+✔ API acceptance scenario covers appointment scheduling and walk-in intake (130.335791ms)
+✔ walk-in intake API creates active flow without prior appointment (165.582416ms)
+ℹ tests 10
 ℹ suites 0
-ℹ pass 9
+ℹ pass 10
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 578.445583
+ℹ duration_ms 613.588041
