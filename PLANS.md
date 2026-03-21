@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-7 Employees and Bays CRUD API (2026-03-21)
+## Completed Plan — AUT-7 Employees and Bays CRUD API (2026-03-21)
 
 ### Objective
 
@@ -192,10 +192,22 @@ Deliver Phase 1 API CRUD support for employees and bays with explicit validation
 ### Progress log
 
 - 2026-03-21: Plan opened for AUT-7; Linear issue moved to `In Progress`.
+- 2026-03-21: Added API validation boundary helpers and stable error contract utilities.
+- 2026-03-21: Extended SQLite repository with employee/bay mutation methods and filtering support.
+- 2026-03-21: Added employee and bay CRUD routes with soft-delete semantics (`isActive=false`).
+- 2026-03-21: Added migration `002` for bay timestamps and updated seed insertion path.
+- 2026-03-21: Added integration coverage for CRUD + validation boundaries (`tests/referenceCrud.test.js`).
+- 2026-03-21: Local verification passed (`npm test`, `npm run verify`, browser snapshot).
+- 2026-03-21: Render deploy `dep-d6ve6mf5r7bs73ep6rmg` reached `live` for commit `5b7b4a0`; deployed smoke and browser checks passed.
+- 2026-03-21: Linear `AUT-7` moved to `Done` with implementation and evidence comment.
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-21:
+- employee and bay CRUD API contracts implemented,
+- validation and conflict error boundaries test-covered,
+- local and deployed verification passed,
+- evidence captured and project state updated.
 
 ## Completed Plan — AUT-6 Persistent Data Model and Migrations (2026-03-21)
 

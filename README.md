@@ -144,6 +144,12 @@ Open:
 - `http://127.0.0.1:3000/healthz`
 - `http://127.0.0.1:3000/api/v1/dashboard/today`
 
+Phase 1 reference-data APIs:
+- `GET|POST /api/v1/employees`
+- `GET|PATCH|DELETE /api/v1/employees/:id`
+- `GET|POST /api/v1/bays`
+- `GET|PATCH|DELETE /api/v1/bays/:id`
+
 Default local DB path:
 - `data/auto-service.sqlite` (override with `DB_PATH`)
 

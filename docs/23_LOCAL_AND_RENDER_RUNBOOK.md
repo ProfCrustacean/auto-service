@@ -24,6 +24,8 @@ Service defaults:
 - Health: `GET /healthz`
 - Readiness: `GET /readyz`
 - Dashboard JSON: `GET /api/v1/dashboard/today`
+- Employee CRUD API: `GET|POST /api/v1/employees`, `GET|PATCH|DELETE /api/v1/employees/:id`
+- Bay CRUD API: `GET|POST /api/v1/bays`, `GET|PATCH|DELETE /api/v1/bays/:id`
 - Russian dashboard UI: `GET /`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
 
