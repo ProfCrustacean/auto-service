@@ -21,15 +21,13 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Deterministic seed fixtures implemented from packet scenario set.
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
-- Render deployment blueprint prepared but not yet executed in a real Render account.
+- Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-21: Local Phase 0 foundation accepted (runnable app + checks + evidence + deployment blueprint).
+- 2026-03-21: Phase 0 accepted end-to-end (build, local verification, Render deploy, deployed smoke, browser smoke, evidence captured).
 
 ### Current active objective
-- Instantiate and validate first durable Render environment using temporary validation hostname.
-- Run post-deploy smoke verification against deployed URL.
-- Record deployment evidence and environment details.
+- Start Phase 1 (scheduling and intake) on top of the accepted deployed foundation.
 
 ## Confirmed decisions (human input)
 
@@ -46,21 +44,22 @@ Codex must keep this file current enough that a new Codex run can answer:
 - purpose: development and verification
 - host or URL: `http://127.0.0.1:3000`
 - how Codex reaches it: `npm start`
-- whether deployment is working: local process start works
+- whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
-- whether end-to-end checks are working: yes (CLI smoke + browser smoke snapshot)
-- last validated date or commit: 2026-03-21, local working tree
+- whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
+- last validated date or commit: 2026-03-21, commit `3382123`
 - known caveats: seed-fixture data only; no auth yet; no persistent transactional storage yet
 
-2. `render-validation` (planned, not instantiated)
-- purpose: first external deploy validation
-- host or URL: pending Render-provided hostname
-- how Codex reaches it: `render.yaml` blueprint once account/project access is available
-- whether deployment is working: not yet validated
-- whether TLS is working: expected via Render managed certs after deployment
-- whether end-to-end checks are working: pending deployment
-- last validated date or commit: not yet validated
-- known caveats: blocked by missing Render account/project access in current environment
+2. `render-validation`
+- purpose: first durable external deployment validation
+- host or URL: `https://auto-service-foundation.onrender.com`
+- how Codex reaches it: Render service `srv-d6vcmt7diees73d0j04g` created via API from repo `https://github.com/ProfCrustacean/auto-service`
+- whether deployment is working: yes
+- whether TLS is working: yes (Render-managed)
+- whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
+- last validated date or commit: 2026-03-21, commit `3382123`
+- known caveats:
+  - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
 
 ## Verification status
 
@@ -70,39 +69,56 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### End-to-end checks
 - local smoke (`npm run smoke`): passed on 2026-03-21.
-- browser smoke (Playwright MCP snapshot against local UI): passed on 2026-03-21.
+- local browser smoke snapshot: passed on 2026-03-21.
+- deployed Render smoke (`APP_BASE_URL="https://auto-service-foundation.onrender.com" npm run smoke`): passed on 2026-03-21.
+- deployed Render browser smoke snapshot: passed on 2026-03-21.
 - evidence:
   - `evidence/smoke-output.txt`
   - `evidence/browser-snapshot.md`
+  - `evidence/render-smoke-output.txt`
+  - `evidence/render-browser-snapshot.md`
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: not run yet (environment not instantiated).
+- Render deployment smoke: passed (`dep-d6vcmtvdiees73d0j0fg` reached `live`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
   - `evidence/local-server.log`
+  - `evidence/render-create-service-response.json`
+  - `evidence/render-deploy-poll.txt`
+  - `evidence/render-deploy-latest.json`
+  - `evidence/render-service-state.json`
+  - `evidence/render-validate-response.json`
 
 ## Evidence inventory
 
 Most recent useful evidence:
 - `evidence/test-output.txt`
+- `evidence/verify-output.txt`
 - `evidence/smoke-output.txt`
-- `evidence/healthz.json`
-- `evidence/dashboard-today.json`
 - `evidence/browser-snapshot.md`
-- `evidence/local-server.log`
+- `evidence/render-validate-response.json`
+- `evidence/render-create-service-response.json`
+- `evidence/render-deploy-poll.txt`
+- `evidence/render-deploy-latest.json`
+- `evidence/render-service-state.json`
+- `evidence/render-smoke-output.txt`
+- `evidence/render-browser-snapshot.md`
 
 ## Open blockers
 
-- Render deployment cannot be executed yet because no authenticated Render project/account access is available in this environment.
+- No blocking external dependencies for continuing Phase 1 product work.
 
 ## Next recommended milestone
 
-1. Connect repository to Render project and apply `render.yaml` blueprint.
-2. Capture deployed URL and run `APP_BASE_URL="https://<render-hostname>" npm run smoke`.
-3. Store deployment logs/evidence and update `STATUS.md`.
-4. Start Phase 1 scheduling and intake implementation on top of the accepted foundation.
+1. Begin Phase 1 scheduling and intake slice:
+   - employee, bay, customer, vehicle records;
+   - appointment creation;
+   - walk-in intake;
+   - day/week board.
+2. Add acceptance-oriented end-to-end checks for scheduling + walk-in scenarios.
+3. Deploy Phase 1 slice to `render-validation` and re-run smoke + scenario checks.
 
 ## Update rule
 

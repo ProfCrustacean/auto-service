@@ -55,6 +55,24 @@ Expected setup in Render:
 APP_BASE_URL="https://<render-hostname>" npm run smoke
 ```
 
+### Current validated Render target (2026-03-21)
+
+- service id: `srv-d6vcmt7diees73d0j04g`
+- URL: `https://auto-service-foundation.onrender.com`
+- first live deploy id: `dep-d6vcmtvdiees73d0j0fg`
+
+### API connectivity caveat for this local environment
+
+In this machine context, direct requests to `api.render.com` intermittently timed out.
+
+This workaround succeeded reliably for API calls:
+
+```bash
+curl --resolve api.render.com:443:216.24.57.7 ...
+```
+
+Treat this as an environment-specific workaround, not a product requirement.
+
 ## Recovery path
 
 If deployment fails:

@@ -104,7 +104,7 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — Phase 0 Foundation Slice
+## Completed Plan — Phase 0 Foundation Slice (2026-03-21)
 
 ### Objective
 
@@ -182,6 +182,7 @@ Repository can go from clean checkout to:
 - If dependency install fails: reduce external dependencies and keep runtime on built-in Node capabilities.
 - If Render deploy cannot be executed due missing account access: keep blueprint ready, mark deployment verification as blocked by missing external capability.
 - If browser automation is flaky: keep CLI smoke as baseline and store failure logs.
+- If direct API networking to `api.render.com` fails in this environment: use the documented host override as an operational workaround and record it in status.
 
 ### Progress log
 
@@ -192,11 +193,19 @@ Repository can go from clean checkout to:
 - 2026-03-21: Deterministic scripts and tests added (`scripts/*`, `tests/*`), then executed successfully.
 - 2026-03-21: Render deployment blueprint and runbook added (`render.yaml`, `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`).
 - 2026-03-21: Evidence artifacts captured in `evidence/` (tests, smoke, API payloads, browser snapshot).
-- 2026-03-21: External deployment execution remains blocked by missing Render project/account access in current environment.
+- 2026-03-21: Render API key validated; workspace discovered (`tea-d65tovpr0fns73cqdmo0`); `render.yaml` blueprint validation passed.
+- 2026-03-21: Repository pushed to GitHub `main`; repo visibility set to public so Render could fetch source.
+- 2026-03-21: Render web service created (`srv-d6vcmt7diees73d0j04g`); initial deploy (`dep-d6vcmtvdiees73d0j0fg`) reached `live`.
+- 2026-03-21: Deployed smoke and browser checks passed at `https://auto-service-foundation.onrender.com`.
+- 2026-03-21: Phase 0 completion checkpoint met and accepted.
 
 ### Completion checkpoint
 
-Complete when local app, checks, smoke evidence, and Render-ready deployment path exist and `STATUS.md` reflects verified state and remaining blockers.
+Completed on 2026-03-21:
+- local app and checks passed,
+- Render deployment path executed live,
+- deployed smoke + browser verification passed,
+- and `STATUS.md` updated with environment and evidence state.
 
 ## Maintenance rule
 
