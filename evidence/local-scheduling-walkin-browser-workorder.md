@@ -1,0 +1,20 @@
+- main [ref=e2]:
+  - link "← Назад на доску" [ref=e3] [cursor=pointer]:
+    - /url: /
+  - heading "Заказ-наряд WO-1008" [level=1] [ref=e4]
+  - list [ref=e5]:
+    - listitem [ref=e6]:
+      - strong [ref=e7]: "Клиент:"
+      - text: Елена Смирнова
+    - listitem [ref=e8]:
+      - strong [ref=e9]: "Авто:"
+      - text: Kia Rio A123AA13
+    - listitem [ref=e10]:
+      - strong [ref=e11]: "Статус:"
+      - text: Ожидает диагностики
+    - listitem [ref=e12]:
+      - strong [ref=e13]: "Ответственный:"
+      - text: Алексей Соколов
+    - listitem [ref=e14]:
+      - strong [ref=e15]: "Долг:"
+      - text: 0 руб.

@@ -104,6 +104,99 @@ Use this template for the active plan:
 
 ---
 
+## Active Plan — AUT-14 verification scenarios for scheduling and walk-in
+
+### Objective
+
+Extend the verification harness with realistic acceptance scenarios covering appointment scheduling and walk-in intake, with both automated test coverage and browser-evidence runs.
+
+### Why now
+
+`AUT-9` and `AUT-10` implemented API behavior for appointments and walk-ins. `AUT-14` verifies those flows as realistic, repeatable acceptance scenarios with saved artifacts.
+
+### Scope
+
+- Add explicit domain-level automated scenario checks for scheduling and walk-in behavior.
+- Add API-level end-to-end scenario test combining appointment booking + walk-in intake + board visibility.
+- Add runnable scenario script for local and deployed execution.
+- Capture browser e2e evidence for scheduling + walk-in visibility and detail-page reachability.
+- Update state docs and Linear issue.
+
+### Out of scope
+
+- New scheduling domain features.
+- New walk-in business behavior.
+- UI form implementation for intake/booking.
+- Auth/permissions work.
+
+### Current-state validation
+
+- Appointment lifecycle and walk-in APIs are implemented and tested separately.
+- Existing tests are mostly feature-slice tests, but no dedicated combined acceptance scenario harness for scheduling + walk-in.
+- Browser evidence exists for dashboard snapshots, but not explicit scenario-focused scheduling/walk-in e2e artifacts.
+
+### Relevant packet rules and defaults
+
+- Every meaningful slice must be runnable end-to-end and evidence-backed.
+- Verification should cover realistic business paths, not only isolated checks.
+- Repository must stay self-operable for future runs with deterministic scripts/artifacts.
+
+### Target outcome
+
+- Automated domain + API scenario checks exist for appointment booking and walk-in intake.
+- Browser e2e path evidence exists for both local and Render environments.
+- Evidence artifacts are saved in `evidence/` and referenced in state files.
+- Linear `AUT-14` is closed with verification evidence.
+
+### Ordered execution slices
+
+1. Add domain scenario test for appointment + walk-in services.
+2. Add combined API acceptance scenario test.
+3. Add reusable scenario runner script (`scripts/scheduling-walkin-scenario.js`).
+4. Run local verification and capture local scenario + browser e2e artifacts.
+5. Push, deploy to Render, run deployed scenario + browser e2e artifacts.
+6. Update `PLANS.md`, `STATUS.md`, and Linear state/comment.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run smoke`
+- `npm run verify`
+- local scenario artifact: `evidence/local-scheduling-walkin-scenario.json`
+- local browser artifacts:
+  - `evidence/local-scheduling-walkin-browser-dashboard.md`
+  - `evidence/local-scheduling-walkin-browser-appointment.md`
+  - `evidence/local-scheduling-walkin-browser-workorder.md`
+- deployed scenario artifact: `evidence/render-scheduling-walkin-scenario.json`
+- deployed browser artifacts:
+  - `evidence/render-scheduling-walkin-browser-dashboard.md`
+  - `evidence/render-scheduling-walkin-browser-appointment.md`
+  - `evidence/render-scheduling-walkin-browser-workorder.md`
+
+### Deployment / update plan
+
+- Commit AUT-14 harness changes to `main`.
+- Trigger Render deploy for `srv-d6vcmt7diees73d0j04g`.
+- Poll to `live`, run deployed scenario and browser evidence capture.
+
+### Risks and fallback plan
+
+- Scenario artifacts could fail from reused slots/ids:
+  - use timestamped values for deterministic uniqueness.
+- Browser path could break on state drift:
+  - navigate directly to created appointment/work-order IDs from scenario output.
+- Verification-only slice could drift from active APIs:
+  - run scenario against both local and deployed environments.
+
+### Progress log
+
+- 2026-03-21: Plan opened for `AUT-14`; Linear moved to `In Progress`.
+- 2026-03-21: Next step: implement scenario tests and evidence script.
+
+### Completion checkpoint
+
+Pending.
+
 ## Completed Plan — AUT-10 Walk-in intake API and active queue insertion (2026-03-21)
 
 ### Objective

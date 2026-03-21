@@ -14,6 +14,7 @@
     "dev": "node --watch src/server.js",
     "test": "node --test",
     "smoke": "node scripts/smoke.js",
+    "scenario:scheduling-walkin": "node scripts/scheduling-walkin-scenario.js",
     "verify": "npm test && npm run smoke",
     "up": "npm ci && npm run verify"
   },
