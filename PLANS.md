@@ -60,8 +60,8 @@ Reduce repository noise and enforce deterministic hygiene contracts before next 
 - `npm run secrets:scan`: passed
 - `npm run verify:render -- --skip-deploy`: passed
 - `npm run verify:render -- --deploy`: passed
-  - deploy: `dep-d707g6ngi27c73fd15pg`
-  - commit parity: `54a74b204d069557d9ce2d324acc6d35b17c9422`
+  - deploy: `dep-d707i3sr85hc73dqa3tg`
+  - commit parity: `1ec6e8f5b30a825e762967f556c30ff2ec18e271`
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
 ### Linear sync

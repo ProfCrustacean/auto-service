@@ -71,8 +71,8 @@ Most recent deploy-aware gate results:
   - explicit CLI skip mode confirmed (`skipDeploy=true`, deploy/parity/log-audit steps skipped by design)
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
 - `npm run verify:render -- --deploy`: passed
-  - deploy id: `dep-d707g6ngi27c73fd15pg`
-  - commit parity: passed (`54a74b204d069557d9ce2d324acc6d35b17c9422`)
+  - deploy id: `dep-d707i3sr85hc73dqa3tg`
+  - commit parity: passed (`1ec6e8f5b30a825e762967f556c30ff2ec18e271`)
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
