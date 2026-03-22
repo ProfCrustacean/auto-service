@@ -223,3 +223,44 @@ test("intake/walk-in supports inline customer+vehicle creation in a single submi
     cleanup();
   }
 });
+
+test("intake/walk-in rolls back inline customer and vehicle when intake save fails", async () => {
+  const tempDb = createTempDatabase("auto-service-walkin-page-inline-rollback");
+  const { databasePath, cleanup } = tempDb;
+  const { server, database } = makeServer({ databasePath });
+
+  await waitForServer(server);
+
+  try {
+    const address = server.address();
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const token = `${Date.now()}`;
+    const beforeCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
+    const beforeVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
+    assert.equal(beforeCustomers.status, 200);
+    assert.equal(beforeVehicles.status, 200);
+
+    const submit = await submitWalkInForm(`${baseUrl}/intake/walk-in`, {
+      complaint: "Проверка отката транзакции walk-in",
+      bayId: "bay-missing",
+      newCustomerFullName: `Rollback WalkIn Клиент ${token}`,
+      newCustomerPhone: `+7 932 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`,
+      newVehicleLabel: `Rollback WalkIn Авто ${token}`,
+      newVehiclePlateNumber: `RW${token.slice(-6)}`,
+    });
+
+    assert.equal(submit.status, 404);
+    assert.match(submit.text, /Пост не найден/u);
+
+    const afterCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
+    const afterVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
+    assert.equal(afterCustomers.status, 200);
+    assert.equal(afterVehicles.status, 200);
+    assert.equal(afterCustomers.json.count, beforeCustomers.json.count);
+    assert.equal(afterVehicles.json.count, beforeVehicles.json.count);
+  } finally {
+    await closeServer(server);
+    database.close();
+    cleanup();
+  }
+});

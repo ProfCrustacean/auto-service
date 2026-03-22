@@ -1,5 +1,5 @@
 import { validateIncludeInactiveQuery } from "./referenceValidators.js";
-import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike } from "./validatorUtils.js";
+import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike, normalizePaginationQuery } from "./validatorUtils.js";
 
 function normalizeOptionalStringForCreate(value, field, errors) {
   if (value === undefined || value === null) {
@@ -76,6 +76,7 @@ function normalizeQueryString(queryValue, field, errors) {
 
 export function validateListCustomersQuery(query) {
   const errors = [];
+  const pagination = normalizePaginationQuery(query, errors);
   const includeInactiveResult = validateIncludeInactiveQuery(query);
   if (!includeInactiveResult.ok) {
     errors.push(...includeInactiveResult.errors);
@@ -83,7 +84,7 @@ export function validateListCustomersQuery(query) {
 
   const search = normalizeQueryString(query.q, "q", errors);
 
-  const unknownFields = collectUnknownFields(query, ["includeInactive", "q"]);
+  const unknownFields = collectUnknownFields(query, ["includeInactive", "q", "limit", "offset"]);
   for (const field of unknownFields) {
     errors.push({ field, message: "unknown query parameter" });
   }
@@ -97,6 +98,8 @@ export function validateListCustomersQuery(query) {
     value: {
       includeInactive: includeInactiveResult.value,
       query: search,
+      limit: pagination.limit,
+      offset: pagination.offset,
     },
   };
 }
@@ -201,6 +204,7 @@ export function validateCustomerUpdate(body) {
 
 export function validateListVehiclesQuery(query) {
   const errors = [];
+  const pagination = normalizePaginationQuery(query, errors);
   const includeInactiveResult = validateIncludeInactiveQuery(query);
   if (!includeInactiveResult.ok) {
     errors.push(...includeInactiveResult.errors);
@@ -217,7 +221,7 @@ export function validateListVehiclesQuery(query) {
     }
   }
 
-  const unknownFields = collectUnknownFields(query, ["includeInactive", "q", "customerId"]);
+  const unknownFields = collectUnknownFields(query, ["includeInactive", "q", "customerId", "limit", "offset"]);
   for (const field of unknownFields) {
     errors.push({ field, message: "unknown query parameter" });
   }
@@ -232,6 +236,8 @@ export function validateListVehiclesQuery(query) {
       includeInactive: includeInactiveResult.value,
       query: search,
       customerId,
+      limit: pagination.limit,
+      offset: pagination.offset,
     },
   };
 }

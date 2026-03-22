@@ -5,7 +5,10 @@ import path from "node:path";
 import process from "node:process";
 import net from "node:net";
 import { spawn } from "node:child_process";
+import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
+import { redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
 
+loadDotenvIntoProcessSync();
 const READY_TIMEOUT_MS = Number.parseInt(process.env.VERIFY_READY_TIMEOUT_MS ?? "30000", 10);
 const READY_POLL_MS = 500;
 const SERVER_STOP_TIMEOUT_MS = 10000;
@@ -17,7 +20,7 @@ function assertPositiveInteger(value, fieldName) {
 }
 
 function logJson(payload) {
-  process.stdout.write(`${JSON.stringify(payload)}\n`);
+  process.stdout.write(`${stringifyRedacted(payload)}\n`);
 }
 
 function getLastLogLines(chunks, maxBytes = 4000) {
@@ -190,7 +193,7 @@ async function main() {
     });
 
     serverChild.stdout.on("data", (chunk) => {
-      const text = chunk.toString();
+      const text = redactSecretsInText(chunk.toString());
       logStream.write(text);
       logChunks.push(text);
       if (logChunks.length > 250) {
@@ -199,7 +202,7 @@ async function main() {
     });
 
     serverChild.stderr.on("data", (chunk) => {
-      const text = chunk.toString();
+      const text = redactSecretsInText(chunk.toString());
       logStream.write(text);
       logChunks.push(text);
       if (logChunks.length > 250) {

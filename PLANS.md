@@ -2,162 +2,15 @@
 
 ## Purpose
 
-This file holds living execution plans for non-trivial work.
+Hot-path execution plan file for current non-trivial work.
 
-Codex must use it for features, multi-step fixes, integrations, deployment changes, environment setup, substantial refactors, or any task that benefits from an explicit long-horizon plan.
+Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-Treat this file as a working design-and-execution document.
+## Active Plan — None
 
-## General rule
+No active multi-step implementation plan is open right now.
 
-Before starting non-trivial work:
-1. restate the objective,
-2. validate the current state,
-3. write or update the active plan,
-4. and only then implement.
-
-## What an execution plan must contain
-
-Each active plan should contain, at minimum:
-
-1. **Objective**
-   - What is being changed and why now.
-
-2. **Task boundary**
-   - What is in scope.
-   - What is explicitly out of scope for this plan.
-
-3. **Current-state validation**
-   - What currently exists.
-   - What currently fails or is missing.
-   - What evidence confirms that starting point.
-
-4. **Constraints**
-   - Relevant rules from the packet.
-   - Important defaults.
-   - Deployment or environment limits.
-   - Verification requirements.
-
-5. **Target outcome**
-   - What “done” means for this plan.
-   - Which acceptance criteria it must satisfy.
-
-6. **Implementation slices**
-   - Small ordered steps.
-   - Each slice should be independently understandable and preferably testable.
-
-7. **Verification plan**
-   - Which automated checks will run.
-   - Which end-to-end flow(s) will be driven.
-   - What evidence will be captured.
-
-8. **Deployment and update plan**
-   - How the change reaches a runnable environment.
-   - Any migration, rollout, or rollback needs.
-
-9. **Risks and fallback**
-   - Main failure modes.
-   - What the agent will do if the planned path fails.
-
-10. **Progress log**
-    - Completed steps.
-    - Failures.
-    - Repairs.
-    - Current next step.
-
-## Active plan template
-
-Use this template for the active plan:
-
----
-
-## Active Plan — AUT-34..40 `/intake/walk-in` end-to-end completion
-
-### Objective
-
-Implement Epic 2 (`AUT-34..40`) for `/intake/walk-in`: production intake UI flow, validation/queue placement behavior, submit redirect to work-order detail, regression tests, and harness integration.
-
-### Why now
-
-Epic 1 is completed and deploy-verified; `/intake/walk-in` still serves placeholder UI while Linear Epic 2 is scoped and ready.
-
-### Scope
-
-- Add production `GET|POST /intake/walk-in` page route.
-- Implement lookup + inline customer/vehicle creation for intake flow.
-- Enforce deterministic validation and queue-placement outcome checks.
-- Redirect successful submit to created work-order detail.
-- Add tests and scenario coverage, then wire into `verify` and `verify:render`.
-- Update docs/state and sync `AUT-34..40` issue states.
-
-### Out of scope
-
-- Work-order lifecycle expansion beyond walk-in creation handoff.
-- Payment/parts workflow changes.
-
-### Current-state validation
-
-- API intake flow exists (`POST /api/v1/intake/walk-ins`) and is test-covered.
-- Runtime UI route `/intake/walk-in` still returns placeholder detail page.
-- Smoke/verify gates have booking and scheduling/walk-in scenario coverage, but no dedicated walk-in page flow scenario.
-
-### Relevant packet rules and defaults
-
-- Russian-only user-facing UI.
-- Deterministic harness contracts with machine-parseable failures.
-- End-to-end completion requires local + deploy verification and updated repo state docs.
-
-### Target outcome
-
-- `/intake/walk-in` is production page (no placeholder).
-- Epic 2 acceptance slices AUT-35..40 are implemented in code and enforced by gates.
-- `npm test`, `npm run verify`, and `npm run verify:render` pass on latest head.
-
-### Ordered execution slices
-1. Implement intake page UI and route wiring in app runtime.
-2. Add inline lookup/create and deterministic validation/error behavior.
-3. Add HTTP/UI regression tests for page flow.
-4. Add walk-in page scenario and wire it into smoke/verify/render gates.
-5. Run full verification, update docs/status, and sync Linear done states/comments.
-
-### Verification and evidence plan
-
-- `npm test`
-- `npm run verify`
-- `npm run verify:render`
-- Save new artifacts under `evidence/`.
-
-### Deployment / update plan
-
-- Commit/push to `main`.
-- Run deploy-aware gate post-push to ensure commit parity against live Render deploy.
-
-### Risks and fallback plan
-
-- Risk: scenario writes in deployed environment.
-  - Mitigation: walk-in page scenario defaults to non-destructive mode on non-local URLs.
-- Risk: regressions in existing booking/scheduling scenarios.
-  - Mitigation: keep existing scenarios intact and run full gate after each major slice.
-
-### Progress log
-
-- 2026-03-22: Added production walk-in page renderer/route wiring (`src/ui/walkInIntakePage.js`, `src/http/walkInIntakePageRoutes.js`, `src/app.js`).
-- 2026-03-22: Added walk-in page regression tests (`tests/walkInIntakePage.test.js`) and smoke coverage for `/intake/walk-in`.
-- 2026-03-22: Added `scripts/walkin-page-scenario.js` and integrated it into `verify` + `verify:render` (non-destructive on deployed URLs).
-- 2026-03-22: Added Render smoke-retry hardening in `verify:render` to absorb rollout convergence lag after deploy promotion.
-- 2026-03-22: Local gates passed (`evidence/test-aut34-aut40.txt`, `evidence/verify-aut34-aut40.txt`, `evidence/verify-aut34-aut40-retry-gate.txt`).
-- 2026-03-22: Deploy-aware gate passed on live deploy `dep-d6vsoq9r0fns73ebsnlg` with commit parity for `79cfb38` (`evidence/verify-render-aut34-aut40-final.txt`).
-- 2026-03-22: Linear Epic 2 sync completed via Playwright transport; `AUT-34..40` moved to Done with closure comments (`evidence/linear-aut34-40-sync-result.json`, `evidence/linear-aut34-40-done-sync.json`).
-- 2026-03-22: Post-docs head parity check passed on deploy `dep-d6vsrp5actks73d21o90` for commit `39ea926` (`evidence/verify-render-aut34-aut40-postdocs.txt`).
-
-### Completion checkpoint
-
-Completed on 2026-03-22: Epic 2 (`AUT-34..40`) is implemented, deploy-verified, and documented.
-
----
-
-Historical completed plans are archived in:
-- `PLANS_ARCHIVE.md`
+Create a new active plan before the next non-trivial feature/refactor/deployment slice.
 
 ## Archived plan skeleton
 
@@ -181,184 +34,41 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
 - 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
 
-## Completed Plan — AUT-24/25/26 deploy-gate hardening (2026-03-22)
+## Completed Plan — Bloat audit execution (`AUT-55..AUT-60`) (2026-03-22)
 
 ### Objective
 
-Harden the Render deployment gate so `verify:render` validates actual release parity and post-deploy runtime quality, not only deploy status.
+Reduce repository context/storage/duplication bloat while preserving Phase 1 behavior and gate reliability.
 
-### Why now
+### Delivered
 
-Phase 1 closeout needed stronger deploy confidence checks and less manual post-deploy investigation.
+- `AUT-55`: `MASTER_CONTEXT_PACKET.md` converted to compact index-only pointer + anti-mirror policy test.
+- `AUT-56`: `STATUS.md` / `PLANS.md` kept in strict hot-path budgets with archive-backed policy tests.
+- `AUT-57`: evidence retention policy enforced (`summary` tracked, `raw` ignored/debug-only), raw summary tool added, oversized raw artifact removed.
+- `AUT-58`: shared UI primitives extracted for booking/walk-in page renderers.
+- `AUT-59`: booking/walk-in page route orchestration unified through shared page-flow utilities.
+- `AUT-60`: automated `audit:bloat` budget gate added with machine-readable report and CI wiring.
 
-### Scope
+### Verification
 
-- Add deploy commit parity assertion.
-- Add non-destructive deployed scheduling/walk-in scenario to the gate.
-- Add post-deploy Render log audit with explicit thresholds.
-- Update runbook/README contract.
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:full`: passed (Render deploy `dep-d70220a4d50c7391unv0`, commit parity + smoke + non-destructive scenarios + post-deploy log audit)
 
-### Out of scope
+### Linear sync
 
-- Work-order/product feature expansion.
-- VPS migration path (still Render-first for Phase 1).
+- `npm run linear:sync -- --spec data/linear/bloat-audit-2026-03-22.json --state Done` executed successfully.
+- Transitioned to `Done`: `AUT-55`, `AUT-56`, `AUT-57`, `AUT-58`, `AUT-59`, `AUT-60`.
+- Spec entries intentionally not found (skipped by scope): scenario/test dedupe cards.
 
-### Current-state validation
+### Primary evidence
 
-- Existing gate covered deploy trigger + wait-live + smoke only.
-- No automated proof that deployed commit matched local intent.
-- No automated post-deploy log triage in gate path.
-
-### Relevant packet rules and defaults
-
-- Prefer deterministic one-command verification.
-- Keep deployed verification safe by default (read-only scenario on non-local targets).
-- Keep machine-parseable diagnostics and clear failure signals.
-
-### Target outcome
-
-- `npm run verify:render` now:
-  1. deploys and waits for `live`,
-  2. checks deployed commit parity,
-  3. runs deployed smoke,
-  4. runs deployed non-destructive scenario,
-  5. audits post-deploy logs and enforces thresholds.
-
-### Ordered execution slices
-1. Extend `scripts/verify-render.js` with parity/log-audit/scenario stages.
-2. Keep thresholds/env toggles explicit and fail-fast.
-3. Update README + runbook for the new gate contract.
-4. Re-run local and deployed verification.
-
-### Verification and evidence plan
-
-- `npm test`
-- `npm run verify`
-- `RENDER_API_KEY=... npm run verify:render`
-- capture outputs in `evidence/`.
-
-### Deployment / update plan
-
-- Push to `main`.
-- Run `verify:render` after push so commit parity proves the shipped commit, not pre-push state.
-
-### Risks and fallback plan
-
-- Risk: Render logs API truncation.
-  - Mitigation: fail by default on `hasMore=true`, configurable via env toggle.
-- Risk: parity check cannot infer expected commit.
-  - Mitigation: explicit `RENDER_EXPECT_COMMIT=<sha>` override.
-- Risk: over-strict thresholds.
-  - Mitigation: explicit env thresholds with secure defaults.
-
-### Progress log
-
-- 2026-03-22: Implemented commit parity gate (`RENDER_VERIFY_COMMIT_PARITY`, `RENDER_EXPECT_COMMIT`).
-- 2026-03-22: Added deployed non-destructive scenario stage in `verify:render`.
-- 2026-03-22: Added post-deploy log audit for build/app logs with threshold checks.
-- 2026-03-22: Updated `README.md` and `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`.
-- 2026-03-22: Verification reruns passed:
-  - `npm test`,
-  - `npm run verify`,
-  - `npm run verify:render` (post-push deploy `dep-d6vkg34jppes738kuh2g` for commit `36295bd`, parity + smoke + scenario + log audit all passed).
-
-### Completion checkpoint
-
-Completed on 2026-03-22 with deploy gate behavior expanded from deploy+smoke to deploy+parity+smoke+scenario+log-audit.
-
-## Completed Plan — Deploy-aware verification gate for Render (2026-03-22)
-
-### Objective
-
-Add a deterministic deployment verification stage so remote smoke checks run against freshly deployed code instead of stale Render state.
-
-### Why now
-
-Local verification is stable, but remote checks can fail repeatedly when Render is behind local changes. This creates avoidable noise and slows iteration.
-
-### Scope
-
-- Add a Render deploy-and-smoke harness script.
-- Add package scripts for local-only gate vs full (local + Render) gate.
-- Integrate optional Render stage into existing `verify` flow.
-- Update runbook/README/state docs with exact command sequence and env requirements.
-
-### Out of scope
-
-- Production-grade multi-environment promotion workflow.
-- Replacing Render with VPS flow.
-
-### Current-state validation
-
-- `npm run verify` currently verifies local isolated app only.
-- Remote smoke is manual and can fail on stale deployment (`dashboard week payload is missing`).
-- Render API in this environment is more reliable with `curl --resolve`.
-
-### Relevant packet rules and defaults
-
-- Keep harness deterministic and machine-readable.
-- Prefer one-command workflows.
-- Keep rollback/repair paths explicit in docs.
-
-### Target outcome
-
-- `npm run verify:render` can trigger Render deploy, wait for `live`, then run smoke.
-- `npm run verify:full` runs local `verify` then Render stage.
-- Default local loop remains fast and independent.
-
-### Ordered execution slices
-1. Implement Render deploy polling + smoke script with structured status logs.
-2. Add npm script entry points and optional hook from `verify.js`.
-3. Update docs for two-stage verification policy.
-4. Run regression checks and capture evidence.
-
-### Verification and evidence plan
-
-- `npm test`
-- `npm run verify`
-- `npm run verify:render` (with deploy skipped for dry local harness check)
-- Capture evidence under `evidence/`.
-
-### Deployment / update plan
-
-- Uses existing Render service id and API key envs.
-- Defaults to `curl --resolve` pathway for API reliability in this machine context.
-
-### Risks and fallback plan
-
-- Risk: Render API connectivity drift.
-  - Mitigation: env-controlled resolve toggle/IP and explicit failure diagnostics.
-- Risk: deploy takes too long.
-  - Mitigation: bounded poll timeout with clear non-zero exit payload.
-
-### Progress log
-
-- 2026-03-22: Confirmed Render API timeout without resolve and successful service read with resolve.
-- 2026-03-22: Confirmed deploy status endpoints required for polling.
-- 2026-03-22: Implemented `scripts/verify-render.js`:
-  - Render service lookup,
-  - deploy trigger,
-  - deploy polling to `live`,
-  - and post-deploy smoke execution.
-- 2026-03-22: Integrated optional Render stage into `scripts/verify.js` via `VERIFY_RENDER=1`.
-- 2026-03-22: Added npm commands:
-  - `npm run verify:render`
-  - `npm run verify:full`
-  - `npm run up:full`
-- 2026-03-22: Updated runbook/README for two-stage verification policy and environment toggles.
-- 2026-03-22: Verification outcomes:
-  - `npm test` passed,
-  - `npm run verify` passed,
-  - `RENDER_SKIP_DEPLOY=1 APP_BASE_URL=<local> npm run verify:render` passed,
-  - `RENDER_SKIP_DEPLOY=1 APP_BASE_URL=<local> npm run verify:full` passed,
-  - live `npm run verify:render` successfully triggered deploy `dep-d6vjrd75gffc73dcbtsg` and reached `live`, then failed smoke on stale deployed contract (`dashboard week payload is missing`).
-
-### Completion checkpoint
-
-Completed on 2026-03-22:
-- deploy-aware remote verification is encoded into harness commands,
-- default local development loop stays fast and self-contained,
-- and release/milestone gate can now enforce deploy-then-smoke behavior in one command.
+- `evidence/bloat-audit-latest.json`
+- `evidence/render-log-audit-summary.json`
+- `evidence/linear-bloat-sync-done.json`
+- `evidence/verify-server.log`
 
 ## Archived plan skeleton
 
@@ -379,237 +89,16 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-21 — Repository spring cleaning and harness simplification
 - 2026-03-21 — PLANS archive automation and policy enforcement
 - 2026-03-21 — Linear Playwright workflow integrated into harness
-
-## Completed Plan — AUT-13 operational search by customer/phone/plate/VIN/model (2026-03-22)
-
-### Objective
-
-Implement fast, forgiving operational lookup that can be executed both via API and via dashboard UI entry point, covering customer name, phone, plate number, VIN, and vehicle model.
-
-### Why now
-
-`AUT-13` is a remaining open Phase 1 item and is the next blocker before final deployment closeout work (`AUT-15`).
-
-### Scope
-
-- Add unified search API route for front-desk lookup use.
-- Extend dashboard service/model to include search results.
-- Add dashboard search UI entry point with deterministic result rendering.
-- Add focused tests and smoke assertions for the search contract.
-- Update status artifacts and Linear state after verification.
-
-### Out of scope
-
-- Work-order lifecycle feature expansion.
-- Deployment remediation itself (`AUT-15`) beyond local verification and notes.
-
-### Current-state validation
-
-- Customer and vehicle APIs already support `q`, but there is no single operational search endpoint.
-- Dashboard has no search input or results block.
-- `AUT-13` is currently `Todo` in Linear (`P1-08 Search: fast lookup by customer, phone, plate, VIN, vehicle`).
-
-### Relevant packet rules and defaults
-
-- Preserve strict boundaries: service builds model, UI renders model.
-- Keep outputs deterministic and machine-verifiable.
-- Keep user-facing text Russian-first.
-
-### Target outcome
-
-- `GET /api/v1/search?q=...` returns structured search payload.
-- Dashboard includes quick-search entry point and result panels.
-- Queries by name/phone/plate/VIN/model are covered by automated checks.
-- `npm test` and `npm run verify` pass after changes.
-
-### Ordered execution slices
-1. Add search aggregation logic in `DashboardService` with stable payload shape.
-2. Add `GET /api/v1/search` route using shared service logic.
-3. Add dashboard quick-search form and result rendering.
-4. Add/extend tests and smoke checks for API/UI behavior.
-5. Run regression gates, update docs/status, and close `AUT-13` in Linear.
-
-### Verification and evidence plan
-
-- `npm test`
-- `npm run verify`
-- `npm run smoke`
-- Capture relevant outputs under `evidence/`.
-
-### Deployment / update plan
-
-- No immediate deploy in this slice; deployment validation remains in `AUT-15`.
-
-### Risks and fallback plan
-
-- Risk: noisy or slow results from broad queries.
-  - Mitigation: normalize query, cap result lists, expose total+truncation metadata.
-- Risk: UI clutter on dashboard.
-  - Mitigation: collapsed-by-default behavior when query is empty and compact grouped tables.
-
-### Progress log
-
-- 2026-03-22: Validated Linear acceptance details and current API/UI search gaps.
-- 2026-03-22: Implemented unified search model in `DashboardService` with normalized matching for customer/phone/plate/VIN/model and bounded grouped results.
-- 2026-03-22: Added API search route (`GET /api/v1/search`) and dashboard query support (`GET /api/v1/dashboard/today?q=...` + UI `/?q=...`).
-- 2026-03-22: Added dashboard quick-search section with Russian-first query hints, summary metrics, result tables, and deep links into appointment/work-order details.
-- 2026-03-22: Extended verification harness:
-  - `tests/dashboardService.test.js` lookup coverage for name/phone/plate/VIN/model,
-  - `tests/http.test.js` API/UI search contract checks,
-  - `scripts/smoke.js` search endpoint/UI contract assertions.
-- 2026-03-22: Regression gates passed:
-  - `npm test` (`evidence/test-aut13.txt`),
-  - `npm run verify` (`evidence/verify-aut13.txt`),
-  - local smoke against ephemeral local instance (`evidence/smoke-aut13-local.txt`).
-- 2026-03-22: Linear sync completed:
-  - `AUT-12` moved to `Done` with closure comment id `575d8222-4e5e-41b3-968a-f69ff727bd2b`.
-  - `AUT-13` moved to `Done` with closure comment id `b22bc233-1c2b-46ca-8411-95a84b2481c4`.
-
-### Completion checkpoint
-
-Completed on 2026-03-22:
-- operational unified lookup now exists in both API and dashboard entry point,
-- search behavior is covered for name/phone/plate/VIN/model paths,
-- and local regression/verify/smoke gates are green.
-
-## Archived plan skeleton
-
-Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
-
-- 2026-03-21 — Render build/runtime log investigation and follow-up triage
-- 2026-03-21 — AUT-14 verification scenarios for scheduling and walk-in
-- 2026-03-21 — AUT-10 Walk-in intake API and active queue insertion
-- 2026-03-21 — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
-- 2026-03-21 — AUT-8 Customers and Vehicles CRUD API
-- 2026-03-21 — AUT-7 Employees and Bays CRUD API
-- 2026-03-21 — AUT-6 Persistent Data Model and Migrations
-- 2026-03-21 — Phase 0 Foundation Slice
-- 2026-03-21 — Phase 1 Dashboard UX Refactor
-- 2026-03-21 — AUT-17 health-check log noise reduction
-- 2026-03-21 — AUT-16 pin Render Node runtime to LTS
-- 2026-03-21 — AUT-18 repo-access warning remediation investigation
-- 2026-03-21 — Repository spring cleaning and harness simplification
-- 2026-03-21 — PLANS archive automation and policy enforcement
-
-## Completed Plan — AUT-12 week planning board with overbooking visibility (2026-03-22)
-
-### Objective
-
-Implement the Phase 1 weekly planning UI so dispatch can see future load by bay and assignee, with clear visual overbooking signals.
-
-### Why now
-
-`AUT-12` is one of the last open Phase 1 execution items and blocks closure of the parent execution issue.
-
-### Scope
-
-- Extend dashboard model with 7-day planning projection.
-- Add week load tables in UI for bays and assignees.
-- Add explicit overbooking/underbooking visual cues.
-- Add/extend tests and smoke assertions for week planning payload/UI.
-- Update status/plan records and Linear issue state when complete.
-
-### Out of scope
-
-- Search UX implementation (`AUT-13`).
-- Additional deployment hardening beyond normal verification flow.
-
-### Current-state validation
-
-- Dashboard currently exposes only day-level load (`load.byBay`, `load.byAssignee`).
-- UI has no weekly planning table and no overbooking cues.
-- `AUT-12` remains `Todo` in Linear.
-
-### Relevant packet rules and defaults
-
-- Keep behavior deterministic and easy to verify.
-- Favor strict boundaries: service computes model, UI only renders.
-- Keep outputs and evidence machine-friendly.
-
-### Target outcome
-
-- Dashboard payload includes week plan structure with by-bay/by-assignee cells.
-- UI shows week board with obvious overload/underload styling.
-- Tests and verify loop pass without regressions.
-
-### Ordered execution slices
-1. Add week planning aggregation in `DashboardService`.
-2. Render week planning tables/cues in dashboard UI.
-3. Extend tests + smoke checks for week payload/UI.
-4. Run `npm test`, `npm run verify`, deployed smoke.
-5. Update docs/status and close `AUT-12` in Linear.
-
-### Verification and evidence plan
-
-- `npm test`
-- `npm run verify`
-- `APP_BASE_URL=\"https://auto-service-foundation.onrender.com\" npm run smoke`
-- Capture evidence files under `evidence/` for this slice.
-
-### Deployment / update plan
-
-- No code deployment required for this slice; runtime proof uses existing Render URL.
-
-### Risks and fallback plan
-
-- Risk: planned date strings use mixed formats.
-  - Mitigation: support absolute + Russian relative formats and track unscheduled entries explicitly.
-- Risk: week cues become unclear.
-  - Mitigation: explicit legend and cell status classes (overbooked/high/normal/underbooked).
-
-### Progress log
-
-- 2026-03-22: Context audit completed; dashboard service/UI currently day-only.
-- 2026-03-22: Added week projection aggregation in `DashboardService` with 7-day window, resource-level cells, unscheduled appointment tracking, and overload detection by slot conflicts/capacity baseline.
-- 2026-03-22: Updated dashboard UI with week planning panels (by bay / by assignee), overload legend, and cell-level visual statuses.
-- 2026-03-22: Extended automated checks:
-  - `tests/dashboardService.test.js` week-overload/unscheduled scenario coverage,
-  - `tests/http.test.js` API + UI assertions for week section,
-  - `scripts/smoke.js` week payload + UI contract checks.
-- 2026-03-22: Verification completed locally (`npm test`, `npm run verify`).
-- 2026-03-22: Deployed smoke against current Render URL failed as expected because environment is on older commit and lacks week payload (`dashboard week payload is missing`), captured in evidence for deployment follow-up (`AUT-15`).
-
-### Completion checkpoint
-
-Completed on 2026-03-22:
-- week planning board is implemented with by-bay/by-assignee visibility,
-- overbooking is detectable at a glance via dedicated cell states,
-- and local verification gates are passing.
-
-## Archived plan skeleton
-
-Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
-
-- 2026-03-21 — Render build/runtime log investigation and follow-up triage
-- 2026-03-21 — AUT-14 verification scenarios for scheduling and walk-in
-- 2026-03-21 — AUT-10 Walk-in intake API and active queue insertion
-- 2026-03-21 — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
-- 2026-03-21 — AUT-8 Customers and Vehicles CRUD API
-- 2026-03-21 — AUT-7 Employees and Bays CRUD API
-- 2026-03-21 — AUT-6 Persistent Data Model and Migrations
-- 2026-03-21 — Phase 0 Foundation Slice
-- 2026-03-21 — Phase 1 Dashboard UX Refactor
-- 2026-03-21 — AUT-17 health-check log noise reduction
-- 2026-03-21 — AUT-16 pin Render Node runtime to LTS
-- 2026-03-21 — AUT-18 repo-access warning remediation investigation
-- 2026-03-21 — Repository spring cleaning and harness simplification
+- 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
+- 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
 
 ## Maintenance rule
 
 When a plan is completed:
-- mark it as completed,
-- keep a short summary of what was achieved,
-- and ensure `STATUS.md` reflects the newly accepted state.
-- run `npm run plans:compact` so `PLANS.md` stays focused, old completed plans move to `PLANS_ARCHIVE.md`, and the archived skeleton index in this file stays current.
+- move detailed completed-plan history into `PLANS_ARCHIVE.md`,
+- keep `PLANS.md` short and active-context-first,
+- and run `npm run plans:compact` in the same task slice.
 
-Plan-hygiene thresholds for `PLANS.md`:
-- at most 4 completed-plan sections in this file,
-- and no more than 900 lines total.
-
-If thresholds are exceeded:
-- compact immediately in the same task slice (do not defer),
-- capture the compaction in the current plan/status update,
-- and keep archive history append-only.
-
-When a plan becomes obsolete:
-- close it explicitly instead of silently rewriting history.
+Hot-path budget policy for `PLANS.md`:
+- at most 4 completed-plan sections in `PLANS.md`,
+- max 350 lines total.

@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const MAX_COMPLETED_PLANS_IN_MAIN_FILE = 4;
-const MAX_PLANS_LINES = 900;
+const MAX_PLANS_LINES = 350;
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(dirname, "..");

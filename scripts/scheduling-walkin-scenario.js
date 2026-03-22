@@ -6,7 +6,9 @@ import {
   parseBooleanFlag,
   requestJson,
 } from "./harness-diagnostics.js";
+import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 
+loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
 
 function resolveMode() {
@@ -64,6 +66,16 @@ function buildIsolation(mode, writesPerformed) {
     writesPerformed,
     cleanupStatus: "not_performed",
   };
+}
+
+function buildUniqueSlot(token, hour = 13) {
+  const date = new Date();
+  const minute = Number.parseInt(token.slice(-2), 10) % 60;
+  date.setHours(hour, minute, 0, 0);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
 async function request(path, { step, method = "GET", body } = {}) {
@@ -276,7 +288,7 @@ async function runDefaultScenario(mode) {
   const resourcesWithProvisioning = await loadWriteModeResources(uniqueToken);
   const resources = resolveScenarioResources(resourcesWithProvisioning);
 
-  const plannedStartLocal = `SCENARIO-${uniqueToken}`;
+  const plannedStartLocal = buildUniqueSlot(uniqueToken, 13);
   const appointmentCreateBody = {
     plannedStartLocal,
     customerId: resources.appointmentCustomerId,

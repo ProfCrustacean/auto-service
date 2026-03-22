@@ -48,6 +48,8 @@ Before making any meaningful product, architecture, verification, deployment, or
 For any non-trivial change, also read and then update:
 25. `PLANS.md`
 
+`MASTER_CONTEXT_PACKET.md` is an index-only pointer document. It is not a canonical source of packet content.
+
 ## Prime directives
 
 1. Treat the packet as the source of truth for product intent and project operating rules.

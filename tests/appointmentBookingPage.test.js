@@ -45,6 +45,16 @@ function extractAppointmentId(locationHeader) {
   return match ? match[1] : null;
 }
 
+function buildUniqueSlot(token, hour = 12) {
+  const date = new Date();
+  const minute = Number.parseInt(token.slice(-2), 10) % 60;
+  date.setHours(hour, minute, 0, 0);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
 test("appointments/new renders production booking form and lookup results", async () => {
   const tempDb = createTempDatabase("auto-service-appointment-page-render");
   const { databasePath, cleanup } = tempDb;
@@ -89,7 +99,7 @@ test("appointments/new returns actionable validation and conflict errors without
     const baseUrl = `http://127.0.0.1:${address.port}`;
 
     const invalid = await submitAppointmentForm(`${baseUrl}/appointments/new`, {
-      plannedStartLocal: "Завтра 10:30",
+      plannedStartLocal: "2026-03-23 10:30",
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: "",
@@ -98,10 +108,10 @@ test("appointments/new returns actionable validation and conflict errors without
     assert.equal(invalid.status, 400);
     assert.match(invalid.text, /Исправьте ошибки перед сохранением/u);
     assert.match(invalid.text, /Опишите жалобу или запрос клиента/u);
-    assert.match(invalid.text, /value="Завтра 10:30"/u);
+    assert.match(invalid.text, /value="2026-03-23 10:30"/u);
 
     const conflict = await submitAppointmentForm(`${baseUrl}/appointments/new`, {
-      plannedStartLocal: "Завтра 09:00",
+      plannedStartLocal: "2026-03-23 09:00",
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: "Диагностика подвески",
@@ -111,7 +121,7 @@ test("appointments/new returns actionable validation and conflict errors without
     assert.equal(conflict.status, 409);
     assert.match(conflict.text, /Конфликт загрузки в выбранном слоте/u);
     assert.match(conflict.text, /Пост уже занят на это время/u);
-    assert.match(conflict.text, /value="Завтра 09:00"/u);
+    assert.match(conflict.text, /value="2026-03-23 09:00"/u);
   } finally {
     await closeServer(server);
     database.close();
@@ -136,7 +146,7 @@ test("appointments/new submits successfully and redirects to created appointment
     const submit = await submitAppointmentForm(
       `${baseUrl}/appointments/new`,
       {
-        plannedStartLocal: `UI-BOOKING-${uniqueToken}`,
+        plannedStartLocal: buildUniqueSlot(uniqueToken, 12),
         customerId: "cust-2",
         vehicleId: "veh-3",
         complaint: "Проверка тормозной системы",
@@ -194,7 +204,7 @@ test("appointments/new supports inline customer+vehicle creation in a single sub
     const submit = await submitAppointmentForm(
       `${baseUrl}/appointments/new`,
       {
-        plannedStartLocal: `UI-INLINE-${token}`,
+        plannedStartLocal: buildUniqueSlot(token, 13),
         complaint: "Комплексная проверка",
         newCustomerFullName: fullName,
         newCustomerPhone: phone,
@@ -225,6 +235,48 @@ test("appointments/new supports inline customer+vehicle creation in a single sub
     assert.equal(vehicleApi.status, 200);
     assert.equal(vehicleApi.json.item.label, vehicleLabel);
     assert.equal(vehicleApi.json.item.customerId, customerId);
+  } finally {
+    await closeServer(server);
+    database.close();
+    cleanup();
+  }
+});
+
+test("appointments/new rolls back inline customer and vehicle when appointment save conflicts", async () => {
+  const tempDb = createTempDatabase("auto-service-appointment-page-inline-rollback");
+  const { databasePath, cleanup } = tempDb;
+  const { server, database } = makeServer({ databasePath });
+
+  await waitForServer(server);
+
+  try {
+    const address = server.address();
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const token = `${Date.now()}`;
+    const beforeCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
+    const beforeVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
+    assert.equal(beforeCustomers.status, 200);
+    assert.equal(beforeVehicles.status, 200);
+
+    const submit = await submitAppointmentForm(`${baseUrl}/appointments/new`, {
+      plannedStartLocal: "2026-03-23 09:00",
+      complaint: "Проверка отката транзакции",
+      bayId: "bay-1",
+      newCustomerFullName: `Rollback Клиент ${token}`,
+      newCustomerPhone: `+7 927 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`,
+      newVehicleLabel: `Rollback Авто ${token}`,
+      newVehiclePlateNumber: `RB${token.slice(-6)}`,
+    });
+
+    assert.equal(submit.status, 409);
+    assert.match(submit.text, /Конфликт загрузки в выбранном слоте/u);
+
+    const afterCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
+    const afterVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
+    assert.equal(afterCustomers.status, 200);
+    assert.equal(afterVehicles.status, 200);
+    assert.equal(afterCustomers.json.count, beforeCustomers.json.count);
+    assert.equal(afterVehicles.json.count, beforeVehicles.json.count);
   } finally {
     await closeServer(server);
     database.close();

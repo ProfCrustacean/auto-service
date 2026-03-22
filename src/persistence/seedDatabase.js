@@ -46,6 +46,48 @@ function clearAllData(database) {
   database.exec("DELETE FROM service_meta;");
 }
 
+function syncCodeSequences(database) {
+  const hasTable = database
+    .prepare("SELECT COUNT(1) AS count FROM sqlite_master WHERE type = 'table' AND name = 'code_sequences'")
+    .get()
+    .count > 0;
+
+  if (!hasTable) {
+    return;
+  }
+
+  database
+    .prepare("INSERT INTO code_sequences(entity, next_value) VALUES ('appointment', 1) ON CONFLICT(entity) DO NOTHING")
+    .run();
+  database
+    .prepare("INSERT INTO code_sequences(entity, next_value) VALUES ('work_order', 1) ON CONFLICT(entity) DO NOTHING")
+    .run();
+
+  database
+    .prepare(
+      `UPDATE code_sequences
+       SET next_value = COALESCE((
+         SELECT MAX(CAST(substr(code, 5) AS INTEGER)) + 1
+         FROM appointments
+         WHERE code GLOB 'APT-[0-9]*'
+       ), 1)
+       WHERE entity = 'appointment'`,
+    )
+    .run();
+
+  database
+    .prepare(
+      `UPDATE code_sequences
+       SET next_value = COALESCE((
+         SELECT MAX(CAST(substr(code, 4) AS INTEGER)) + 1
+         FROM work_orders
+         WHERE code GLOB 'WO-[0-9]*'
+       ), 1)
+       WHERE entity = 'work_order'`,
+    )
+    .run();
+}
+
 export function seedDatabase({ database, seedPath, logger, force = false }) {
   const existingCustomers = getRowCount(database, "customers");
   if (existingCustomers > 0 && !force) {
@@ -276,6 +318,8 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
         );
       }
     }
+
+    syncCodeSequences(database);
 
     database.exec("COMMIT;");
 

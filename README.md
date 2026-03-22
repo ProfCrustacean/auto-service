@@ -51,6 +51,8 @@ Important knowledge should be encoded into:
 5. Keep `STATUS.md` and `PLANS.md` current.
 6. Only escalate to a human when the issue is truly blocking, missing required external access, or carries direct legal, financial, security, or irreversible production risk.
 
+`MASTER_CONTEXT_PACKET.md` is intentionally index-only; canonical packet content lives in `README.md` and `docs/*.md`.
+
 ## Intended result
 
 After reading these files, Codex should understand:
@@ -73,7 +75,7 @@ After reading these files, Codex should understand:
 - `README.md`
 - `STATUS.md`
 - `PLANS.md`
-- `MASTER_CONTEXT_PACKET.md`
+- `MASTER_CONTEXT_PACKET.md` (index-only, no packet mirroring)
 
 ### Packet documents
 - `docs/01_EXECUTIVE_SUMMARY.md`
@@ -159,18 +161,36 @@ Phase 1 reference-data APIs:
 - `POST /api/v1/intake/walk-ins`
 - `GET /api/v1/search?q=<term>` (быстрый поиск по клиенту/телефону/номеру/VIN/модели)
 
+Mutating `/api/v1/**` endpoints require auth tokens:
+- header: `Authorization: Bearer <token>` or `x-api-token`
+- default local tokens: `owner-dev-token`, `frontdesk-dev-token`, `technician-dev-token`
+- role baseline:
+  - `owner`: all mutations
+  - `front_desk`: customers/vehicles/appointments/walk-ins mutations
+  - `technician`: read-only API access (mutations denied)
+
 Default local DB path:
 - `data/auto-service.sqlite` (override with `DB_PATH`)
 
 ### Verification commands
 
 ```bash
+npm run secrets:scan
 npm test
 npm run smoke
 npm run verify
+npm run audit:bloat
 npm run verify:render
 npm run verify:full
 ```
+
+Harness scripts auto-load `.env` and `.env.local` without overriding already exported environment variables.
+Harness outputs written to stdout/stderr/files are redacted to avoid leaking API credentials.
+
+CI quality gate:
+- GitHub Actions workflow: `.github/workflows/ci.yml`
+- Runs `npm ci`, `npm run secrets:scan`, `npm test`, `npm run verify`, `npm run audit:bloat` on PRs and pushes to `main`.
+- Render deploy checks remain opt-in (`npm run verify:render`) and are intentionally excluded from default CI.
 
 `npm run verify` is self-contained:
 - runs tests,
@@ -211,6 +231,10 @@ Render env defaults:
 - `RENDER_LOG_AUDIT_LIMIT=1000` per log type (`build` + `app`)
 - `RENDER_LOG_AUDIT_MAX_WARNINGS=0`, `RENDER_LOG_AUDIT_MAX_ERRORS=0`, `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=0`
 - `RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION=1` by default
+- `RENDER_LOG_AUDIT_SUMMARY_PATH` default: `evidence/render-log-audit-summary.json`
+- `RENDER_LOG_AUDIT_WRITE_RAW=0` by default (raw logs are debug-only)
+- `RENDER_LOG_AUDIT_GZIP_RAW=1` by default when raw logs are enabled
+- `RENDER_LOG_AUDIT_RAW_PATH` default: `evidence/render-log-audit.raw.ndjson` (writes `.gz` when gzip is enabled)
 
 Scenario mode defaults:
 - local base URL (`127.0.0.1`/`localhost`) => write mode
@@ -219,12 +243,29 @@ Scenario mode defaults:
 
 Smoke/scenario failures are emitted as machine-parseable JSON with step and request diagnostics.
 
+### Bloat governance commands
+
+- `npm run audit:bloat`:
+  - computes tracked byte budgets by area,
+  - reports largest tracked files,
+  - measures JS duplication via `jscpd`,
+  - validates hot-path doc line budgets (`README`, `STATUS`, `PLANS`),
+  - and writes machine-readable output to `evidence/bloat-audit-latest.json`.
+- Budget thresholds live in `data/bloat/budgets.json`.
+- Ratchet override is explicit and temporary: run with `BLOAT_ALLOW_REGRESSION=1` only when intentionally accepting a short-term breach.
+- Raw log payloads can be summarized/compressed with:
+
+```bash
+npm run evidence:summary -- --input evidence/example.raw.ndjson --output evidence/example.summary.json --gzip-raw --delete-input-after-gzip
+```
+
 ### Linear task harness commands
 
 The harness includes a Playwright-backed Linear workflow (default transport) for environments where direct GraphQL access can be geo-blocked.
 
 Required:
 - `LINEAR_API_KEY`
+- Harness auto-loads `.env` and `.env.local` (without overriding already-exported env vars).
 
 Probe workspace/team/state connectivity:
 
@@ -238,8 +279,16 @@ Create tasks from a spec file:
 LINEAR_API_KEY="<key>" npm run linear:create -- --spec data/linear/phase1-task-template.json --dry-run
 ```
 
+Sync existing tasks from a spec file into a target state:
+
+```bash
+LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/technical-audit-2026-03-22.json --state Done
+```
+
 Template spec:
 - `data/linear/phase1-task-template.json`
+- `linear:create` is idempotent by normalized title (skips existing tasks).
+- `linear:sync` transitions matching tasks to the selected workflow state.
 
 ### Deployment docs
 

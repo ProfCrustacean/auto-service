@@ -9,8 +9,8 @@ export class ReferenceDataService {
     this.repository = repository;
   }
 
-  listEmployees({ includeInactive = false } = {}) {
-    return this.repository.listEmployees({ includeInactive });
+  listEmployees({ includeInactive = false, limit = null, offset = 0 } = {}) {
+    return this.repository.listEmployees({ includeInactive, limit, offset });
   }
 
   getEmployeeById(id) {
@@ -34,8 +34,8 @@ export class ReferenceDataService {
     return this.repository.deactivateEmployeeById(id);
   }
 
-  listBays({ includeInactive = false } = {}) {
-    return this.repository.listBays({ includeInactive });
+  listBays({ includeInactive = false, limit = null, offset = 0 } = {}) {
+    return this.repository.listBays({ includeInactive, limit, offset });
   }
 
   getBayById(id) {

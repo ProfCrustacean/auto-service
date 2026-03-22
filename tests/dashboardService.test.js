@@ -30,7 +30,7 @@ test("DashboardService returns expected queue counts from fixtures", () => {
   try {
     const payload = service.getTodayDashboard();
 
-    assert.equal(payload.summary.appointmentsToday, 1);
+    assert.equal(payload.summary.appointmentsToday, payload.appointments.length);
     assert.equal(payload.summary.waitingPartsCount, 1);
     assert.equal(payload.summary.readyForPickupCount, 1);
     assert.ok(payload.summary.activeWorkOrders >= 4);
@@ -46,6 +46,90 @@ test("DashboardService returns expected queue counts from fixtures", () => {
     assert.equal(typeof payload.week.summary.unscheduledAppointmentsCount, "number");
     assert.equal(payload.search.performed, false);
     assert.equal(payload.search.totals.all, 0);
+  } finally {
+    database.close();
+    cleanup();
+  }
+});
+
+test("DashboardService today metrics include only current local-day appointments", () => {
+  const tempDb = createTempDatabase("auto-service-dashboard-today-filter");
+  const { databasePath, cleanup } = tempDb;
+  const config = {
+    appEnv: "test",
+    port: 0,
+    seedPath: "./data/seed-fixtures.json",
+    databasePath,
+  };
+  const logger = createSilentLogger();
+  const { repository, database } = bootstrapPersistence({ config, logger });
+  const service = new DashboardService(repository);
+
+  try {
+    const before = service.getTodayDashboard();
+    const yesterday = toDateKeyWithOffset(-1);
+    const today = toDateKeyWithOffset(0);
+    const tomorrow = toDateKeyWithOffset(1);
+
+    repository.createAppointment({
+      id: "apt-filter-yesterday",
+      code: "APT-920",
+      plannedStartLocal: `${yesterday} 09:00`,
+      customerId: "cust-1",
+      vehicleId: "veh-1",
+      customerNameSnapshot: "Елена Смирнова",
+      vehicleLabelSnapshot: "Kia Rio A123AA13",
+      complaint: "Вчерашняя запись",
+      status: "booked",
+      bayId: null,
+      bayNameSnapshot: null,
+      primaryAssignee: null,
+      source: "manual",
+      expectedDurationMin: null,
+      notes: null,
+    });
+
+    repository.createAppointment({
+      id: "apt-filter-today",
+      code: "APT-921",
+      plannedStartLocal: `${today} 10:00`,
+      customerId: "cust-2",
+      vehicleId: "veh-3",
+      customerNameSnapshot: "Павел Иванов",
+      vehicleLabelSnapshot: "Lada Vesta C789CC13",
+      complaint: "Сегодняшняя запись",
+      status: "booked",
+      bayId: null,
+      bayNameSnapshot: null,
+      primaryAssignee: null,
+      source: "manual",
+      expectedDurationMin: null,
+      notes: null,
+    });
+
+    repository.createAppointment({
+      id: "apt-filter-tomorrow",
+      code: "APT-922",
+      plannedStartLocal: `${tomorrow} 11:00`,
+      customerId: "cust-3",
+      vehicleId: "veh-2",
+      customerNameSnapshot: "Ольга Кузьмина",
+      vehicleLabelSnapshot: "Hyundai Solaris B456BB13",
+      complaint: "Завтрашняя запись",
+      status: "booked",
+      bayId: null,
+      bayNameSnapshot: null,
+      primaryAssignee: null,
+      source: "manual",
+      expectedDurationMin: null,
+      notes: null,
+    });
+
+    const after = service.getTodayDashboard();
+    assert.equal(after.summary.appointmentsToday, before.summary.appointmentsToday + 1);
+    assert.equal(after.appointments.some((item) => item.id === "apt-filter-today"), true);
+    assert.equal(after.appointments.some((item) => item.id === "apt-filter-yesterday"), false);
+    assert.equal(after.appointments.some((item) => item.id === "apt-filter-tomorrow"), false);
   } finally {
     database.close();
     cleanup();
@@ -183,6 +267,7 @@ test("DashboardService search lookup supports customer, phone, plate, VIN and mo
 
     assert.equal(typeof byModel.timing.durationMs, "number");
     assert.equal(typeof byModel.timing.withinBaseline, "boolean");
+    assert.equal(byModel.timing.withinBaseline, true);
   } finally {
     database.close();
     cleanup();

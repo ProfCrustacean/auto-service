@@ -24,24 +24,6 @@ function makeDomainError(code, message, details = undefined) {
   return error;
 }
 
-function toNextAppointmentCode(appointments) {
-  const maxNumericCode = appointments.reduce((maxValue, item) => {
-    const match = /^APT-(\d+)$/.exec(item.code ?? "");
-    if (!match) {
-      return maxValue;
-    }
-
-    const parsed = Number.parseInt(match[1], 10);
-    if (Number.isNaN(parsed)) {
-      return maxValue;
-    }
-
-    return Math.max(maxValue, parsed);
-  }, 0);
-
-  return `APT-${String(maxNumericCode + 1).padStart(3, "0")}`;
-}
-
 function isBlockingStatus(status) {
   return BLOCKING_STATUSES.has(status);
 }
@@ -71,8 +53,8 @@ export class AppointmentService {
     this.repository = repository;
   }
 
-  listAppointments({ status = null, customerId = null, vehicleId = null, bayId = null, query = "" } = {}) {
-    return this.repository.listAppointmentRecords({ status, customerId, vehicleId, bayId, query });
+  listAppointments({ status = null, customerId = null, vehicleId = null, bayId = null, query = "", limit = null, offset = 0 } = {}) {
+    return this.repository.listAppointmentRecords({ status, customerId, vehicleId, bayId, query, limit, offset });
   }
 
   getAppointmentById(id) {
@@ -153,7 +135,7 @@ export class AppointmentService {
       excludeAppointmentId: null,
     });
 
-    const code = toNextAppointmentCode(this.repository.listAppointmentRecords());
+    const code = this.repository.allocateNextAppointmentCode();
 
     return this.repository.createAppointment({
       id: toId("apt"),
@@ -171,6 +153,57 @@ export class AppointmentService {
       source: payload.source ?? "manual",
       expectedDurationMin: payload.expectedDurationMin ?? null,
       notes: payload.notes ?? null,
+    });
+  }
+
+  createAppointmentFromBookingForm({
+    appointmentPayload,
+    selectedCustomerId = null,
+    selectedVehicleId = null,
+    inlineCustomerPayload = null,
+    inlineVehiclePayload = null,
+  }) {
+    return this.repository.runInTransaction(() => {
+      let customerId = selectedCustomerId;
+      let createdCustomer = null;
+
+      if (!customerId && inlineCustomerPayload) {
+        createdCustomer = this.repository.createCustomer({
+          id: toId("cust"),
+          ...inlineCustomerPayload,
+          isActive: true,
+        });
+        customerId = createdCustomer.id;
+      }
+
+      let vehicleId = selectedVehicleId;
+      let createdVehicle = null;
+
+      if (!vehicleId && inlineVehiclePayload) {
+        if (!customerId) {
+          throw makeDomainError("customer_not_found", "Customer not found");
+        }
+
+        createdVehicle = this.repository.createVehicle({
+          id: toId("veh"),
+          ...inlineVehiclePayload,
+          customerId,
+          isActive: true,
+        });
+        vehicleId = createdVehicle.id;
+      }
+
+      const appointment = this.createAppointment({
+        ...appointmentPayload,
+        customerId,
+        vehicleId,
+      });
+
+      return {
+        appointment,
+        customer: createdCustomer,
+        vehicle: createdVehicle,
+      };
     });
   }
 

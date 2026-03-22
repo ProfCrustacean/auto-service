@@ -30,7 +30,7 @@
     {
       "id": "apt-1",
       "code": "APT-001",
-      "plannedStartLocal": "Завтра 09:00",
+      "plannedStartLocal": "2026-03-23 09:00",
       "customerId": "cust-1",
       "customerName": "Елена Смирнова",
       "vehicleId": "veh-1",

@@ -301,22 +301,6 @@ function normalizeLookupText(value) {
     .replace(/[^0-9a-zа-яё]/giu, "");
 }
 
-function matchesLookupQuery(queryNormalized, fields) {
-  if (!queryNormalized || queryNormalized.length === 0) {
-    return false;
-  }
-
-  return fields.some((field) => normalizeLookupText(field).includes(queryNormalized));
-}
-
-function capSearchResults(items, limit = SEARCH_RESULTS_LIMIT) {
-  return {
-    items: items.slice(0, limit),
-    total: items.length,
-    truncated: items.length > limit,
-  };
-}
-
 function buildEmptySearchPayload() {
   return {
     query: "",
@@ -354,83 +338,72 @@ function buildSearchResults({ repository, query = "" }) {
 
   const startedAtMs = Date.now();
   const normalizedQuery = normalizeLookupText(queryText);
+  const customerResult = repository.searchCustomers({
+    query: queryText,
+    limit: SEARCH_RESULTS_LIMIT,
+  });
+  const vehicleResult = repository.searchVehicles({
+    query: queryText,
+    limit: SEARCH_RESULTS_LIMIT,
+  });
+  const appointmentResult = repository.searchAppointmentRecords({
+    query: queryText,
+    limit: SEARCH_RESULTS_LIMIT,
+  });
+  const workOrderResult = repository.searchWorkOrders({
+    query: queryText,
+    limit: SEARCH_RESULTS_LIMIT,
+  });
 
-  const customerMatches = repository
-    .listCustomerRecords({ includeInactive: false })
-    .filter((customer) => matchesLookupQuery(normalizedQuery, [customer.fullName, customer.phone]))
-    .map((customer) => ({
-      id: customer.id,
-      fullName: customer.fullName,
-      phone: customer.phone,
-    }));
+  const customers = {
+    items: customerResult.rows.map((item) => ({
+      id: item.id,
+      fullName: item.fullName,
+      phone: item.phone,
+    })),
+    total: customerResult.total,
+    truncated: customerResult.total > SEARCH_RESULTS_LIMIT,
+  };
 
-  const vehicleMatches = repository
-    .listVehicleRecords({ includeInactive: false })
-    .filter((vehicle) =>
-      matchesLookupQuery(normalizedQuery, [
-        vehicle.label,
-        vehicle.plateNumber,
-        vehicle.vin,
-        vehicle.make,
-        vehicle.model,
-        vehicle.customerName,
-      ]),
-    )
-    .map((vehicle) => ({
-      id: vehicle.id,
-      customerId: vehicle.customerId,
-      customerName: vehicle.customerName,
-      label: vehicle.label,
-      plateNumber: vehicle.plateNumber,
-      vin: vehicle.vin,
-      model: vehicle.model,
-    }));
+  const vehicles = {
+    items: vehicleResult.rows.map((item) => ({
+      id: item.id,
+      customerId: item.customerId,
+      customerName: item.customerName,
+      label: item.label,
+      plateNumber: item.plateNumber,
+      vin: item.vin,
+      model: item.model,
+    })),
+    total: vehicleResult.total,
+    truncated: vehicleResult.total > SEARCH_RESULTS_LIMIT,
+  };
 
-  const appointmentMatches = repository
-    .listAppointmentRecords()
-    .filter((appointment) =>
-      matchesLookupQuery(normalizedQuery, [
-        appointment.code,
-        appointment.plannedStartLocal,
-        appointment.customerName,
-        appointment.vehicleLabel,
-        appointment.complaint,
-        appointment.primaryAssignee,
-      ]),
-    )
-    .map((appointment) => ({
-      id: appointment.id,
-      code: appointment.code,
-      plannedStartLocal: appointment.plannedStartLocal,
-      customerName: appointment.customerName,
-      vehicleLabel: appointment.vehicleLabel,
-      detailHref: `/appointments/${appointment.id}`,
-    }));
+  const appointments = {
+    items: appointmentResult.rows.map((item) => ({
+      id: item.id,
+      code: item.code,
+      plannedStartLocal: item.plannedStartLocal,
+      customerName: item.customerName,
+      vehicleLabel: item.vehicleLabel,
+      detailHref: `/appointments/${item.id}`,
+    })),
+    total: appointmentResult.total,
+    truncated: appointmentResult.total > SEARCH_RESULTS_LIMIT,
+  };
 
-  const workOrderMatches = repository
-    .listWorkOrders()
-    .filter((workOrder) =>
-      matchesLookupQuery(normalizedQuery, [
-        workOrder.code,
-        workOrder.customerName,
-        workOrder.vehicleLabel,
-        workOrder.statusLabelRu,
-        workOrder.primaryAssignee,
-      ]),
-    )
-    .map((workOrder) => ({
-      id: workOrder.id,
-      code: workOrder.code,
-      customerName: workOrder.customerName,
-      vehicleLabel: workOrder.vehicleLabel,
-      statusLabelRu: workOrder.statusLabelRu,
-      detailHref: `/work-orders/${workOrder.id}`,
-    }));
-
-  const customers = capSearchResults(customerMatches);
-  const vehicles = capSearchResults(vehicleMatches);
-  const appointments = capSearchResults(appointmentMatches);
-  const workOrders = capSearchResults(workOrderMatches);
+  const workOrders = {
+    items: workOrderResult.rows.map((item) => ({
+      id: item.id,
+      code: item.code,
+      customerName: item.customerName,
+      vehicleLabel: item.vehicleLabel,
+      statusLabelRu: item.statusLabelRu,
+      detailHref: `/work-orders/${item.id}`,
+    })),
+    total: workOrderResult.total,
+    truncated: workOrderResult.total > SEARCH_RESULTS_LIMIT,
+  };
 
   const durationMs = Date.now() - startedAtMs;
 
@@ -526,6 +499,7 @@ export class DashboardService {
 
   getTodayDashboard({ searchQuery = "" } = {}) {
     const now = new Date();
+    const todayDayKey = toDayKey(startOfLocalDay(now));
     const customers = this.repository.listCustomers();
     const appointments = this.repository.listAppointments();
     const workOrders = this.repository.listWorkOrders();
@@ -534,6 +508,10 @@ export class DashboardService {
     const search = this.searchLookup({ query: searchQuery });
 
     const customerPhoneById = new Map(customers.map((customer) => [customer.id, customer.phone]));
+    const appointmentsToday = appointments.filter((appointment) => {
+      const slot = parseWeekSlot(appointment.plannedStartLocal, now);
+      return slot.kind === "scheduled" && slot.dayKey === todayDayKey;
+    });
 
     const activeWorkOrders = workOrders.filter((order) => ACTIVE_STATUSES.has(order.status));
     const waitingParts = activeWorkOrders
@@ -562,7 +540,7 @@ export class DashboardService {
 
     const assigneeLoad = new Map();
 
-    for (const appointment of appointments) {
+    for (const appointment of appointmentsToday) {
       incrementLoad(bayLoad, appointment.bayName ?? "Без поста", "plannedCount");
       incrementLoad(assigneeLoad, appointment.primaryAssignee ?? "Без ответственного", "plannedCount");
     }
@@ -583,7 +561,7 @@ export class DashboardService {
       employees,
     });
 
-    const appointmentRows = appointments.map((appointment) => ({
+    const appointmentRows = appointmentsToday.map((appointment) => ({
       ...appointment,
       detailHref: `/appointments/${appointment.id}`,
     }));
@@ -592,7 +570,7 @@ export class DashboardService {
       generatedAt: now.toISOString(),
       service: serviceMeta,
       summary: {
-        appointmentsToday: appointments.length,
+        appointmentsToday: appointmentsToday.length,
         activeWorkOrders: activeWorkOrders.length,
         waitingPartsCount: waitingParts.length,
         readyForPickupCount: readyPickup.length,

@@ -23,9 +23,17 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
 
     try {
       const items = customerVehicleService.listCustomers(validation.value);
-      res.status(200).json({ items, count: items.length });
+      const payload = { items, count: items.length };
+      if (validation.value.limit !== null || validation.value.offset > 0) {
+        payload.pagination = {
+          limit: validation.value.limit,
+          offset: validation.value.offset,
+          returned: items.length,
+        };
+      }
+      res.status(200).json(payload);
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "customers_list_failed");
+      handleUnexpectedError(logger, req, res, error, "customers_list_failed");
     }
   });
 
@@ -39,7 +47,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "customers_get_failed");
+      handleUnexpectedError(logger, req, res, error, "customers_get_failed");
     }
   });
 
@@ -54,7 +62,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
       const item = customerVehicleService.createCustomer(validation.value);
       res.status(201).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "customers_create_failed");
+      handleUnexpectedError(logger, req, res, error, "customers_create_failed");
     }
   });
 
@@ -74,7 +82,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "customers_update_failed");
+      handleUnexpectedError(logger, req, res, error, "customers_update_failed");
     }
   });
 
@@ -88,7 +96,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "customers_delete_failed");
+      handleUnexpectedError(logger, req, res, error, "customers_delete_failed");
     }
   });
 
@@ -101,9 +109,17 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
 
     try {
       const items = customerVehicleService.listVehicles(validation.value);
-      res.status(200).json({ items, count: items.length });
+      const payload = { items, count: items.length };
+      if (validation.value.limit !== null || validation.value.offset > 0) {
+        payload.pagination = {
+          limit: validation.value.limit,
+          offset: validation.value.offset,
+          returned: items.length,
+        };
+      }
+      res.status(200).json(payload);
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "vehicles_list_failed");
+      handleUnexpectedError(logger, req, res, error, "vehicles_list_failed");
     }
   });
 
@@ -117,7 +133,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "vehicles_get_failed");
+      handleUnexpectedError(logger, req, res, error, "vehicles_get_failed");
     }
   });
 
@@ -132,7 +148,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
       const items = customerVehicleService.listVehicleOwnershipHistory(req.params.id);
       res.status(200).json({ items, count: items.length });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "vehicles_ownership_history_failed");
+      handleUnexpectedError(logger, req, res, error, "vehicles_ownership_history_failed");
     }
   });
 
@@ -152,7 +168,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
         return;
       }
 
-      handleUnexpectedError(logger, res, error, "vehicles_create_failed");
+      handleUnexpectedError(logger, req, res, error, "vehicles_create_failed");
     }
   });
 
@@ -177,7 +193,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
         return;
       }
 
-      handleUnexpectedError(logger, res, error, "vehicles_update_failed");
+      handleUnexpectedError(logger, req, res, error, "vehicles_update_failed");
     }
   });
 
@@ -191,7 +207,7 @@ export function registerCustomerVehicleRoutes(app, { logger, customerVehicleServ
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "vehicles_delete_failed");
+      handleUnexpectedError(logger, req, res, error, "vehicles_delete_failed");
     }
   });
 }

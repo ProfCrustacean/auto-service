@@ -34,12 +34,19 @@ Service defaults:
 - Unified lookup API: `GET /api/v1/search?q=<term>` (customer/phone/plate/VIN/model)
 - Russian dashboard UI: `GET /`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
+- SQLite runtime pragmas: `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=1000ms` (override timeout via `SQLITE_BUSY_TIMEOUT_MS`)
+- API auth baseline for mutating `/api/v1/**` requests:
+  - send `Authorization: Bearer <token>` (or `x-api-token`)
+  - default local tokens: `owner-dev-token`, `frontdesk-dev-token`, `technician-dev-token`
+  - override via `AUTH_OWNER_TOKEN`, `AUTH_FRONT_DESK_TOKEN`, `AUTH_TECHNICIAN_TOKEN`
+  - disable only for local diagnostics with `AUTH_ENABLED=0`
 
 ## Local verification
 
 Automated checks:
 
 ```bash
+npm run secrets:scan
 npm test
 ```
 
@@ -53,7 +60,11 @@ Combined local verification:
 
 ```bash
 npm run verify
+npm run audit:bloat
 ```
+
+Harness scripts auto-load `.env` and `.env.local` without overriding explicitly exported environment variables.
+Harness outputs written to stdout/stderr/files are redacted before persistence to avoid credential leakage.
 
 `npm run verify` is self-contained:
 - does not require a pre-started local server,
@@ -80,6 +91,12 @@ Two-stage gate policy:
 - release/milestone gate: `npm run verify:full` (local gate + Render deploy-and-smoke)
 - bootstrap + release gate shortcut: `npm run up:full`
 
+CI gate:
+- GitHub Actions workflow: `.github/workflows/ci.yml`
+- executes `npm ci`, `npm run secrets:scan`, `npm test`, `npm run verify`, `npm run audit:bloat`
+- does not require external secrets for default path
+- uploads `evidence/ci-*.txt`, `evidence/bloat-audit-latest.json`, and `evidence/verify-server.log` when checks fail
+
 Scenario fixture assumptions (current):
 - Smoke checks validate API/UI contracts (including unified lookup) and summary-to-array consistency instead of fixed seeded counts.
 - Booking-page scenario validates `/appointments/new` read/write behavior locally and non-destructive behavior remotely.
@@ -95,18 +112,21 @@ Use the harness CLI when investigation findings need to be turned into Linear ca
 
 Required:
 - `LINEAR_API_KEY`
+- Harness auto-loads `.env` and `.env.local` (without overriding explicitly exported env vars).
 
 Commands:
 
 ```bash
 LINEAR_API_KEY="<key>" npm run linear:probe -- --team-key AUT --state Backlog
 LINEAR_API_KEY="<key>" npm run linear:create -- --spec data/linear/phase1-task-template.json --dry-run
+LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/technical-audit-2026-03-22.json --state Done
 ```
 
 Notes:
 - default transport is `playwright` to bypass geo-restricted direct API paths observed in this environment.
 - override transport only when needed: `--transport direct` or `--transport auto`.
 - `linear:create` is idempotent by issue title within the sampled team issue window (`--issues-limit`, default `250`); existing titles are skipped.
+- `linear:sync` matches issues by normalized title from the spec and transitions them to the selected workflow state.
 
 ## Render deployment (temporary validation)
 
@@ -155,6 +175,10 @@ Useful toggles:
 - `RENDER_LOG_AUDIT_LIMIT=<n>` → per-type (`build`/`app`) log row cap (default `1000`)
 - `RENDER_LOG_AUDIT_MAX_WARNINGS=<n>` / `RENDER_LOG_AUDIT_MAX_ERRORS=<n>` / `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=<n>` → audit thresholds (default `0`)
 - `RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION=0` → do not fail when log API reports `hasMore=true`
+- `RENDER_LOG_AUDIT_SUMMARY_PATH=<path>` → summary output path (default `evidence/render-log-audit-summary.json`)
+- `RENDER_LOG_AUDIT_WRITE_RAW=1` → enable debug raw log artifact output (default disabled)
+- `RENDER_LOG_AUDIT_GZIP_RAW=0` → disable gzip for raw output when raw logging is enabled
+- `RENDER_LOG_AUDIT_RAW_PATH=<path>` → raw output base path (default `evidence/render-log-audit.raw.ndjson`)
 
 ### Current validated Render target (2026-03-21)
 
@@ -200,6 +224,6 @@ If deployment fails:
 
 ## Known current limits
 
-- No production auth yet.
+- Token auth is baseline only (single-token roles, no rotation service, no identity provider integration).
 - SQLite file persistence only (single-node local file model).
 - Render deployment execution requires account/project access not stored in repository.

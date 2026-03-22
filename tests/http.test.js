@@ -21,7 +21,7 @@ test("health and dashboard endpoints return successful responses", async () => {
     const dashboardRes = await fetch(`${baseUrl}/api/v1/dashboard/today`);
     assert.equal(dashboardRes.status, 200);
     const dashboard = await dashboardRes.json();
-    assert.equal(dashboard.summary.appointmentsToday, 1);
+    assert.equal(dashboard.summary.appointmentsToday, dashboard.appointments.length);
     assert.equal(dashboard.summary.waitingPartsCount, 1);
     assert.equal(Array.isArray(dashboard.week.days), true);
     assert.equal(dashboard.week.days.length, 7);
@@ -71,6 +71,45 @@ test("health and dashboard endpoints return successful responses", async () => {
     assert.equal(intakeRes.status, 200);
     const intakeHtml = await intakeRes.text();
     assert.match(intakeHtml, /Прием walk-in/);
+  } finally {
+    await closeServer(server);
+    database.close();
+    cleanup();
+  }
+});
+
+test("malformed JSON request body returns structured validation error", async () => {
+  const tempDb = createTempDatabase("auto-service-http-json-error-test");
+  const { databasePath, cleanup } = tempDb;
+  const { server, database } = makeServer({ databasePath });
+
+  await waitForServer(server);
+
+  try {
+    const address = server.address();
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    const response = await fetch(`${baseUrl}/api/v1/appointments`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer owner-dev-token",
+      },
+      body: "{\"plannedStartLocal\":\"2026-03-22 09:00\",}",
+    });
+
+    assert.equal(response.status, 400);
+    assert.match(response.headers.get("content-type") ?? "", /application\/json/i);
+
+    const payload = await response.json();
+    assert.equal(payload?.error?.code, "validation_error");
+    assert.equal(payload?.error?.message, "Request validation failed");
+    assert.equal(Array.isArray(payload?.error?.details), true);
+    assert.equal(payload.error.details.some((detail) => detail.field === "body"), true);
+
+    const serialized = JSON.stringify(payload);
+    assert.equal(serialized.includes("SyntaxError"), false);
+    assert.equal(serialized.includes("/Users/"), false);
   } finally {
     await closeServer(server);
     database.close();

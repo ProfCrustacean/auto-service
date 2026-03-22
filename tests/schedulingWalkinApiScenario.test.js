@@ -8,6 +8,16 @@ import {
   waitForServer,
 } from "./helpers/httpHarness.js";
 
+function buildUniqueSlot(token, hour = 14) {
+  const date = new Date();
+  const minute = Number.parseInt(token.slice(-2), 10) % 60;
+  date.setHours(hour, minute, 0, 0);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
 test("API acceptance scenario covers appointment scheduling and walk-in intake", async () => {
   const tempDb = createTempDatabase("auto-service-api-scheduling-walkin");
   const { databasePath, cleanup } = tempDb;
@@ -25,7 +35,7 @@ test("API acceptance scenario covers appointment scheduling and walk-in intake",
     const uniqueToken = `${Date.now()}`;
 
     const createAppointment = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
-      plannedStartLocal: `API-SCENARIO-${uniqueToken}`,
+      plannedStartLocal: buildUniqueSlot(uniqueToken, 14),
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: "API scenario scheduling",

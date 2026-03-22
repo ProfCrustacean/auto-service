@@ -1,4 +1,5 @@
-import { collectUnknownFields, isNonEmptyString } from "./validatorUtils.js";
+import { collectUnknownFields, isNonEmptyString, normalizePaginationQuery } from "./validatorUtils.js";
+import { normalizePlannedStartLocal } from "./plannedStartLocal.js";
 
 const APPOINTMENT_STATUSES = new Set(["booked", "confirmed", "arrived", "cancelled", "no-show"]);
 
@@ -103,6 +104,7 @@ function normalizeQueryString(value, field, errors) {
 
 export function validateListAppointmentsQuery(query) {
   const errors = [];
+  const pagination = normalizePaginationQuery(query, errors);
 
   const status = normalizeStatus(query.status, "status", errors) ?? null;
   const customerId = normalizeOptionalId(query.customerId, "customerId", errors) ?? null;
@@ -110,7 +112,7 @@ export function validateListAppointmentsQuery(query) {
   const bayId = normalizeOptionalId(query.bayId, "bayId", errors) ?? null;
   const search = normalizeQueryString(query.q, "q", errors);
 
-  const unknownFields = collectUnknownFields(query, ["status", "customerId", "vehicleId", "bayId", "q"]);
+  const unknownFields = collectUnknownFields(query, ["status", "customerId", "vehicleId", "bayId", "q", "limit", "offset"]);
   for (const field of unknownFields) {
     errors.push({ field, message: "unknown query parameter" });
   }
@@ -127,6 +129,8 @@ export function validateListAppointmentsQuery(query) {
       vehicleId,
       bayId,
       query: search,
+      limit: pagination.limit,
+      offset: pagination.offset,
     },
   };
 }
@@ -136,6 +140,8 @@ export function validateAppointmentCreate(body) {
 
   if (!isNonEmptyString(body.plannedStartLocal)) {
     errors.push({ field: "plannedStartLocal", message: "plannedStartLocal is required and must be a non-empty string" });
+  } else if (!normalizePlannedStartLocal(body.plannedStartLocal)) {
+    errors.push({ field: "plannedStartLocal", message: "plannedStartLocal must match YYYY-MM-DD HH:mm" });
   }
 
   if (!isNonEmptyString(body.customerId)) {
@@ -178,7 +184,7 @@ export function validateAppointmentCreate(body) {
   }
 
   const value = {
-    plannedStartLocal: body.plannedStartLocal.trim(),
+    plannedStartLocal: normalizePlannedStartLocal(body.plannedStartLocal),
     customerId: body.customerId.trim(),
     vehicleId: body.vehicleId.trim(),
     complaint: body.complaint.trim(),
@@ -216,7 +222,12 @@ export function validateAppointmentUpdate(body) {
     if (!isNonEmptyString(body.plannedStartLocal)) {
       errors.push({ field: "plannedStartLocal", message: "plannedStartLocal must be a non-empty string" });
     } else {
-      value.plannedStartLocal = body.plannedStartLocal.trim();
+      const normalizedSlot = normalizePlannedStartLocal(body.plannedStartLocal);
+      if (!normalizedSlot) {
+        errors.push({ field: "plannedStartLocal", message: "plannedStartLocal must match YYYY-MM-DD HH:mm" });
+      } else {
+        value.plannedStartLocal = normalizedSlot;
+      }
     }
   }
 

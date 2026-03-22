@@ -13,9 +13,9 @@ test("migrations are idempotent and seed runs only once by default", () => {
 
   try {
     const firstMigration = runMigrations({ database, logger });
-    assert.equal(firstMigration.appliedVersions.length, 3);
-    assert.deepEqual(firstMigration.appliedVersions, ["001", "002", "003"]);
-    assert.equal(firstMigration.currentVersion, "003");
+    assert.equal(firstMigration.appliedVersions.length, 6);
+    assert.deepEqual(firstMigration.appliedVersions, ["001", "002", "003", "004", "005", "006"]);
+    assert.equal(firstMigration.currentVersion, "006");
 
     const secondMigration = runMigrations({ database, logger });
     assert.equal(secondMigration.appliedVersions.length, 0);
@@ -36,9 +36,17 @@ test("migrations are idempotent and seed runs only once by default", () => {
 
     const appointmentCount = database.prepare("SELECT COUNT(1) AS count FROM appointments").get().count;
     const workOrderCount = database.prepare("SELECT COUNT(1) AS count FROM work_orders").get().count;
+    const nextAppointmentCode = database
+      .prepare("SELECT next_value AS nextValue FROM code_sequences WHERE entity = 'appointment'")
+      .get().nextValue;
+    const nextWorkOrderCode = database
+      .prepare("SELECT next_value AS nextValue FROM code_sequences WHERE entity = 'work_order'")
+      .get().nextValue;
 
     assert.equal(appointmentCount, 1);
     assert.equal(workOrderCount, 8);
+    assert.equal(nextAppointmentCode, 2);
+    assert.equal(nextWorkOrderCode, 1006);
   } finally {
     database.close();
     cleanup();

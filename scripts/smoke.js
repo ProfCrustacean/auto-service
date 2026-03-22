@@ -6,7 +6,9 @@ import {
   requestJson,
   requestText,
 } from "./harness-diagnostics.js";
+import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 
+loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
 
 function assertNonNegativeInteger(value, label, step, response) {

@@ -1,0 +1,64 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare evidence directory
+        run: mkdir -p evidence
+
+      - name: Secrets scan
+        run: |
+          set -o pipefail
+          npm run secrets:scan | tee evidence/ci-secrets-scan.txt
+
+      - name: Unit and integration tests
+        run: |
+          set -o pipefail
+          npm test | tee evidence/ci-test-output.txt
+
+      - name: Verify harness
+        run: |
+          set -o pipefail
+          npm run verify | tee evidence/ci-verify-output.txt
+
+      - name: Bloat audit
+        run: |
+          set -o pipefail
+          npm run audit:bloat | tee evidence/ci-bloat-audit.txt
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-artifacts
+          if-no-files-found: warn
+          path: |
+            evidence/ci-secrets-scan.txt
+            evidence/ci-test-output.txt
+            evidence/ci-verify-output.txt
+            evidence/ci-bloat-audit.txt
+            evidence/bloat-audit-latest.json
+            evidence/verify-server.log

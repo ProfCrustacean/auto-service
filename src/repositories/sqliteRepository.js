@@ -120,6 +120,85 @@ function mapIntakeEventRecord(row) {
 export class SqliteRepository {
   constructor(database) {
     this.database = database;
+    this.transactionDepth = 0;
+    this.transactionCounter = 0;
+  }
+
+  runInTransaction(work, { immediate = false } = {}) {
+    const useSavepoint = this.transactionDepth > 0;
+    const savepointName = `sp_${this.transactionCounter += 1}`;
+
+    try {
+      if (useSavepoint) {
+        this.database.exec(`SAVEPOINT ${savepointName};`);
+      } else {
+        this.database.exec(immediate ? "BEGIN IMMEDIATE TRANSACTION;" : "BEGIN TRANSACTION;");
+      }
+
+      this.transactionDepth += 1;
+      const result = work();
+      this.transactionDepth -= 1;
+
+      if (useSavepoint) {
+        this.database.exec(`RELEASE SAVEPOINT ${savepointName};`);
+      } else {
+        this.database.exec("COMMIT;");
+      }
+
+      return result;
+    } catch (error) {
+      if (this.transactionDepth > 0) {
+        this.transactionDepth -= 1;
+      }
+
+      try {
+        if (useSavepoint) {
+          this.database.exec(`ROLLBACK TO SAVEPOINT ${savepointName};`);
+          this.database.exec(`RELEASE SAVEPOINT ${savepointName};`);
+        } else {
+          this.database.exec("ROLLBACK;");
+        }
+      } catch {
+        // If transaction rollback fails, propagate original error.
+      }
+
+      throw error;
+    }
+  }
+
+  reserveSequenceValue(entity) {
+    return this.runInTransaction(() => {
+      const row = this.database
+        .prepare(
+          `SELECT next_value AS nextValue
+           FROM code_sequences
+           WHERE entity = ?`,
+        )
+        .get(entity);
+
+      if (!row || !Number.isInteger(row.nextValue)) {
+        throw new Error(`Code sequence is not configured for entity '${entity}'`);
+      }
+
+      this.database
+        .prepare(
+          `UPDATE code_sequences
+           SET next_value = next_value + 1
+           WHERE entity = ?`,
+        )
+        .run(entity);
+      return row.nextValue;
+    }, { immediate: true });
+  }
+
+  allocateNextAppointmentCode() {
+    const value = this.reserveSequenceValue("appointment");
+    return `APT-${String(value).padStart(3, "0")}`;
+  }
+
+  allocateNextWorkOrderCode() {
+    const value = this.reserveSequenceValue("work_order");
+    return `WO-${String(value).padStart(4, "0")}`;
   }
 
   getServiceMeta() {
@@ -179,7 +258,15 @@ export class SqliteRepository {
       .map(mapAppointmentRecord);
   }
 
-  listAppointmentRecords({ status = null, customerId = null, vehicleId = null, bayId = null, query = "" } = {}) {
+  listAppointmentRecords({
+    status = null,
+    customerId = null,
+    vehicleId = null,
+    bayId = null,
+    query = "",
+    limit = null,
+    offset = 0,
+  } = {}) {
     const conditions = [];
     const values = [];
 
@@ -213,6 +300,18 @@ export class SqliteRepository {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const hasLimit = Number.isInteger(limit);
+    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
+    const paginationClause = hasLimit
+      ? " LIMIT ? OFFSET ?"
+      : hasOffsetOnly
+        ? " LIMIT -1 OFFSET ?"
+        : "";
+    const paginationValues = hasLimit
+      ? [limit, offset]
+      : hasOffsetOnly
+        ? [offset]
+        : [];
 
     return this.database
       .prepare(
@@ -233,14 +332,59 @@ export class SqliteRepository {
           a.expected_duration_min AS expectedDurationMin,
           a.notes,
           a.created_at AS createdAt,
-          a.updated_at AS updatedAt
+         a.updated_at AS updatedAt
          FROM appointments a
          LEFT JOIN bays b ON b.id = a.bay_id
          ${whereClause}
-         ORDER BY a.planned_start_local ASC, a.code ASC`,
+         ORDER BY a.planned_start_local ASC, a.code ASC${paginationClause}`,
       )
-      .all(...values)
+      .all(...values, ...paginationValues)
       .map(mapAppointmentRecord);
+  }
+
+  searchAppointmentRecords({ query, limit }) {
+    const trimmedQuery = query.trim();
+    const pattern = `%${trimmedQuery}%`;
+
+    const total = this.database
+      .prepare(
+        `SELECT COUNT(1) AS count
+         FROM appointments a
+         WHERE (
+           a.code LIKE ?
+           OR a.planned_start_local LIKE ?
+           OR a.customer_name_snapshot LIKE ?
+           OR a.vehicle_label_snapshot LIKE ?
+           OR a.complaint LIKE ?
+           OR COALESCE(a.primary_assignee, '') LIKE ?
+         )`,
+      )
+      .get(pattern, pattern, pattern, pattern, pattern, pattern)
+      .count;
+
+    const rows = this.database
+      .prepare(
+        `SELECT
+          a.id,
+          a.code,
+          a.planned_start_local AS plannedStartLocal,
+          a.customer_name_snapshot AS customerName,
+          a.vehicle_label_snapshot AS vehicleLabel
+         FROM appointments a
+         WHERE (
+           a.code LIKE ?
+           OR a.planned_start_local LIKE ?
+           OR a.customer_name_snapshot LIKE ?
+           OR a.vehicle_label_snapshot LIKE ?
+           OR a.complaint LIKE ?
+           OR COALESCE(a.primary_assignee, '') LIKE ?
+         )
+         ORDER BY a.planned_start_local ASC, a.code ASC
+         LIMIT ?`,
+      )
+      .all(pattern, pattern, pattern, pattern, pattern, pattern, limit);
+
+    return { total, rows };
   }
 
   getAppointmentRecordById(id) {
@@ -484,6 +628,49 @@ export class SqliteRepository {
       .all();
   }
 
+  searchWorkOrders({ query, limit }) {
+    const trimmedQuery = query.trim();
+    const pattern = `%${trimmedQuery}%`;
+
+    const total = this.database
+      .prepare(
+        `SELECT COUNT(1) AS count
+         FROM work_orders w
+         WHERE (
+           w.code LIKE ?
+           OR w.customer_name_snapshot LIKE ?
+           OR w.vehicle_label_snapshot LIKE ?
+           OR w.status_label_ru LIKE ?
+           OR COALESCE(w.primary_assignee, '') LIKE ?
+         )`,
+      )
+      .get(pattern, pattern, pattern, pattern, pattern)
+      .count;
+
+    const rows = this.database
+      .prepare(
+        `SELECT
+          w.id,
+          w.code,
+          w.customer_name_snapshot AS customerName,
+          w.vehicle_label_snapshot AS vehicleLabel,
+          w.status_label_ru AS statusLabelRu
+         FROM work_orders w
+         WHERE (
+           w.code LIKE ?
+           OR w.customer_name_snapshot LIKE ?
+           OR w.vehicle_label_snapshot LIKE ?
+           OR w.status_label_ru LIKE ?
+           OR COALESCE(w.primary_assignee, '') LIKE ?
+         )
+         ORDER BY w.code ASC
+         LIMIT ?`,
+      )
+      .all(pattern, pattern, pattern, pattern, pattern, limit);
+
+    return { total, rows };
+  }
+
   getWorkOrderById(id) {
     return this.database
       .prepare(
@@ -539,35 +726,35 @@ export class SqliteRepository {
       .all();
   }
 
-  listEmployees({ includeInactive = false } = {}) {
-    const rows = includeInactive
-      ? this.database
-          .prepare(
-            `SELECT
-              id,
-              name,
-              roles_json AS rolesJson,
-              is_active AS isActive,
-              created_at AS createdAt,
-              updated_at AS updatedAt
-             FROM employees
-             ORDER BY name ASC`,
-          )
-          .all()
-      : this.database
-          .prepare(
-            `SELECT
-              id,
-              name,
-              roles_json AS rolesJson,
-              is_active AS isActive,
-              created_at AS createdAt,
-              updated_at AS updatedAt
-             FROM employees
-             WHERE is_active = 1
-             ORDER BY name ASC`,
-          )
-          .all();
+  listEmployees({ includeInactive = false, limit = null, offset = 0 } = {}) {
+    const whereClause = includeInactive ? "" : "WHERE is_active = 1";
+    const hasLimit = Number.isInteger(limit);
+    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
+    const paginationClause = hasLimit
+      ? " LIMIT ? OFFSET ?"
+      : hasOffsetOnly
+        ? " LIMIT -1 OFFSET ?"
+        : "";
+    const paginationValues = hasLimit
+      ? [limit, offset]
+      : hasOffsetOnly
+        ? [offset]
+        : [];
+
+    const rows = this.database
+      .prepare(
+        `SELECT
+          id,
+          name,
+          roles_json AS rolesJson,
+          is_active AS isActive,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+         FROM employees
+         ${whereClause}
+         ORDER BY name ASC${paginationClause}`,
+      )
+      .all(...paginationValues);
 
     return rows.map(mapEmployeeRow);
   }
@@ -644,33 +831,34 @@ export class SqliteRepository {
     return this.updateEmployeeById(id, { isActive: false });
   }
 
-  listBays({ includeInactive = false } = {}) {
-    const rows = includeInactive
-      ? this.database
-          .prepare(
-            `SELECT
-              id,
-              name,
-              is_active AS isActive,
-              created_at AS createdAt,
-              updated_at AS updatedAt
-             FROM bays
-             ORDER BY name ASC`,
-          )
-          .all()
-      : this.database
-          .prepare(
-            `SELECT
-              id,
-              name,
-              is_active AS isActive,
-              created_at AS createdAt,
-              updated_at AS updatedAt
-             FROM bays
-             WHERE is_active = 1
-             ORDER BY name ASC`,
-          )
-          .all();
+  listBays({ includeInactive = false, limit = null, offset = 0 } = {}) {
+    const whereClause = includeInactive ? "" : "WHERE is_active = 1";
+    const hasLimit = Number.isInteger(limit);
+    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
+    const paginationClause = hasLimit
+      ? " LIMIT ? OFFSET ?"
+      : hasOffsetOnly
+        ? " LIMIT -1 OFFSET ?"
+        : "";
+    const paginationValues = hasLimit
+      ? [limit, offset]
+      : hasOffsetOnly
+        ? [offset]
+        : [];
+
+    const rows = this.database
+      .prepare(
+        `SELECT
+          id,
+          name,
+          is_active AS isActive,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+         FROM bays
+         ${whereClause}
+         ORDER BY name ASC${paginationClause}`,
+      )
+      .all(...paginationValues);
 
     return rows.map(mapBayRow);
   }
@@ -741,7 +929,7 @@ export class SqliteRepository {
     return this.updateBayById(id, { isActive: false });
   }
 
-  listCustomerRecords({ includeInactive = false, query = "" } = {}) {
+  listCustomerRecords({ includeInactive = false, query = "", limit = null, offset = 0 } = {}) {
     const conditions = [];
     const values = [];
 
@@ -757,6 +945,18 @@ export class SqliteRepository {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const hasLimit = Number.isInteger(limit);
+    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
+    const paginationClause = hasLimit
+      ? " LIMIT ? OFFSET ?"
+      : hasOffsetOnly
+        ? " LIMIT -1 OFFSET ?"
+        : "";
+    const paginationValues = hasLimit
+      ? [limit, offset]
+      : hasOffsetOnly
+        ? [offset]
+        : [];
 
     const rows = this.database
       .prepare(
@@ -771,11 +971,52 @@ export class SqliteRepository {
           c.updated_at AS updatedAt
          FROM customers c
          ${whereClause}
-         ORDER BY c.full_name ASC`,
+         ORDER BY c.full_name ASC${paginationClause}`,
       )
-      .all(...values);
+      .all(...values, ...paginationValues);
 
     return rows.map(mapCustomerRecord);
+  }
+
+  searchCustomers({ query, limit }) {
+    const trimmedQuery = query.trim();
+    const pattern = `%${trimmedQuery}%`;
+    const phoneDigits = trimmedQuery.replace(/\D/gu, "");
+    const phonePattern = `%${phoneDigits}%`;
+
+    const total = this.database
+      .prepare(
+        `SELECT COUNT(1) AS count
+         FROM customers c
+         WHERE c.is_active = 1
+           AND (
+             c.full_name LIKE ?
+             OR c.phone LIKE ?
+             OR (? != '' AND replace(replace(replace(replace(replace(c.phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') LIKE ?)
+           )`,
+      )
+      .get(pattern, pattern, phoneDigits, phonePattern)
+      .count;
+
+    const rows = this.database
+      .prepare(
+        `SELECT
+          c.id,
+          c.full_name AS fullName,
+          c.phone
+         FROM customers c
+         WHERE c.is_active = 1
+           AND (
+             c.full_name LIKE ?
+             OR c.phone LIKE ?
+             OR (? != '' AND replace(replace(replace(replace(replace(c.phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') LIKE ?)
+           )
+         ORDER BY c.full_name ASC
+         LIMIT ?`,
+      )
+      .all(pattern, pattern, phoneDigits, phonePattern, limit);
+
+    return { total, rows };
   }
 
   getCustomerById(id) {
@@ -870,7 +1111,7 @@ export class SqliteRepository {
     return this.updateCustomerById(id, { isActive: false });
   }
 
-  listVehicleRecords({ includeInactive = false, query = "", customerId = null } = {}) {
+  listVehicleRecords({ includeInactive = false, query = "", customerId = null, limit = null, offset = 0 } = {}) {
     const conditions = [];
     const values = [];
 
@@ -893,6 +1134,18 @@ export class SqliteRepository {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const hasLimit = Number.isInteger(limit);
+    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
+    const paginationClause = hasLimit
+      ? " LIMIT ? OFFSET ?"
+      : hasOffsetOnly
+        ? " LIMIT -1 OFFSET ?"
+        : "";
+    const paginationValues = hasLimit
+      ? [limit, offset]
+      : hasOffsetOnly
+        ? [offset]
+        : [];
 
     const rows = this.database
       .prepare(
@@ -914,11 +1167,62 @@ export class SqliteRepository {
          FROM vehicles v
          JOIN customers c ON c.id = v.customer_id
          ${whereClause}
-         ORDER BY v.label ASC`,
+         ORDER BY v.label ASC${paginationClause}`,
       )
-      .all(...values);
+      .all(...values, ...paginationValues);
 
     return rows.map(mapVehicleRecord);
+  }
+
+  searchVehicles({ query, limit }) {
+    const trimmedQuery = query.trim();
+    const pattern = `%${trimmedQuery}%`;
+
+    const total = this.database
+      .prepare(
+        `SELECT COUNT(1) AS count
+         FROM vehicles v
+         JOIN customers c ON c.id = v.customer_id
+         WHERE v.is_active = 1
+           AND (
+             v.label LIKE ?
+             OR COALESCE(v.plate_number, '') LIKE ?
+             OR COALESCE(v.vin, '') LIKE ?
+             OR COALESCE(v.make, '') LIKE ?
+             OR COALESCE(v.model, '') LIKE ?
+             OR c.full_name LIKE ?
+           )`,
+      )
+      .get(pattern, pattern, pattern, pattern, pattern, pattern)
+      .count;
+
+    const rows = this.database
+      .prepare(
+        `SELECT
+          v.id,
+          v.customer_id AS customerId,
+          c.full_name AS customerName,
+          v.label,
+          v.plate_number AS plateNumber,
+          v.vin,
+          v.model
+         FROM vehicles v
+         JOIN customers c ON c.id = v.customer_id
+         WHERE v.is_active = 1
+           AND (
+             v.label LIKE ?
+             OR COALESCE(v.plate_number, '') LIKE ?
+             OR COALESCE(v.vin, '') LIKE ?
+             OR COALESCE(v.make, '') LIKE ?
+             OR COALESCE(v.model, '') LIKE ?
+             OR c.full_name LIKE ?
+           )
+         ORDER BY v.label ASC
+         LIMIT ?`,
+      )
+      .all(pattern, pattern, pattern, pattern, pattern, pattern, limit);
+
+    return { total, rows };
   }
 
   getVehicleById(id) {
@@ -963,9 +1267,7 @@ export class SqliteRepository {
   }) {
     const nowIso = new Date().toISOString();
 
-    try {
-      this.database.exec("BEGIN TRANSACTION;");
-
+    this.runInTransaction(() => {
       this.database
         .prepare(
           `INSERT INTO vehicles(
@@ -1012,12 +1314,7 @@ export class SqliteRepository {
           ) VALUES (?, ?, ?, ?, ?, ?)`,
         )
         .run(`ownership-${randomUUID().split("-")[0]}`, id, customerId, nowIso, "vehicle_created", "api");
-
-      this.database.exec("COMMIT;");
-    } catch (error) {
-      this.database.exec("ROLLBACK;");
-      throw error;
-    }
+    });
 
     return this.getVehicleById(id);
   }
@@ -1092,8 +1389,7 @@ export class SqliteRepository {
 
     const customerChanged = updates.customerId !== undefined && updates.customerId !== existing.customerId;
 
-    try {
-      this.database.exec("BEGIN TRANSACTION;");
+    this.runInTransaction(() => {
       this.database.prepare(`UPDATE vehicles SET ${assignments.join(", ")} WHERE id = ?`).run(...values);
 
       if (customerChanged) {
@@ -1117,12 +1413,7 @@ export class SqliteRepository {
             "api",
           );
       }
-
-      this.database.exec("COMMIT;");
-    } catch (error) {
-      this.database.exec("ROLLBACK;");
-      throw error;
-    }
+    });
 
     return this.getVehicleById(id);
   }
@@ -1198,9 +1489,7 @@ export class SqliteRepository {
   }) {
     const nowIso = new Date().toISOString();
 
-    try {
-      this.database.exec("BEGIN TRANSACTION;");
-
+    this.runInTransaction(() => {
       this.database
         .prepare(
           `INSERT INTO intake_events(
@@ -1258,12 +1547,7 @@ export class SqliteRepository {
           nowIso,
           nowIso,
         );
-
-      this.database.exec("COMMIT;");
-    } catch (error) {
-      this.database.exec("ROLLBACK;");
-      throw error;
-    }
+    });
 
     return {
       intakeEvent: this.getIntakeEventById(intakeEventId),

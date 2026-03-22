@@ -1,4 +1,5 @@
 import express from "express";
+import { randomUUID } from "node:crypto";
 import { renderDashboardPage } from "./ui/dashboardPage.js";
 import { renderSimpleDetailPage } from "./ui/detailPage.js";
 import { registerReferenceRoutes } from "./http/referenceRoutes.js";
@@ -8,6 +9,7 @@ import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
 import { registerAppointmentPageRoutes } from "./http/appointmentPageRoutes.js";
 import { registerWalkInIntakePageRoutes } from "./http/walkInIntakePageRoutes.js";
 import { sendApiError, validationError } from "./http/apiErrors.js";
+import { createApiAuthMiddleware } from "./http/authz.js";
 
 function shouldSkipHttpRequestLog(path, statusCode) {
   return path === "/healthz" && statusCode < 400;
@@ -50,6 +52,24 @@ function readDashboardSearchQuery(query) {
   return typeof query.q === "string" ? query.q : "";
 }
 
+function isMalformedJsonBodyError(error) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const statusCode = error.statusCode ?? error.status;
+  const type = typeof error.type === "string" ? error.type : "";
+  return statusCode === 400 && type === "entity.parse.failed";
+}
+
+function resolveRequestId(headerValue) {
+  if (typeof headerValue === "string" && headerValue.trim().length > 0) {
+    return headerValue.trim().slice(0, 120);
+  }
+
+  return `req-${randomUUID().split("-")[0]}`;
+}
+
 export function createApp({
   config,
   logger,
@@ -60,10 +80,18 @@ export function createApp({
   walkInIntakeService,
 }) {
   const app = express();
+  const apiAuthMiddleware = createApiAuthMiddleware({
+    logger,
+    authConfig: config.auth,
+  });
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use((req, res, next) => {
+    const requestId = resolveRequestId(req.headers["x-request-id"]);
+    req.requestId = requestId;
+    res.setHeader("x-request-id", requestId);
+
     const startedAt = Date.now();
     res.on("finish", () => {
       if (shouldSkipHttpRequestLog(req.path, res.statusCode)) {
@@ -75,10 +103,12 @@ export function createApp({
         path: req.path,
         statusCode: res.statusCode,
         durationMs: Date.now() - startedAt,
+        requestId,
       });
     });
     next();
   });
+  app.use(apiAuthMiddleware);
 
   app.get("/healthz", (_req, res) => {
     res.json({ status: "ok", environment: config.appEnv });
@@ -89,7 +119,7 @@ export function createApp({
       const model = dashboardService.getTodayDashboard();
       res.json({ status: "ready", seedLoaded: Boolean(model.service) });
     } catch (error) {
-      logger.error("readiness_failed", { message: error.message });
+      logger.error("readiness_failed", { message: error.message, requestId: _req.requestId ?? null });
       res.status(500).json({ status: "not_ready" });
     }
   });
@@ -214,6 +244,32 @@ export function createApp({
 
   app.get("/favicon.ico", (_req, res) => {
     res.status(204).end();
+  });
+
+  app.use((error, req, res, next) => {
+    if (!isMalformedJsonBodyError(error)) {
+      next(error);
+      return;
+    }
+
+    logger.warn("http_json_parse_failed", {
+      method: req.method,
+      path: req.path,
+      message: error.message,
+      requestId: req.requestId ?? null,
+    });
+    sendApiError(res, validationError([{ field: "body", message: "body must contain valid JSON" }]));
+  });
+
+  app.use((error, req, res, _next) => {
+    logger.error("http_unexpected_error", {
+      method: req.method,
+      path: req.path,
+      message: error?.message ?? "unknown_error",
+      requestId: req.requestId ?? null,
+      stack: error?.stack ?? null,
+    });
+    sendApiError(res, internalError());
   });
 
   app.use((_req, res) => {

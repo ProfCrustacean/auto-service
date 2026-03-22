@@ -47,7 +47,7 @@ export function registerWalkInIntakeRoutes(app, { logger, walkInIntakeService })
         return;
       }
 
-      handleUnexpectedError(logger, res, error, "walkin_intake_create_failed");
+      handleUnexpectedError(logger, req, res, error, "walkin_intake_create_failed");
     }
   });
 }

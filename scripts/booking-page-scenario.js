@@ -8,8 +8,11 @@ import {
   requestJson,
   requestText,
 } from "./harness-diagnostics.js";
+import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 
+loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
+const BLOCKING_APPOINTMENT_STATUSES = new Set(["booked", "confirmed", "arrived"]);
 
 function resolveMode() {
   const hasNonDestructiveArg = process.argv.includes("--non-destructive");
@@ -66,6 +69,16 @@ function buildIsolation(mode, writesPerformed) {
     writesPerformed,
     cleanupStatus: "not_performed",
   };
+}
+
+function buildUniqueSlot(token, hour = 12) {
+  const date = new Date();
+  const minute = Number.parseInt(token.slice(-2), 10) % 60;
+  date.setHours(hour, minute, 0, 0);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
 function toFormBody(payload) {
@@ -152,6 +165,87 @@ function extractAppointmentId(locationHeader) {
   return match ? match[1] : null;
 }
 
+function resolveCapacityConflictPayload(appointments) {
+  if (!Array.isArray(appointments)) {
+    return null;
+  }
+
+  const candidate = appointments.find((item) => (
+    item
+    && BLOCKING_APPOINTMENT_STATUSES.has(item.status)
+    && typeof item.plannedStartLocal === "string"
+    && item.plannedStartLocal.length > 0
+    && (typeof item.bayId === "string" && item.bayId.length > 0
+      || typeof item.primaryAssignee === "string" && item.primaryAssignee.length > 0)
+    && typeof item.customerId === "string"
+    && item.customerId.length > 0
+    && typeof item.vehicleId === "string"
+    && item.vehicleId.length > 0
+  ));
+
+  if (!candidate) {
+    return null;
+  }
+
+  return {
+    strategy: "capacity_conflict",
+    expectedMessage: "Конфликт загрузки в выбранном слоте",
+    payload: {
+      plannedStartLocal: candidate.plannedStartLocal,
+      customerId: candidate.customerId,
+      vehicleId: candidate.vehicleId,
+      complaint: "Scenario conflict check",
+      bayId: candidate.bayId ?? undefined,
+      primaryAssignee: candidate.primaryAssignee ?? undefined,
+    },
+    context: {
+      appointmentId: candidate.id ?? null,
+      appointmentCode: candidate.code ?? null,
+      plannedStartLocal: candidate.plannedStartLocal,
+      bayId: candidate.bayId ?? null,
+      primaryAssignee: candidate.primaryAssignee ?? null,
+    },
+  };
+}
+
+function resolveVehicleMismatchPayload(customers, vehicles) {
+  if (!Array.isArray(customers) || !Array.isArray(vehicles)) {
+    return null;
+  }
+
+  for (const vehicle of vehicles) {
+    const ownerId = vehicle?.customerId;
+    if (typeof ownerId !== "string" || ownerId.length === 0) {
+      continue;
+    }
+
+    const mismatchCustomer = customers.find((candidate) => {
+      const customerId = candidate?.id;
+      return typeof customerId === "string" && customerId.length > 0 && customerId !== ownerId;
+    });
+
+    if (mismatchCustomer) {
+      return {
+        strategy: "vehicle_mismatch_conflict",
+        expectedMessage: "Авто не принадлежит выбранному клиенту",
+        payload: {
+          plannedStartLocal: buildUniqueSlot(`${Date.now()}`, 13),
+          customerId: mismatchCustomer.id,
+          vehicleId: vehicle.id,
+          complaint: "Scenario mismatch conflict check",
+        },
+        context: {
+          vehicleId: vehicle.id,
+          vehicleOwnerId: ownerId,
+          mismatchCustomerId: mismatchCustomer.id,
+        },
+      };
+    }
+  }
+
+  return null;
+}
+
 async function runNonDestructiveScenario(mode) {
   const bookingPage = await requestPage("/appointments/new", "booking_page_open");
   assertHarness(bookingPage.status === 200, "booking page must return 200", {
@@ -179,7 +273,7 @@ async function runNonDestructiveScenario(mode) {
   const invalidSubmit = await submitForm("/appointments/new", {
     step: "booking_invalid_submit",
     payload: {
-      plannedStartLocal: "Завтра 10:30",
+      plannedStartLocal: "2026-03-23 10:30",
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: "",
@@ -195,15 +289,27 @@ async function runNonDestructiveScenario(mode) {
   });
   expectTextIncludes(invalidSubmit, "Исправьте ошибки перед сохранением", "booking_invalid_submit");
 
+  const appointments = await request("/api/v1/appointments", { step: "booking_conflict_seed_probe" });
+  expectStatus(appointments, 200, "booking_conflict_seed_probe");
+  const capacityConflict = resolveCapacityConflictPayload(appointments.payload?.items);
+
+  let conflictProbe = capacityConflict;
+  if (!conflictProbe) {
+    const customers = await request("/api/v1/customers", { step: "booking_conflict_customers_probe" });
+    expectStatus(customers, 200, "booking_conflict_customers_probe");
+    const vehicles = await request("/api/v1/vehicles", { step: "booking_conflict_vehicles_probe" });
+    expectStatus(vehicles, 200, "booking_conflict_vehicles_probe");
+    conflictProbe = resolveVehicleMismatchPayload(customers.payload?.items, vehicles.payload?.items);
+  }
+
+  assertHarness(Boolean(conflictProbe), "non-destructive conflict probe requires at least one deterministic 409 path", {
+    step: "booking_conflict_probe_prepare",
+    appointmentsCount: Array.isArray(appointments.payload?.items) ? appointments.payload.items.length : null,
+  });
+
   const conflictSubmit = await submitForm("/appointments/new", {
     step: "booking_conflict_submit",
-    payload: {
-      plannedStartLocal: "Завтра 09:00",
-      customerId: "cust-2",
-      vehicleId: "veh-3",
-      complaint: "Scenario conflict check",
-      bayId: "bay-1",
-    },
+    payload: conflictProbe.payload,
   });
   assertHarness(conflictSubmit.status === 409, "conflicting booking submit must return 409", {
     step: "booking_conflict_submit",
@@ -212,8 +318,13 @@ async function runNonDestructiveScenario(mode) {
     url: conflictSubmit.url,
     responseStatus: conflictSubmit.status,
     responseBodySnippet: conflictSubmit.text.slice(0, 500),
+    conflictStrategy: conflictProbe.strategy,
+    conflictContext: conflictProbe.context,
   });
-  expectTextIncludes(conflictSubmit, "Конфликт загрузки в выбранном слоте", "booking_conflict_submit");
+  expectTextIncludes(conflictSubmit, conflictProbe.expectedMessage, "booking_conflict_submit", {
+    conflictStrategy: conflictProbe.strategy,
+    conflictContext: conflictProbe.context,
+  });
 
   process.stdout.write(
     `${JSON.stringify({
@@ -224,7 +335,16 @@ async function runNonDestructiveScenario(mode) {
       baseUrl,
       writesPerformed: false,
       isolation: buildIsolation(mode, false),
-      checks: ["booking_page_open", "booking_lookup", "booking_invalid_submit", "booking_conflict_submit"],
+      checks: {
+        booking_page_open: "ok",
+        booking_lookup: "ok",
+        booking_invalid_submit: "ok",
+        booking_conflict_submit: {
+          status: "ok",
+          strategy: conflictProbe.strategy,
+          context: conflictProbe.context,
+        },
+      },
     }, null, 2)}\n`,
   );
 }
@@ -237,7 +357,7 @@ async function runDefaultScenario(mode) {
   const submit = await submitForm("/appointments/new", {
     step: "booking_submit",
     payload: {
-      plannedStartLocal: `BOOKING-SCENARIO-${uniqueToken}`,
+      plannedStartLocal: buildUniqueSlot(uniqueToken, 12),
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: `Scenario booking ${uniqueToken}`,

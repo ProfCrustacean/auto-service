@@ -29,7 +29,20 @@ export function createTempDatabase(prefix) {
 }
 
 export function makeServer({ databasePath, port = 0, logger = createSilentLogger() }) {
-  const config = { appEnv: "test", port, seedPath: "./data/seed-fixtures.json", databasePath };
+  const config = {
+    appEnv: "test",
+    port,
+    seedPath: "./data/seed-fixtures.json",
+    databasePath,
+    auth: {
+      enabled: process.env.TEST_AUTH_ENABLED !== "0",
+      tokens: [
+        { role: "owner", token: process.env.TEST_OWNER_TOKEN ?? "owner-dev-token" },
+        { role: "front_desk", token: process.env.TEST_FRONT_DESK_TOKEN ?? "frontdesk-dev-token" },
+        { role: "technician", token: process.env.TEST_TECHNICIAN_TOKEN ?? "technician-dev-token" },
+      ],
+    },
+  };
   const { repository, database } = bootstrapPersistence({ config, logger });
   const dashboardService = new DashboardService(repository);
   const referenceDataService = new ReferenceDataService(repository);
@@ -70,11 +83,17 @@ export async function closeServer(server) {
 }
 
 export async function requestJson(method, url, body = undefined) {
+  const headers = {
+    "content-type": "application/json",
+  };
+  const normalizedMethod = String(method).toUpperCase();
+  if (["POST", "PATCH", "PUT", "DELETE"].includes(normalizedMethod)) {
+    headers.authorization = `Bearer ${process.env.TEST_AUTH_TOKEN ?? "owner-dev-token"}`;
+  }
+
   const res = await fetch(url, {
     method,
-    headers: {
-      "content-type": "application/json",
-    },
+    headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 

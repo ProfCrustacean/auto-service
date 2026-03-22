@@ -9,7 +9,7 @@ import {
   validateBayUpdate,
   validateEmployeeCreate,
   validateEmployeeUpdate,
-  validateIncludeInactiveQuery,
+  validateReferenceListQuery,
 } from "./referenceValidators.js";
 import { handleUnexpectedError } from "./routeUtils.js";
 
@@ -19,17 +19,25 @@ function isBayNameConflict(error) {
 
 export function registerReferenceRoutes(app, { logger, referenceDataService }) {
   app.get("/api/v1/employees", (req, res) => {
-    const includeInactiveValidation = validateIncludeInactiveQuery(req.query);
-    if (!includeInactiveValidation.ok) {
-      sendApiError(res, validationError(includeInactiveValidation.errors));
+    const listValidation = validateReferenceListQuery(req.query);
+    if (!listValidation.ok) {
+      sendApiError(res, validationError(listValidation.errors));
       return;
     }
 
     try {
-      const items = referenceDataService.listEmployees({ includeInactive: includeInactiveValidation.value });
-      res.status(200).json({ items, count: items.length });
+      const items = referenceDataService.listEmployees(listValidation.value);
+      const payload = { items, count: items.length };
+      if (listValidation.value.limit !== null || listValidation.value.offset > 0) {
+        payload.pagination = {
+          limit: listValidation.value.limit,
+          offset: listValidation.value.offset,
+          returned: items.length,
+        };
+      }
+      res.status(200).json(payload);
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "employees_list_failed");
+      handleUnexpectedError(logger, req, res, error, "employees_list_failed");
     }
   });
 
@@ -43,7 +51,7 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "employees_get_failed");
+      handleUnexpectedError(logger, req, res, error, "employees_get_failed");
     }
   });
 
@@ -58,7 +66,7 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
       const item = referenceDataService.createEmployee(validation.value);
       res.status(201).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "employees_create_failed");
+      handleUnexpectedError(logger, req, res, error, "employees_create_failed");
     }
   });
 
@@ -78,7 +86,7 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "employees_update_failed");
+      handleUnexpectedError(logger, req, res, error, "employees_update_failed");
     }
   });
 
@@ -92,22 +100,30 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "employees_delete_failed");
+      handleUnexpectedError(logger, req, res, error, "employees_delete_failed");
     }
   });
 
   app.get("/api/v1/bays", (req, res) => {
-    const includeInactiveValidation = validateIncludeInactiveQuery(req.query);
-    if (!includeInactiveValidation.ok) {
-      sendApiError(res, validationError(includeInactiveValidation.errors));
+    const listValidation = validateReferenceListQuery(req.query);
+    if (!listValidation.ok) {
+      sendApiError(res, validationError(listValidation.errors));
       return;
     }
 
     try {
-      const items = referenceDataService.listBays({ includeInactive: includeInactiveValidation.value });
-      res.status(200).json({ items, count: items.length });
+      const items = referenceDataService.listBays(listValidation.value);
+      const payload = { items, count: items.length };
+      if (listValidation.value.limit !== null || listValidation.value.offset > 0) {
+        payload.pagination = {
+          limit: listValidation.value.limit,
+          offset: listValidation.value.offset,
+          returned: items.length,
+        };
+      }
+      res.status(200).json(payload);
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "bays_list_failed");
+      handleUnexpectedError(logger, req, res, error, "bays_list_failed");
     }
   });
 
@@ -121,7 +137,7 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "bays_get_failed");
+      handleUnexpectedError(logger, req, res, error, "bays_get_failed");
     }
   });
 
@@ -144,7 +160,7 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
         return;
       }
 
-      handleUnexpectedError(logger, res, error, "bays_create_failed");
+      handleUnexpectedError(logger, req, res, error, "bays_create_failed");
     }
   });
 
@@ -172,7 +188,7 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
         return;
       }
 
-      handleUnexpectedError(logger, res, error, "bays_update_failed");
+      handleUnexpectedError(logger, req, res, error, "bays_update_failed");
     }
   });
 
@@ -186,7 +202,7 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "bays_delete_failed");
+      handleUnexpectedError(logger, req, res, error, "bays_delete_failed");
     }
   });
 }

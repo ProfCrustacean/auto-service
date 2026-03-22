@@ -1,4 +1,4 @@
-import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike } from "./validatorUtils.js";
+import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike, normalizePaginationQuery } from "./validatorUtils.js";
 
 function parseRoles(value) {
   if (!Array.isArray(value)) {
@@ -30,6 +30,33 @@ export function validateIncludeInactiveQuery(query) {
   }
 
   return { ok: true, value: normalized };
+}
+
+export function validateReferenceListQuery(query) {
+  const errors = [];
+  const includeInactiveResult = validateIncludeInactiveQuery(query);
+  if (!includeInactiveResult.ok) {
+    errors.push(...includeInactiveResult.errors);
+  }
+
+  const pagination = normalizePaginationQuery(query, errors);
+  const unknownFields = collectUnknownFields(query, ["includeInactive", "limit", "offset"]);
+  for (const field of unknownFields) {
+    errors.push({ field, message: "unknown query parameter" });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    value: {
+      includeInactive: includeInactiveResult.value,
+      limit: pagination.limit,
+      offset: pagination.offset,
+    },
+  };
 }
 
 export function validateEmployeeCreate(body) {

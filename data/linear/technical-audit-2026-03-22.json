@@ -1,0 +1,143 @@
+{
+  "teamKey": "AUT",
+  "stateName": "Backlog",
+  "defaultLabels": [
+    "Audit",
+    "TechDebt",
+    "Autonomous-Ready"
+  ],
+  "issues": [
+    {
+      "title": "Audit: sanitize secret-bearing evidence and prevent token leakage",
+      "priority": 1,
+      "labels": [
+        "Security",
+        "Harness"
+      ],
+      "description": "## Context\nUnredacted API credentials appear in generated evidence artifacts under `evidence/` (for example raw Linear GraphQL traces). This creates immediate credential leakage risk and undermines autonomous operation safety.\n\n## Scope\n1. Add a reusable redaction module for known credential patterns (Linear, Render, Bearer tokens, generic `*_API_KEY` values).\n2. Apply redaction before writing any harness output to disk or stderr in scripts that touch external APIs (at minimum `scripts/linear-harness.js` and Render/verification scripts).\n3. Add a deterministic secret-scan command (for example `npm run secrets:scan`) that fails on credential-like patterns in tracked files and in `evidence/`.\n4. Add tests that prove redaction and scanning behavior.\n5. Sanitize existing evidence files currently containing plaintext secrets.\n\n## Acceptance Criteria\n- [ ] No plaintext credential strings remain in repository files.\n- [ ] Harness output files never persist raw API keys.\n- [ ] Secret scan fails the build when a credential pattern is introduced.\n- [ ] Secret scan is documented in README/runbook and wired into CI.\n\n## Verification\n- `npm test`\n- `npm run secrets:scan`\n- `rg \"lin_api_|RENDER_API_KEY|Authorization: Bearer\" evidence` returns no matches."
+    },
+    {
+      "title": "Audit: return structured JSON for malformed JSON request bodies",
+      "priority": 2,
+      "labels": [
+        "Security",
+        "API"
+      ],
+      "description": "## Context\nMalformed JSON request bodies currently return Express default HTML error pages with stack traces. This leaks internals and breaks API error contract consistency.\n\n## Scope\n1. Add an Express error-handling middleware after route registration to catch body-parser `SyntaxError` and related parse errors.\n2. Return the existing API error shape (`{ error: { code, message, details? } }`) with HTTP 400 for malformed JSON.\n3. Ensure no stack traces are sent to clients while retaining structured server logs for diagnostics.\n4. Add tests for malformed JSON on at least one JSON endpoint (for example `POST /api/v1/appointments`).\n\n## Acceptance Criteria\n- [ ] Malformed JSON returns JSON error payload (not HTML).\n- [ ] Response does not include stack traces or absolute filesystem paths.\n- [ ] Existing error contract tests remain green.\n\n## Verification\n- `npm test`\n- Manual check: malformed JSON to `/api/v1/appointments` returns HTTP 400 JSON payload."
+    },
+    {
+      "title": "Audit: make booking page inline creation and appointment save transactional",
+      "priority": 2,
+      "labels": [
+        "Data-Integrity",
+        "API",
+        "UI"
+      ],
+      "description": "## Context\nThe `POST /appointments/new` flow can create customer/vehicle records before appointment creation succeeds. If appointment creation fails (for example capacity conflict), partial records can persist.\n\n## Scope\n1. Introduce an application/service-level transactional workflow for booking form submission.\n2. Move inline customer creation, inline vehicle creation, and appointment creation into one DB transaction boundary with rollback on any failure.\n3. Preserve existing UX behavior and localized field errors.\n4. Add regression tests proving that failed appointment submit does not leave new customer/vehicle records behind.\n\n## Acceptance Criteria\n- [ ] No partial writes from failed booking submits.\n- [ ] Success path still creates all required entities and redirects correctly.\n- [ ] Validation/domain conflict behavior unchanged from user perspective.\n\n## Verification\n- `npm test`\n- `npm run verify`\n- New test: induce conflict after inline entity input and assert no entity count increase."
+    },
+    {
+      "title": "Audit: make walk-in page inline creation and intake save transactional",
+      "priority": 2,
+      "labels": [
+        "Data-Integrity",
+        "API",
+        "UI"
+      ],
+      "description": "## Context\nThe `POST /intake/walk-in` flow has the same partial-write risk as booking: inline customer/vehicle creation can persist even when intake/work-order creation fails.\n\n## Scope\n1. Implement a transactional service workflow for walk-in form submission.\n2. Ensure inline customer creation, inline vehicle creation, intake event creation, and work-order creation are atomic.\n3. Preserve existing response semantics and localized error behavior.\n4. Add tests for rollback behavior on failure after inline inputs.\n\n## Acceptance Criteria\n- [ ] Failed walk-in submits do not leave orphan customer/vehicle records.\n- [ ] Successful submits still create intake + work-order bundle and redirect.\n- [ ] Existing walk-in scenario gates remain green.\n\n## Verification\n- `npm test`\n- `npm run verify`\n- New rollback-focused integration test for `/intake/walk-in`."
+    },
+    {
+      "title": "Audit: replace max-plus-one code generation with atomic DB sequences",
+      "priority": 2,
+      "labels": [
+        "Data-Integrity",
+        "Concurrency"
+      ],
+      "description": "## Context\nAppointment and work-order codes are currently generated via read-all + max+1 in memory. Concurrent requests can race and collide on unique code constraints, causing flaky failures and nondeterministic behavior.\n\n## Scope\n1. Add DB-backed sequence mechanism (for example dedicated counter table with transactional increments) for `APT-` and `WO-` codes.\n2. Route all code generation through a single repository function with transaction safety.\n3. Handle retries or busy contention deterministically.\n4. Add concurrency tests with parallel create requests proving unique monotonic codes.\n\n## Acceptance Criteria\n- [ ] No duplicate-code failures under parallel create load.\n- [ ] Codes remain deterministic and correctly formatted.\n- [ ] Legacy seeded codes still respected when initializing sequence start values.\n\n## Verification\n- `npm test`\n- New parallel creation test for appointment and walk-in code paths."
+    },
+    {
+      "title": "Audit: normalize plannedStartLocal and enforce strict slot validation",
+      "priority": 2,
+      "labels": [
+        "Domain",
+        "API",
+        "Migration"
+      ],
+      "description": "## Context\nScheduling conflict detection relies on exact string equality for `plannedStartLocal`. The field currently accepts arbitrary text, which can bypass collision detection and distort weekly planning parsing.\n\n## Scope\n1. Define canonical slot format (for example `YYYY-MM-DD HH:mm` local workshop time) in validators and docs.\n2. Reject non-canonical input at API boundary with explicit validation messages.\n3. Add migration/normalization for existing fixture data currently using relative labels like `Завтра 09:00`.\n4. Update UI placeholders and scenario scripts to use canonical format.\n5. Add tests for accepted/rejected formats and stable conflict detection across equivalent inputs.\n\n## Acceptance Criteria\n- [ ] Appointment create/update only accept canonical slot format.\n- [ ] Conflict checks are format-agnostic because input is normalized before persistence.\n- [ ] Weekly planning still works for existing + new records.\n\n## Verification\n- `npm test`\n- `npm run verify`\n- Focused validator tests for slot parsing and conflict behavior."
+    },
+    {
+      "title": "Audit: fix dashboard \"today\" metrics to exclude non-today appointments",
+      "priority": 3,
+      "labels": [
+        "Domain",
+        "Reporting"
+      ],
+      "description": "## Context\n`DashboardService.getTodayDashboard` currently counts all appointments in `summary.appointmentsToday`, regardless of date. This breaks operational reporting semantics.\n\n## Scope\n1. Introduce deterministic local-day filtering for today metrics and today appointment table.\n2. Keep week planning logic separate (7-day window).\n3. Update smoke/tests that currently assert old behavior.\n4. Ensure timezone assumptions are explicit in code/docs.\n\n## Acceptance Criteria\n- [ ] `summary.appointmentsToday` reflects only today’s appointments.\n- [ ] Today table and counts are mutually consistent.\n- [ ] Week planning and search payloads are unaffected.\n\n## Verification\n- `npm test`\n- `npm run smoke`\n- New tests with mixed past/today/future appointments."
+    },
+    {
+      "title": "Audit: move unified search to indexed SQL queries with server-side limits",
+      "priority": 3,
+      "labels": [
+        "Performance",
+        "API",
+        "Database"
+      ],
+      "description": "## Context\nUnified search currently loads full datasets into memory and filters in JavaScript. This will degrade quickly as records grow and duplicates logic already available in SQL.\n\n## Scope\n1. Implement SQL-backed search in repository layer for each group (customers, vehicles, appointments, work orders) with parameterized `LIKE` and fixed per-group limits.\n2. Keep existing API response shape (totals, truncated flags, grouped results).\n3. Add indexes if missing for searched fields.\n4. Add benchmarks or deterministic performance assertions against larger fixture datasets.\n\n## Acceptance Criteria\n- [ ] Search no longer scans full entity lists in service layer.\n- [ ] Response shape remains backward-compatible.\n- [ ] Performance remains within baseline on seeded larger dataset.\n\n## Verification\n- `npm test`\n- `npm run smoke`\n- Optional benchmark script with documented threshold."
+    },
+    {
+      "title": "Audit: add pagination and stable ordering to list APIs",
+      "priority": 3,
+      "labels": [
+        "API",
+        "Performance"
+      ],
+      "description": "## Context\nList endpoints currently return unbounded arrays. This is fragile for growth, increases response latency, and complicates reliable automation at scale.\n\n## Scope\n1. Add optional pagination parameters (`limit`, `cursor` or `offset`) to list endpoints for customers, vehicles, appointments, employees, and bays.\n2. Define stable ordering per endpoint and encode it in tests.\n3. Preserve backward compatibility by defaulting to current behavior when pagination params are omitted, with documented max cap.\n4. Extend smoke/tests for paginated and non-paginated modes.\n\n## Acceptance Criteria\n- [ ] All major list APIs support bounded responses.\n- [ ] Ordering is deterministic and documented.\n- [ ] Existing clients continue to work without changes.\n\n## Verification\n- `npm test`\n- `npm run smoke`\n- New API tests for pagination contract."
+    },
+    {
+      "title": "Audit: add request-id correlation and structured error context in logs",
+      "priority": 3,
+      "labels": [
+        "Observability",
+        "Ops"
+      ],
+      "description": "## Context\nCurrent request logs do not include correlation IDs, and unexpected errors only log message text. This weakens diagnosis in local and deployed environments.\n\n## Scope\n1. Add request-id middleware (accept incoming `x-request-id` or generate one).\n2. Include requestId in all request logs and error logs.\n3. Extend `handleUnexpectedError` to log route/method/path/requestId and stack (server-side only).\n4. Optionally return requestId in error responses for operator support.\n5. Add tests asserting requestId propagation and error-log context shape.\n\n## Acceptance Criteria\n- [ ] Every request log includes a requestId.\n- [ ] 500-level logs contain actionable context without leaking details to clients.\n- [ ] Correlation works across verify/smoke outputs.\n\n## Verification\n- `npm test`\n- `npm run verify`\n- Manual log inspection in local run and Render log audit."
+    },
+    {
+      "title": "Audit: harden SQLite runtime for concurrent workloads",
+      "priority": 3,
+      "labels": [
+        "Database",
+        "Reliability"
+      ],
+      "description": "## Context\nSQLite is opened with only `foreign_keys` enabled. For concurrent write/read workloads, missing pragmas (WAL, busy_timeout) can produce avoidable `SQLITE_BUSY` failures.\n\n## Scope\n1. Configure pragmatic defaults in `openDatabase` (WAL mode, busy_timeout, synchronous policy appropriate for durability/perf tradeoff).\n2. Add deterministic handling/retry strategy for `SQLITE_BUSY` where safe.\n3. Add stress/integration test that simulates write contention and validates graceful behavior.\n4. Document these runtime defaults in README/runbook.\n\n## Acceptance Criteria\n- [ ] DB runtime uses explicit concurrency-friendly pragmas.\n- [ ] Busy lock conditions are handled deterministically (retry or explicit API error).\n- [ ] No regression in migrations/seeding/tests.\n\n## Verification\n- `npm test`\n- Contention-focused test scenario.\n- `npm run verify`."
+    },
+    {
+      "title": "Audit: extract shared page-flow orchestration between booking and walk-in routes",
+      "priority": 4,
+      "labels": [
+        "Maintainability",
+        "Refactor"
+      ],
+      "description": "## Context\n`appointmentPageRoutes` and `walkInIntakePageRoutes` duplicate large blocks of normalization, localization, lookup, inline creation, and error mapping logic. This increases change risk and review complexity.\n\n## Scope\n1. Extract shared form-flow utilities (normalizers, validation mapping, lookup helpers, preserved-field handling) into reusable modules.\n2. Keep route files focused on flow-specific behavior only.\n3. Preserve existing UI copy and behavior exactly unless explicitly required by other audit tasks.\n4. Maintain or improve test coverage for both routes after refactor.\n\n## Acceptance Criteria\n- [ ] Significant duplication removed with no behavior regressions.\n- [ ] Route modules are materially smaller and easier to reason about.\n- [ ] Existing booking and walk-in tests remain green.\n\n## Verification\n- `npm test`\n- `npm run verify`\n- Optional snapshot diff checks for rendered pages."
+    },
+    {
+      "title": "Audit: add CI verification pipeline and quality gates",
+      "priority": 2,
+      "labels": [
+        "CI",
+        "Ops",
+        "Harness"
+      ],
+      "description": "## Context\nThe repository has strong local scripts but no CI workflow enforcing them on push/PR. This allows regressions and secret leaks to slip before deploy verification.\n\n## Scope\n1. Add CI workflow (GitHub Actions) running deterministic checks: `npm ci`, `npm test`, `npm run verify`, and secret scan.\n2. Ensure CI does not require external secrets for default path (Render deploy checks optional/off by default).\n3. Publish machine-readable artifacts when checks fail (test output + verify server log).\n4. Document CI contract and required optional secrets for extended checks.\n\n## Acceptance Criteria\n- [ ] CI runs automatically on PR and main branch pushes.\n- [ ] Failing checks block merges by policy.\n- [ ] CI steps mirror local one-command workflow.\n\n## Verification\n- CI run evidence in workflow logs.\n- Local parity check: `npm run verify` matches CI results."
+    },
+    {
+      "title": "Audit: introduce authentication and role authorization baseline for mutating endpoints",
+      "priority": 2,
+      "labels": [
+        "Security",
+        "Auth",
+        "Domain"
+      ],
+      "description": "## Context\nAll APIs are currently unauthenticated. Product docs define distinct roles and sensitive action boundaries, but mutating endpoints are open. This is a release-blocking security gap for real operations.\n\n## Scope\n1. Add minimal authentication layer suitable for single-location deployment (session or token-based, repository-documented).\n2. Implement role-based authorization for mutating endpoints with least-privilege defaults.\n3. Add explicit policy mapping for employee/bay/customer/vehicle/appointment/walk-in mutations.\n4. Return consistent `403` responses for unauthorized actions.\n5. Add tests for authenticated success and denied access paths.\n\n## Acceptance Criteria\n- [ ] Anonymous write access is blocked.\n- [ ] Role checks are enforced at API boundary.\n- [ ] Existing read-only operations preserve intended access model.\n- [ ] Auth setup and fallback procedures are documented for local + Render.\n\n## Verification\n- `npm test`\n- New auth integration tests for at least front-desk vs technician vs owner mutation paths.\n- `npm run verify` remains green."
+    }
+  ]
+}

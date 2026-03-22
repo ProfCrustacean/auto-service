@@ -5,6 +5,12 @@ import { AppointmentService } from "../src/services/appointmentService.js";
 import { WalkInIntakeService } from "../src/services/walkInIntakeService.js";
 import { createSilentLogger, createTempDatabase } from "./helpers/httpHarness.js";
 
+function buildUniqueSlot(token, hour = 15) {
+  const minute = Number.parseInt(token.slice(-2), 10) % 60;
+  const day = (Number.parseInt(token.slice(-4, -2), 10) % 20) + 10;
+  return `2026-05-${String(day).padStart(2, "0")} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
 test("domain services support scheduling and walk-in acceptance scenario", () => {
   const tempDb = createTempDatabase("auto-service-domain-scheduling-walkin");
   const { databasePath, cleanup } = tempDb;
@@ -20,8 +26,9 @@ test("domain services support scheduling and walk-in acceptance scenario", () =>
     const workOrdersBefore = repository.listWorkOrders().length;
 
     const uniqueToken = `${Date.now()}`;
+    const slot = buildUniqueSlot(uniqueToken, 15);
     const appointment = appointmentService.createAppointment({
-      plannedStartLocal: `DOMAIN-SCENARIO-${uniqueToken}`,
+      plannedStartLocal: slot,
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: "Domain scenario appointment",
@@ -39,7 +46,7 @@ test("domain services support scheduling and walk-in acceptance scenario", () =>
     assert.throws(
       () =>
         appointmentService.createAppointment({
-          plannedStartLocal: `DOMAIN-SCENARIO-${uniqueToken}`,
+          plannedStartLocal: slot,
           customerId: "cust-4",
           vehicleId: "veh-4",
           complaint: "Domain conflict appointment",

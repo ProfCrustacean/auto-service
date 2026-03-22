@@ -1,6 +1,12 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import process from "node:process";
 import { spawn } from "node:child_process";
+import { gzipSync } from "node:zlib";
+import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
+import { redactSecrets, redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
 
+loadDotenvIntoProcessSync();
 const DEFAULT_RENDER_API_BASE_URL = "https://api.render.com/v1";
 const DEFAULT_RENDER_SERVICE_ID = "srv-d6vcmt7diees73d0j04g";
 const DEFAULT_RENDER_BASE_URL = "https://auto-service-foundation.onrender.com";
@@ -14,6 +20,8 @@ const DEFAULT_LOG_AUDIT_MAX_WARNINGS = 0;
 const DEFAULT_LOG_AUDIT_MAX_ERRORS = 0;
 const DEFAULT_LOG_AUDIT_MAX_REPO_WARNINGS = 0;
 const DEFAULT_LOG_AUDIT_WINDOW_PAD_MS = 30 * 1000;
+const DEFAULT_LOG_AUDIT_SUMMARY_PATH = "evidence/render-log-audit-summary.json";
+const DEFAULT_LOG_AUDIT_RAW_PATH = "evidence/render-log-audit.raw.ndjson";
 const ANSI_ESCAPE_PATTERN = /\u001B\[[0-?]*[ -/]*[@-~]/gu;
 const COMMIT_ID_PATTERN = /^[a-f0-9]{7,40}$/u;
 const ERROR_TEXT_PATTERN = /\b(error|exception|fatal|failed|panic|traceback|unhandled)\b/iu;
@@ -38,7 +46,7 @@ function assertNonNegativeInteger(value, fieldName) {
 }
 
 function logJson(payload) {
-  process.stdout.write(`${JSON.stringify(payload)}\n`);
+  process.stdout.write(`${stringifyRedacted(payload)}\n`);
 }
 
 function wait(ms) {
@@ -79,7 +87,9 @@ function runCommandCapture(command, args, { env, label }) {
       }
 
       const detail = signal ? `signal ${signal}` : `exit code ${code}`;
-      reject(new Error(`${label} failed with ${detail}; stderr: ${stderr.trim() || "n/a"}; stdout: ${stdout.trim() || "n/a"}`));
+      reject(new Error(redactSecretsInText(
+        `${label} failed with ${detail}; stderr: ${stderr.trim() || "n/a"}; stdout: ${stdout.trim() || "n/a"}`,
+      )));
     });
   });
 }
@@ -182,15 +192,15 @@ function toRenderApiUrl(baseUrl, pathOrUrl) {
 function describeResponseBody(payload, fallbackText) {
   if (payload && typeof payload === "object") {
     if (typeof payload.message === "string") {
-      return payload.message;
+      return redactSecretsInText(payload.message);
     }
     if (typeof payload.error === "string") {
-      return payload.error;
+      return redactSecretsInText(payload.error);
     }
-    return JSON.stringify(payload);
+    return stringifyRedacted(payload);
   }
 
-  return fallbackText;
+  return redactSecretsInText(fallbackText);
 }
 
 function normalizeFlag(value, fieldName, defaultValue) {
@@ -394,6 +404,14 @@ function getLogAuditWindowStart(deployPayload) {
   return shifted.toISOString();
 }
 
+function resolveRawAuditOutputPath(basePath, gzipRawOutput) {
+  if (!gzipRawOutput) {
+    return basePath;
+  }
+
+  return basePath.endsWith(".gz") ? basePath : `${basePath}.gz`;
+}
+
 async function renderApiRequest({
   method,
   path,
@@ -588,6 +606,10 @@ async function runPostDeployLogAudit({
   maxErrors,
   maxRepoWarnings,
   failOnTruncation,
+  summaryOutputPath,
+  writeRawAuditLogs,
+  rawOutputPath,
+  gzipRawOutput,
 }) {
   const startTime = getLogAuditWindowStart(deployPayload);
   const endTime = new Date().toISOString();
@@ -682,8 +704,10 @@ async function runPostDeployLogAudit({
   const truncatedTypes = typedResponses.filter((item) => item.hasMore).map((item) => item.type);
 
   const summary = {
+    generatedAt: new Date().toISOString(),
     startTime,
     endTime,
+    deployId: deployPayload?.id ?? null,
     totals: {
       rows: dedupedLogs.length,
       bySeverity: severityCounts,
@@ -700,10 +724,29 @@ async function runPostDeployLogAudit({
     severeSamples,
   };
 
+  await fs.mkdir(path.dirname(summaryOutputPath), { recursive: true });
+  await fs.writeFile(summaryOutputPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+
+  let resolvedRawOutputPath = null;
+  if (writeRawAuditLogs) {
+    const outputPath = resolveRawAuditOutputPath(rawOutputPath, gzipRawOutput);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    const rawPayload = dedupedLogs.map((entry) => JSON.stringify(redactSecrets(entry))).join("\n");
+    const payloadText = rawPayload.length > 0 ? `${rawPayload}\n` : "";
+    if (gzipRawOutput) {
+      await fs.writeFile(outputPath, gzipSync(payloadText));
+    } else {
+      await fs.writeFile(outputPath, payloadText, "utf8");
+    }
+    resolvedRawOutputPath = outputPath;
+  }
+
   logJson({
     status: "render_verify_log_audit_summary",
     serviceId,
     deployId: deployPayload?.id ?? null,
+    summaryPath: summaryOutputPath,
+    rawPath: resolvedRawOutputPath,
     summary,
   });
 
@@ -750,10 +793,28 @@ async function main() {
   );
   const verifyCommitParity = normalizeFlag(process.env.RENDER_VERIFY_COMMIT_PARITY, "RENDER_VERIFY_COMMIT_PARITY", true);
   const enableLogAudit = normalizeFlag(process.env.RENDER_VERIFY_LOG_AUDIT, "RENDER_VERIFY_LOG_AUDIT", true);
+  const writeRawAuditLogs = normalizeFlag(
+    process.env.RENDER_LOG_AUDIT_WRITE_RAW,
+    "RENDER_LOG_AUDIT_WRITE_RAW",
+    false,
+  );
+  const gzipRawAuditOutput = normalizeFlag(
+    process.env.RENDER_LOG_AUDIT_GZIP_RAW,
+    "RENDER_LOG_AUDIT_GZIP_RAW",
+    true,
+  );
   const failOnLogTruncation = normalizeFlag(
     process.env.RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION,
     "RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION",
     true,
+  );
+  const summaryOutputPath = path.resolve(
+    process.cwd(),
+    process.env.RENDER_LOG_AUDIT_SUMMARY_PATH?.trim() || DEFAULT_LOG_AUDIT_SUMMARY_PATH,
+  );
+  const rawOutputPath = path.resolve(
+    process.cwd(),
+    process.env.RENDER_LOG_AUDIT_RAW_PATH?.trim() || DEFAULT_LOG_AUDIT_RAW_PATH,
   );
   const expectedCommitOverride = process.env.RENDER_EXPECT_COMMIT?.trim() ?? "";
   const logLimit = parsePositiveInteger(
@@ -807,6 +868,10 @@ async function main() {
     includeWalkInPageScenario,
     verifyCommitParity,
     enableLogAudit,
+    writeRawAuditLogs,
+    gzipRawAuditOutput,
+    logAuditSummaryPath: summaryOutputPath,
+    logAuditRawPath: writeRawAuditLogs ? resolveRawAuditOutputPath(rawOutputPath, gzipRawAuditOutput) : null,
     logAuditLimit: logLimit,
     maxWarnings,
     maxErrors,
@@ -1023,6 +1088,10 @@ async function main() {
       maxErrors,
       maxRepoWarnings,
       failOnTruncation: failOnLogTruncation,
+      summaryOutputPath,
+      writeRawAuditLogs,
+      rawOutputPath,
+      gzipRawOutput: gzipRawAuditOutput,
     });
   } else if (enableLogAudit) {
     logJson({
@@ -1051,7 +1120,8 @@ async function main() {
 main().catch((error) => {
   logJson({
     status: "render_verify_failed",
-    message: error.message,
+    message: redactSecretsInText(error.message),
+    details: redactSecrets(error?.details ?? null),
   });
   process.exit(1);
 });

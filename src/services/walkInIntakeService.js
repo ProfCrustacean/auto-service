@@ -16,24 +16,6 @@ function makeDomainError(code, message, details = undefined) {
   return error;
 }
 
-function toNextWorkOrderCode(workOrders) {
-  const maxNumericCode = workOrders.reduce((maxValue, item) => {
-    const match = /^WO-(\d+)$/.exec(item.code ?? "");
-    if (!match) {
-      return maxValue;
-    }
-
-    const parsed = Number.parseInt(match[1], 10);
-    if (Number.isNaN(parsed)) {
-      return maxValue;
-    }
-
-    return Math.max(maxValue, parsed);
-  }, 0);
-
-  return `WO-${String(maxNumericCode + 1).padStart(4, "0")}`;
-}
-
 export class WalkInIntakeService {
   constructor(repository) {
     this.repository = repository;
@@ -65,7 +47,7 @@ export class WalkInIntakeService {
       }
     }
 
-    const workOrderCode = toNextWorkOrderCode(this.repository.listWorkOrders());
+    const workOrderCode = this.repository.allocateNextWorkOrderCode();
 
     return this.repository.createWalkInIntakeBundle({
       intakeEventId: toId("intake"),
@@ -81,6 +63,57 @@ export class WalkInIntakeService {
       bayId: bay?.id ?? null,
       bayNameSnapshot: bay?.name ?? null,
       primaryAssignee,
+    });
+  }
+
+  createWalkInFromIntakeForm({
+    intakePayload,
+    selectedCustomerId = null,
+    selectedVehicleId = null,
+    inlineCustomerPayload = null,
+    inlineVehiclePayload = null,
+  }) {
+    return this.repository.runInTransaction(() => {
+      let customerId = selectedCustomerId;
+      let createdCustomer = null;
+
+      if (!customerId && inlineCustomerPayload) {
+        createdCustomer = this.repository.createCustomer({
+          id: toId("cust"),
+          ...inlineCustomerPayload,
+          isActive: true,
+        });
+        customerId = createdCustomer.id;
+      }
+
+      let vehicleId = selectedVehicleId;
+      let createdVehicle = null;
+
+      if (!vehicleId && inlineVehiclePayload) {
+        if (!customerId) {
+          throw makeDomainError("customer_not_found", "Customer not found");
+        }
+
+        createdVehicle = this.repository.createVehicle({
+          id: toId("veh"),
+          ...inlineVehiclePayload,
+          customerId,
+          isActive: true,
+        });
+        vehicleId = createdVehicle.id;
+      }
+
+      const bundle = this.createWalkInIntake({
+        ...intakePayload,
+        customerId,
+        vehicleId,
+      });
+
+      return {
+        bundle,
+        customer: createdCustomer,
+        vehicle: createdVehicle,
+      };
     });
   }
 }

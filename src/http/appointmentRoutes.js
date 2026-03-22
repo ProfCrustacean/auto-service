@@ -76,9 +76,17 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
 
     try {
       const items = appointmentService.listAppointments(validation.value);
-      res.status(200).json({ items, count: items.length });
+      const payload = { items, count: items.length };
+      if (validation.value.limit !== null || validation.value.offset > 0) {
+        payload.pagination = {
+          limit: validation.value.limit,
+          offset: validation.value.offset,
+          returned: items.length,
+        };
+      }
+      res.status(200).json(payload);
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "appointments_list_failed");
+      handleUnexpectedError(logger, req, res, error, "appointments_list_failed");
     }
   });
 
@@ -92,7 +100,7 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
 
       res.status(200).json({ item });
     } catch (error) {
-      handleUnexpectedError(logger, res, error, "appointments_get_failed");
+      handleUnexpectedError(logger, req, res, error, "appointments_get_failed");
     }
   });
 
@@ -111,7 +119,7 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
         return;
       }
 
-      handleUnexpectedError(logger, res, error, "appointments_create_failed");
+      handleUnexpectedError(logger, req, res, error, "appointments_create_failed");
     }
   });
 
@@ -135,7 +143,7 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
         return;
       }
 
-      handleUnexpectedError(logger, res, error, "appointments_update_failed");
+      handleUnexpectedError(logger, req, res, error, "appointments_update_failed");
     }
   });
 }

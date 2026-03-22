@@ -86,13 +86,19 @@ function clipText(value) {
 
 export async function requestJson(baseUrl, { step, path, method = "GET", body } = {}) {
   const url = buildRequestUrl(baseUrl, path);
+  const headers = {
+    "content-type": "application/json",
+  };
+  const normalizedMethod = String(method).toUpperCase();
+  if (["POST", "PATCH", "PUT", "DELETE"].includes(normalizedMethod)) {
+    headers.authorization = `Bearer ${process.env.APP_AUTH_TOKEN ?? "owner-dev-token"}`;
+  }
+
   let response;
   try {
     response = await fetch(url, {
       method,
-      headers: {
-        "content-type": "application/json",
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (error) {

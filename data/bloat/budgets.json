@@ -1,0 +1,23 @@
+{
+  "thresholds": {
+    "maxTrackedBytes": 900000,
+    "maxTrackedBytesByArea": {
+      "src": 240000,
+      "tests": 90000,
+      "scripts": 150000,
+      "docs": 85000,
+      "evidence": 220000
+    },
+    "maxTrackedEvidenceFileBytes": 204800,
+    "maxDocLines": {
+      "README": 320,
+      "STATUS": 320,
+      "PLANS": 350
+    },
+    "maxDuplicationPercentage": 11
+  },
+  "policy": {
+    "ratchetRule": "Budgets are enforced by default. Use BLOAT_ALLOW_REGRESSION=1 only for explicitly approved temporary overrides.",
+    "overrideEnvVar": "BLOAT_ALLOW_REGRESSION"
+  }
+}

@@ -1,6 +1,15 @@
 import { validateAppointmentCreate } from "./appointmentValidators.js";
-import { validateCustomerCreate, validateVehicleCreate } from "./customerVehicleValidators.js";
 import { renderAppointmentBookingPage } from "../ui/appointmentBookingPage.js";
+import {
+  buildCustomerVehiclePageModel,
+  coerceIntegerOrRaw,
+  createValidationLocalizer,
+  hasAnyInput,
+  mapSharedCustomerVehicleDomainError,
+  mapValidationErrors,
+  normalizeFormValuesByFields,
+  resolveInlineCustomerVehicleCreation,
+} from "./pageFlowUtils.js";
 
 const LOOKUP_RESULTS_LIMIT = 8;
 const CONFLICT_MESSAGE_BY_FIELD = {
@@ -31,6 +40,7 @@ const FIELD_LABELS = {
 };
 const EXACT_VALIDATION_MESSAGE_TRANSLATIONS = new Map([
   ["plannedStartLocal is required and must be a non-empty string", "Укажите плановый старт"],
+  ["plannedStartLocal must match YYYY-MM-DD HH:mm", "Плановый старт укажите в формате ГГГГ-ММ-ДД ЧЧ:ММ"],
   ["customerId is required and must be a non-empty string", "Выберите клиента или заполните блок нового клиента"],
   ["vehicleId is required and must be a non-empty string", "Выберите авто или заполните блок нового авто"],
   ["complaint is required and must be a non-empty string", "Опишите жалобу или запрос клиента"],
@@ -38,125 +48,60 @@ const EXACT_VALIDATION_MESSAGE_TRANSLATIONS = new Map([
   ["expectedDurationMin must be between 5 and 720", "Длительность должна быть от 5 до 720 минут"],
   ["unknown field", "Неподдерживаемое поле формы"],
 ]);
-
-function normalizeScalar(value) {
-  if (Array.isArray(value)) {
-    return normalizeScalar(value[0]);
-  }
-
-  if (value === undefined || value === null) {
-    return "";
-  }
-
-  return String(value).trim();
-}
+const FORM_FIELDS = [
+  "q",
+  "customerId",
+  "vehicleId",
+  "plannedStartLocal",
+  "complaint",
+  "bayId",
+  "primaryAssignee",
+  "expectedDurationMin",
+  "notes",
+  "newCustomerFullName",
+  "newCustomerPhone",
+  "newCustomerMessagingHandle",
+  "newCustomerNotes",
+  "newVehicleLabel",
+  "newVehiclePlateNumber",
+  "newVehicleVin",
+  "newVehicleMake",
+  "newVehicleModel",
+  "newVehicleProductionYear",
+  "newVehicleMileageKm",
+  "newVehicleEngineOrTrim",
+];
+const INLINE_CUSTOMER_FIELDS = [
+  "newCustomerFullName",
+  "newCustomerPhone",
+  "newCustomerMessagingHandle",
+  "newCustomerNotes",
+];
+const INLINE_VEHICLE_FIELDS = [
+  "newVehicleLabel",
+  "newVehiclePlateNumber",
+  "newVehicleVin",
+  "newVehicleMake",
+  "newVehicleModel",
+  "newVehicleProductionYear",
+  "newVehicleMileageKm",
+  "newVehicleEngineOrTrim",
+];
+const localizeValidationMessage = createValidationLocalizer({
+  fieldLabels: FIELD_LABELS,
+  exactTranslations: EXACT_VALIDATION_MESSAGE_TRANSLATIONS,
+});
 
 function normalizeFormValues(input = {}) {
-  return {
-    q: normalizeScalar(input.q),
-    customerId: normalizeScalar(input.customerId),
-    vehicleId: normalizeScalar(input.vehicleId),
-    plannedStartLocal: normalizeScalar(input.plannedStartLocal),
-    complaint: normalizeScalar(input.complaint),
-    bayId: normalizeScalar(input.bayId),
-    primaryAssignee: normalizeScalar(input.primaryAssignee),
-    expectedDurationMin: normalizeScalar(input.expectedDurationMin),
-    notes: normalizeScalar(input.notes),
-    newCustomerFullName: normalizeScalar(input.newCustomerFullName),
-    newCustomerPhone: normalizeScalar(input.newCustomerPhone),
-    newCustomerMessagingHandle: normalizeScalar(input.newCustomerMessagingHandle),
-    newCustomerNotes: normalizeScalar(input.newCustomerNotes),
-    newVehicleLabel: normalizeScalar(input.newVehicleLabel),
-    newVehiclePlateNumber: normalizeScalar(input.newVehiclePlateNumber),
-    newVehicleVin: normalizeScalar(input.newVehicleVin),
-    newVehicleMake: normalizeScalar(input.newVehicleMake),
-    newVehicleModel: normalizeScalar(input.newVehicleModel),
-    newVehicleProductionYear: normalizeScalar(input.newVehicleProductionYear),
-    newVehicleMileageKm: normalizeScalar(input.newVehicleMileageKm),
-    newVehicleEngineOrTrim: normalizeScalar(input.newVehicleEngineOrTrim),
-  };
-}
-
-function coerceIntegerOrRaw(value) {
-  const text = normalizeScalar(value);
-  if (text.length === 0) {
-    return undefined;
-  }
-
-  if (/^-?\d+$/u.test(text)) {
-    return Number.parseInt(text, 10);
-  }
-
-  return text;
+  return normalizeFormValuesByFields(input, FORM_FIELDS);
 }
 
 function hasInlineCustomerInput(values) {
-  return values.newCustomerFullName.length > 0
-    || values.newCustomerPhone.length > 0
-    || values.newCustomerMessagingHandle.length > 0
-    || values.newCustomerNotes.length > 0;
+  return hasAnyInput(values, INLINE_CUSTOMER_FIELDS);
 }
 
 function hasInlineVehicleInput(values) {
-  return values.newVehicleLabel.length > 0
-    || values.newVehiclePlateNumber.length > 0
-    || values.newVehicleVin.length > 0
-    || values.newVehicleMake.length > 0
-    || values.newVehicleModel.length > 0
-    || values.newVehicleProductionYear.length > 0
-    || values.newVehicleMileageKm.length > 0
-    || values.newVehicleEngineOrTrim.length > 0;
-}
-
-function localizeValidationMessage(field, message) {
-  const normalizedMessage = String(message ?? "Неверное значение");
-  const exact = EXACT_VALIDATION_MESSAGE_TRANSLATIONS.get(normalizedMessage);
-  if (exact) {
-    return exact;
-  }
-
-  const label = FIELD_LABELS[field] ?? field ?? "Форма";
-
-  if (normalizedMessage.includes("must be a non-empty string or null")) {
-    return `${label}: укажите корректное текстовое значение`;
-  }
-
-  if (normalizedMessage.includes("is required and must be a non-empty string")) {
-    return `${label}: заполните поле`;
-  }
-
-  if (normalizedMessage.includes("must be a non-empty string")) {
-    return `${label}: укажите корректное текстовое значение`;
-  }
-
-  if (normalizedMessage.includes("must be string or null")) {
-    return `${label}: значение должно быть строкой или пустым`;
-  }
-
-  if (normalizedMessage.includes("must be a string")) {
-    return `${label}: значение должно быть строкой`;
-  }
-
-  if (normalizedMessage.includes("must be integer or null")) {
-    return `${label}: значение должно быть целым числом или пустым`;
-  }
-
-  if (normalizedMessage.includes("must be between")) {
-    return `${label}: значение вне допустимого диапазона`;
-  }
-
-  if (normalizedMessage === "unknown field") {
-    return "Неподдерживаемое поле формы";
-  }
-
-  return normalizedMessage;
-}
-
-function mapValidationErrors(errors, fieldMap = {}) {
-  return errors.map((error) => ({
-    field: fieldMap[error.field] ?? error.field,
-    message: localizeValidationMessage(fieldMap[error.field] ?? error.field, error.message),
-  }));
+  return hasAnyInput(values, INLINE_VEHICLE_FIELDS);
 }
 
 function localizeConflictDetails(details) {
@@ -204,29 +149,6 @@ function buildAppointmentPayload(values, { customerId, vehicleId }) {
   return payload;
 }
 
-function resolveLookup(customerVehicleService, query) {
-  const lookupQuery = normalizeScalar(query);
-  if (lookupQuery.length === 0) {
-    return {
-      query: "",
-      performed: false,
-      customers: [],
-      vehicles: [],
-    };
-  }
-
-  return {
-    query: lookupQuery,
-    performed: true,
-    customers: customerVehicleService
-      .listCustomers({ includeInactive: false, query: lookupQuery })
-      .slice(0, LOOKUP_RESULTS_LIMIT),
-    vehicles: customerVehicleService
-      .listVehicles({ includeInactive: false, query: lookupQuery })
-      .slice(0, LOOKUP_RESULTS_LIMIT),
-  };
-}
-
 function resolveConflictPreview(appointmentService, values) {
   if (values.plannedStartLocal.length === 0) {
     return [];
@@ -264,57 +186,19 @@ function buildBookingPageModel({
   messages = [],
   conflictDetails = null,
 }) {
-  const options = {
-    bays: referenceDataService
-      .listBays({ includeInactive: false })
-      .sort((left, right) => left.name.localeCompare(right.name, "ru-RU")),
-    employees: referenceDataService
-      .listEmployees({ includeInactive: false })
-      .sort((left, right) => left.name.localeCompare(right.name, "ru-RU")),
-    customers: customerVehicleService
-      .listCustomers({ includeInactive: false })
-      .sort((left, right) => left.fullName.localeCompare(right.fullName, "ru-RU")),
-    vehicles: customerVehicleService
-      .listVehicles({ includeInactive: false })
-      .sort((left, right) => left.label.localeCompare(right.label, "ru-RU")),
-  };
-
-  const selected = {
-    customer: values.customerId.length > 0 ? customerVehicleService.getCustomerById(values.customerId) : null,
-    vehicle: values.vehicleId.length > 0 ? customerVehicleService.getVehicleById(values.vehicleId) : null,
-  };
-
-  const nextWarnings = [...warnings];
-  if (values.customerId.length > 0 && !selected.customer) {
-    nextWarnings.push("Выбранный клиент не найден. Выберите клиента заново.");
-  }
-
-  if (values.vehicleId.length > 0 && !selected.vehicle) {
-    nextWarnings.push("Выбранное авто не найдено. Выберите авто заново.");
-  }
-
-  if (
-    selected.customer
-    && selected.vehicle
-    && selected.vehicle.customerId !== selected.customer.id
-  ) {
-    nextWarnings.push("Выбранное авто принадлежит другому клиенту. Проверьте выбор перед сохранением.");
-  }
-
-  const lookup = resolveLookup(customerVehicleService, values.q);
-
   const previewConflict = conflictDetails ?? resolveConflictPreview(appointmentService, values);
-
-  return {
+  return buildCustomerVehiclePageModel({
+    referenceDataService,
+    customerVehicleService,
     values,
-    options,
-    selected,
-    lookup,
+    lookupResultsLimit: LOOKUP_RESULTS_LIMIT,
     errors,
-    warnings: nextWarnings,
+    warnings,
     messages,
-    conflictDetails: previewConflict,
-  };
+    extra: {
+      conflictDetails: previewConflict,
+    },
+  });
 }
 
 function renderBookingPage(res, { statusCode, model }) {
@@ -322,34 +206,10 @@ function renderBookingPage(res, { statusCode, model }) {
 }
 
 function mapDomainError(error) {
-  if (error.code === "customer_not_found") {
+  const shared = mapSharedCustomerVehicleDomainError(error);
+  if (shared) {
     return {
-      statusCode: 404,
-      errors: [{ field: "customerId", message: "Клиент не найден" }],
-      conflictDetails: [],
-    };
-  }
-
-  if (error.code === "vehicle_not_found") {
-    return {
-      statusCode: 404,
-      errors: [{ field: "vehicleId", message: "Авто не найдено" }],
-      conflictDetails: [],
-    };
-  }
-
-  if (error.code === "bay_not_found") {
-    return {
-      statusCode: 404,
-      errors: [{ field: "bayId", message: "Пост не найден" }],
-      conflictDetails: [],
-    };
-  }
-
-  if (error.code === "vehicle_customer_mismatch") {
-    return {
-      statusCode: 409,
-      errors: [{ field: "vehicleId", message: "Авто не принадлежит выбранному клиенту" }],
+      ...shared,
       conflictDetails: [],
     };
   }
@@ -423,94 +283,49 @@ export function registerAppointmentPageRoutes(app, {
     const messages = [];
     let conflictDetails = [];
 
-    let customerId = values.customerId;
-    let vehicleId = values.vehicleId;
-
     try {
       // Fail fast on appointment-level shape errors before creating inline entities.
       const preliminaryPayload = buildAppointmentPayload(values, {
-        customerId: customerId || "cust-temporary",
-        vehicleId: vehicleId || "veh-temporary",
+        customerId: values.customerId || "cust-temporary",
+        vehicleId: values.vehicleId || "veh-temporary",
       });
       const preliminaryValidation = validateAppointmentCreate(preliminaryPayload);
       if (!preliminaryValidation.ok) {
         errors.push(
           ...mapValidationErrors(preliminaryValidation.errors.filter((error) => {
             return error.field !== "customerId" && error.field !== "vehicleId";
-          })),
+          }), localizeValidationMessage),
         );
       }
 
-      if (errors.length === 0 && !customerId && hasInlineCustomerInput(values)) {
-        const customerValidation = validateCustomerCreate({
-          fullName: values.newCustomerFullName,
-          phone: values.newCustomerPhone,
-          messagingHandle: values.newCustomerMessagingHandle || null,
-          notes: values.newCustomerNotes || null,
+      let customerId = values.customerId;
+      let vehicleId = values.vehicleId;
+      let inlineCustomerPayload = null;
+      let inlineVehiclePayload = null;
+      if (errors.length === 0) {
+        const inlineResolution = resolveInlineCustomerVehicleCreation({
+          values,
+          selectedCustomerId: customerId,
+          selectedVehicleId: vehicleId,
+          hasInlineCustomerInput,
+          hasInlineVehicleInput,
+          localizeValidationMessage,
         });
-
-        if (!customerValidation.ok) {
-          errors.push(...mapValidationErrors(customerValidation.errors, {
-            fullName: "newCustomerFullName",
-            phone: "newCustomerPhone",
-            messagingHandle: "newCustomerMessagingHandle",
-            notes: "newCustomerNotes",
-          }));
-        } else {
-          const createdCustomer = customerVehicleService.createCustomer(customerValidation.value);
-          customerId = createdCustomer.id;
-          values.customerId = createdCustomer.id;
-          messages.push(`Создан клиент: ${createdCustomer.fullName}`);
-        }
-      }
-
-      if (errors.length === 0 && !vehicleId && hasInlineVehicleInput(values)) {
-        if (!customerId) {
-          errors.push({
-            field: "vehicleId",
-            message: "Сначала выберите или создайте клиента",
-          });
-        } else {
-          const vehicleValidation = validateVehicleCreate({
-            customerId,
-            label: values.newVehicleLabel,
-            plateNumber: values.newVehiclePlateNumber || null,
-            vin: values.newVehicleVin || null,
-            make: values.newVehicleMake || null,
-            model: values.newVehicleModel || null,
-            productionYear: coerceIntegerOrRaw(values.newVehicleProductionYear) ?? null,
-            mileageKm: coerceIntegerOrRaw(values.newVehicleMileageKm) ?? null,
-            engineOrTrim: values.newVehicleEngineOrTrim || null,
-          });
-
-          if (!vehicleValidation.ok) {
-            errors.push(...mapValidationErrors(vehicleValidation.errors, {
-              label: "newVehicleLabel",
-              plateNumber: "newVehiclePlateNumber",
-              vin: "newVehicleVin",
-              make: "newVehicleMake",
-              model: "newVehicleModel",
-              productionYear: "newVehicleProductionYear",
-              mileageKm: "newVehicleMileageKm",
-              engineOrTrim: "newVehicleEngineOrTrim",
-            }));
-          } else {
-            const createdVehicle = customerVehicleService.createVehicle(vehicleValidation.value);
-            vehicleId = createdVehicle.id;
-            values.vehicleId = createdVehicle.id;
-            messages.push(`Создано авто: ${createdVehicle.label}`);
-          }
-        }
+        errors.push(...inlineResolution.errors);
+        customerId = inlineResolution.customerId;
+        vehicleId = inlineResolution.vehicleId;
+        inlineCustomerPayload = inlineResolution.inlineCustomerPayload;
+        inlineVehiclePayload = inlineResolution.inlineVehiclePayload;
       }
 
       const appointmentPayload = buildAppointmentPayload(values, {
-        customerId,
-        vehicleId,
+        customerId: customerId || (inlineCustomerPayload ? "cust-inline" : ""),
+        vehicleId: vehicleId || (inlineVehiclePayload ? "veh-inline" : ""),
       });
 
       const appointmentValidation = validateAppointmentCreate(appointmentPayload);
       if (!appointmentValidation.ok) {
-        errors.push(...mapValidationErrors(appointmentValidation.errors));
+        errors.push(...mapValidationErrors(appointmentValidation.errors, localizeValidationMessage));
       }
 
       if (errors.length > 0) {
@@ -553,7 +368,22 @@ export function registerAppointmentPageRoutes(app, {
         throw error;
       }
 
-      const createdAppointment = appointmentService.createAppointment(appointmentValidation.value);
+      const createdBundle = appointmentService.createAppointmentFromBookingForm({
+        appointmentPayload: appointmentValidation.value,
+        selectedCustomerId: customerId || null,
+        selectedVehicleId: vehicleId || null,
+        inlineCustomerPayload,
+        inlineVehiclePayload,
+      });
+
+      if (createdBundle.customer) {
+        messages.push(`Создан клиент: ${createdBundle.customer.fullName}`);
+      }
+      if (createdBundle.vehicle) {
+        messages.push(`Создано авто: ${createdBundle.vehicle.label}`);
+      }
+
+      const createdAppointment = createdBundle.appointment;
       res.redirect(303, `/appointments/${encodeURIComponent(createdAppointment.id)}?created=1`);
     } catch (error) {
       const mapped = mapDomainError(error);

@@ -1,92 +1,34 @@
 {
-  "auditTimestampUtc": "2026-03-21T20:24:28.132119+00:00",
-  "serviceId": "srv-d6vcmt7diees73d0j04g",
-  "timeRange": {
-    "start": "2026-03-21T16:46:52.490852325Z",
-    "end": "2026-03-21T20:16:50.720482707Z"
-  },
+  "generatedAt": "2026-03-22T17:04:56.482Z",
+  "startTime": "2026-03-22T17:03:31.863Z",
+  "endTime": "2026-03-22T17:04:55.161Z",
+  "deployId": "dep-d70220a4d50c7391unv0",
   "totals": {
-    "logRows": 2828,
-    "labelTypeCounts": {
-      "app": 2828
+    "rows": 61,
+    "bySeverity": {
+      "info": 61,
+      "warn": 0,
+      "error": 0,
+      "fatal": 0
     },
-    "instanceCount": 9,
-    "jsonLevelCounts": {
-      "info": 2551
-    },
-    "jsonWarnErrorCount": 0,
-    "textWarningLikeCount": 0,
-    "httpStatusCounts": {
-      "200": 2542,
-      "204": 2
-    },
-    "httpRequestTotal": 2544,
-    "healthzRequestCount": 2519,
-    "healthzRequestRatio": 0.990173
+    "repoAccessWarningCount": 0,
+    "truncatedTypes": []
   },
-  "deployEvents": {
-    "deployEndedCount": 9,
-    "deployStatusCounts": {
-      "succeeded": 9
+  "thresholds": {
+    "maxWarnings": 0,
+    "maxErrors": 0,
+    "maxRepoWarnings": 0,
+    "failOnTruncation": true
+  },
+  "types": {
+    "build": {
+      "rows": 18,
+      "hasMore": false
     },
-    "buildEndedCount": 9,
-    "buildStatusCounts": {
-      "succeeded": 9
+    "app": {
+      "rows": 43,
+      "hasMore": false
     }
   },
-  "signals": {
-    "repoAccessWarningCount": 9,
-    "nodeVersionsSeen": [
-      "25.8.1"
-    ]
-  },
-  "topHttpPaths": [
-    {
-      "path": "/healthz",
-      "count": 2519
-    },
-    {
-      "path": "/",
-      "count": 17
-    },
-    {
-      "path": "/api/v1/dashboard/today",
-      "count": 4
-    },
-    {
-      "path": "/favicon.ico",
-      "count": 2
-    },
-    {
-      "path": "/api/v1/employees",
-      "count": 1
-    },
-    {
-      "path": "/api/v1/bays",
-      "count": 1
-    }
-  ],
-  "topJsonEvents": [
-    {
-      "event": "http_request",
-      "count": 2544
-    },
-    {
-      "event": "server_started",
-      "count": 3
-    },
-    {
-      "event": "db_migration_applied",
-      "count": 2
-    },
-    {
-      "event": "db_seed_applied",
-      "count": 1
-    },
-    {
-      "event": "db_bootstrap_complete",
-      "count": 1
-    }
-  ],
-  "sampleTextWarningLike": []
+  "severeSamples": []
 }

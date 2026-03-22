@@ -50,6 +50,11 @@ Planning files are included in this rule:
 - keep an archived-plan skeleton index in `PLANS.md` for quick historical awareness,
 - and avoid letting historical sections crowd out active execution context.
 
+Repository budget governance is part of hygiene:
+- run `npm run audit:bloat` to enforce tracked-size, duplication, and hot-path doc budgets,
+- keep thresholds in `data/bloat/budgets.json`,
+- and allow temporary budget regressions only with explicit override (`BLOAT_ALLOW_REGRESSION=1`) plus documented follow-up.
+
 ## State coherence rule
 
 Repository state files, verification behavior, and actual runnable behavior should agree.

@@ -9,8 +9,8 @@ export class CustomerVehicleService {
     this.repository = repository;
   }
 
-  listCustomers({ includeInactive = false, query = "" } = {}) {
-    return this.repository.listCustomerRecords({ includeInactive, query });
+  listCustomers({ includeInactive = false, query = "", limit = null, offset = 0 } = {}) {
+    return this.repository.listCustomerRecords({ includeInactive, query, limit, offset });
   }
 
   getCustomerById(id) {
@@ -32,8 +32,8 @@ export class CustomerVehicleService {
     return this.repository.deactivateCustomerById(id);
   }
 
-  listVehicles({ includeInactive = false, query = "", customerId = null } = {}) {
-    return this.repository.listVehicleRecords({ includeInactive, query, customerId });
+  listVehicles({ includeInactive = false, query = "", customerId = null, limit = null, offset = 0 } = {}) {
+    return this.repository.listVehicleRecords({ includeInactive, query, customerId, limit, offset });
   }
 
   getVehicleById(id) {

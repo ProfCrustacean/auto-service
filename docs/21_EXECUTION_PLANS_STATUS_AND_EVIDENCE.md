@@ -20,6 +20,7 @@ A plan should exist before major implementation begins and should remain accurat
 Keep only a short recent window of completed plans in `PLANS.md` and move older completed plans into `PLANS_ARCHIVE.md`.
 Retain a skeleton index of archived completed plans inside `PLANS.md` so earlier work remains visible at a glance.
 Compaction should happen as part of normal completion handling, not as an occasional manual cleanup.
+Hot-path budget: keep `PLANS.md` at or below 350 lines.
 
 ## `STATUS.md` rule
 
@@ -31,6 +32,7 @@ A new Codex run should be able to read `STATUS.md` and quickly understand:
 - what was last validated,
 - what is currently blocked,
 - and what the next likely milestone is.
+Hot-path budget: keep `STATUS.md` at or below 320 lines.
 
 ## Evidence rule
 
@@ -45,6 +47,16 @@ Evidence may include:
 - environment health results,
 - deployment outputs,
 - or failure logs.
+
+Evidence classes:
+- `summary`: tracked compact artifacts used for routine context and verification.
+- `raw`: large/debug payloads generated only when explicitly requested.
+- `ephemeral`: temporary local diagnostics not required for repository history.
+
+Repository policy:
+- Track `summary` artifacts.
+- Keep `raw` artifacts out of git by default (`.raw`, `.ndjson`, `.raw.gz` under `evidence/`).
+- Use `scripts/evidence-log-summary.js` to turn raw log exports into compact tracked summaries.
 
 ## Minimum evidence expectation
 

@@ -182,4 +182,91 @@ export const MIGRATIONS = [
       DROP TABLE IF EXISTS vehicle_ownership_history;
     `,
   },
+  {
+    version: "004",
+    name: "add_code_sequences",
+    up: `
+      CREATE TABLE IF NOT EXISTS code_sequences (
+        entity TEXT PRIMARY KEY,
+        next_value INTEGER NOT NULL CHECK (next_value > 0)
+      );
+
+      INSERT INTO code_sequences(entity, next_value)
+      VALUES (
+        'appointment',
+        COALESCE((
+          SELECT MAX(CAST(substr(code, 5) AS INTEGER)) + 1
+          FROM appointments
+          WHERE code GLOB 'APT-[0-9]*'
+        ), 1)
+      )
+      ON CONFLICT(entity) DO NOTHING;
+
+      INSERT INTO code_sequences(entity, next_value)
+      VALUES (
+        'work_order',
+        COALESCE((
+          SELECT MAX(CAST(substr(code, 4) AS INTEGER)) + 1
+          FROM work_orders
+          WHERE code GLOB 'WO-[0-9]*'
+        ), 1)
+      )
+      ON CONFLICT(entity) DO NOTHING;
+    `,
+    down: `
+      DROP TABLE IF EXISTS code_sequences;
+    `,
+  },
+  {
+    version: "005",
+    name: "normalize_appointment_slots",
+    up: `
+      UPDATE appointments
+      SET planned_start_local = replace(trim(planned_start_local), 'T', ' ')
+      WHERE planned_start_local GLOB '____-__-__T__:__';
+
+      UPDATE appointments
+      SET planned_start_local = strftime('%Y-%m-%d', COALESCE(datetime(created_at), datetime('now'))) || ' ' || substr(planned_start_local, 9, 5)
+      WHERE planned_start_local GLOB 'Сегодня __:__';
+
+      UPDATE appointments
+      SET planned_start_local = strftime('%Y-%m-%d', datetime(COALESCE(datetime(created_at), datetime('now')), '+1 day')) || ' ' || substr(planned_start_local, 8, 5)
+      WHERE planned_start_local GLOB 'Завтра __:__';
+    `,
+    down: `
+      -- Slot normalization is intentionally irreversible.
+    `,
+  },
+  {
+    version: "006",
+    name: "add_search_indexes",
+    up: `
+      CREATE INDEX IF NOT EXISTS idx_vehicles_label ON vehicles(label);
+      CREATE INDEX IF NOT EXISTS idx_vehicles_make ON vehicles(make);
+      CREATE INDEX IF NOT EXISTS idx_vehicles_model ON vehicles(model);
+
+      CREATE INDEX IF NOT EXISTS idx_appointments_code ON appointments(code);
+      CREATE INDEX IF NOT EXISTS idx_appointments_customer_snapshot ON appointments(customer_name_snapshot);
+      CREATE INDEX IF NOT EXISTS idx_appointments_vehicle_snapshot ON appointments(vehicle_label_snapshot);
+      CREATE INDEX IF NOT EXISTS idx_appointments_assignee ON appointments(primary_assignee);
+
+      CREATE INDEX IF NOT EXISTS idx_work_orders_customer_snapshot ON work_orders(customer_name_snapshot);
+      CREATE INDEX IF NOT EXISTS idx_work_orders_vehicle_snapshot ON work_orders(vehicle_label_snapshot);
+      CREATE INDEX IF NOT EXISTS idx_work_orders_assignee ON work_orders(primary_assignee);
+    `,
+    down: `
+      DROP INDEX IF EXISTS idx_work_orders_assignee;
+      DROP INDEX IF EXISTS idx_work_orders_vehicle_snapshot;
+      DROP INDEX IF EXISTS idx_work_orders_customer_snapshot;
+
+      DROP INDEX IF EXISTS idx_appointments_assignee;
+      DROP INDEX IF EXISTS idx_appointments_vehicle_snapshot;
+      DROP INDEX IF EXISTS idx_appointments_customer_snapshot;
+      DROP INDEX IF EXISTS idx_appointments_code;
+
+      DROP INDEX IF EXISTS idx_vehicles_model;
+      DROP INDEX IF EXISTS idx_vehicles_make;
+      DROP INDEX IF EXISTS idx_vehicles_label;
+    `,
+  },
 ];

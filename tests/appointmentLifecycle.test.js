@@ -81,6 +81,41 @@ test("appointment lifecycle API enforces transitions and deterministic capacity 
     assert.equal(assigneeConflict.json.error.code, "conflict");
     assert.equal(assigneeConflict.json.error.details[0].field, "primaryAssignee");
 
+    const normalizedCreate = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
+      plannedStartLocal: "2026-03-22T13:00",
+      customerId: "cust-3",
+      vehicleId: "veh-2",
+      complaint: "Нормализация слота",
+      bayId: "bay-2",
+      primaryAssignee: "Алексей Соколов",
+    });
+    assert.equal(normalizedCreate.status, 201);
+    assert.equal(normalizedCreate.json.item.plannedStartLocal, "2026-03-22 13:00");
+
+    const normalizedConflict = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
+      plannedStartLocal: "2026-03-22 13:00",
+      customerId: "cust-4",
+      vehicleId: "veh-4",
+      complaint: "Конфликт через эквивалентный формат",
+      bayId: "bay-2",
+      primaryAssignee: "Сергей Кузнецов",
+    });
+    assert.equal(normalizedConflict.status, 409);
+    assert.equal(normalizedConflict.json.error.code, "conflict");
+
+    const invalidSlot = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
+      plannedStartLocal: "Завтра 09:00",
+      customerId: "cust-4",
+      vehicleId: "veh-4",
+      complaint: "Невалидный формат",
+    });
+    assert.equal(invalidSlot.status, 400);
+    assert.equal(invalidSlot.json.error.code, "validation_error");
+    assert.equal(
+      invalidSlot.json.error.details.some((detail) => detail.field === "plannedStartLocal"),
+      true,
+    );
+
     const mismatchVehicle = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
       plannedStartLocal: "2026-03-22 10:00",
       customerId: "cust-1",

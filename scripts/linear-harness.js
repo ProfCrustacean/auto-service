@@ -3,6 +3,8 @@ import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
 import process from "node:process";
+import { loadDotenvIntoProcess } from "./dotenv-loader.js";
+import { redactSecrets, redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
 import {
   hasCountryRestriction,
   mergeLabelNames,
@@ -41,8 +43,10 @@ function printHelp() {
   process.stdout.write(`Usage:\n`);
   process.stdout.write(`  node scripts/linear-harness.js probe [--team-key <key>] [--state <name>] [--transport <playwright|direct|auto>] [--output <path>]\n`);
   process.stdout.write(`  node scripts/linear-harness.js create --spec <path> [--dry-run] [--team-key <key>] [--state <name>] [--transport <playwright|direct|auto>] [--output <path>]\n\n`);
+  process.stdout.write(`  node scripts/linear-harness.js sync --spec <path> [--dry-run] [--team-key <key>] [--state <name>] [--transport <playwright|direct|auto>] [--output <path>]\n\n`);
   process.stdout.write(`Environment variables:\n`);
   process.stdout.write(`  LINEAR_API_KEY (required)\n`);
+  process.stdout.write(`  Optional local defaults can be read from .env / .env.local\n`);
   process.stdout.write(`  LINEAR_TEAM_KEY (optional)\n`);
   process.stdout.write(`  LINEAR_STATE_NAME (optional; default Backlog)\n`);
   process.stdout.write(`  LINEAR_TRANSPORT (optional; default playwright)\n`);
@@ -132,9 +136,9 @@ function parseArgs(argv) {
     throw new Error(`Unknown argument: ${token}`);
   }
 
-  const validCommands = new Set(["probe", "create"]);
+  const validCommands = new Set(["probe", "create", "sync"]);
   if (!validCommands.has(options.command)) {
-    throw new Error(`Unsupported command '${options.command}'. Use 'probe' or 'create'.`);
+    throw new Error(`Unsupported command '${options.command}'. Use 'probe', 'create', or 'sync'.`);
   }
 
   const validTransports = new Set(["playwright", "direct", "auto"]);
@@ -142,8 +146,8 @@ function parseArgs(argv) {
     throw new Error(`Unsupported transport '${options.transport}'. Use playwright, direct, or auto.`);
   }
 
-  if (options.command === "create" && !options.specPath) {
-    throw new Error("--spec is required for create command");
+  if ((options.command === "create" || options.command === "sync") && !options.specPath) {
+    throw new Error("--spec is required for create and sync commands");
   }
 
   return options;
@@ -306,7 +310,7 @@ class PlaywrightTransport {
   extractError(current, previous) {
     const outputs = [current?.error?.message, current?.stderr, current?.stdout, previous?.error?.message, previous?.stderr, previous?.stdout]
       .filter((item) => typeof item === "string" && item.trim().length > 0)
-      .map((item) => item.trim().replaceAll(this.apiKey, "[REDACTED]"));
+      .map((item) => redactSecretsInText(item.trim().replaceAll(this.apiKey, "[REDACTED]")));
 
     if (outputs.length === 0) {
       return "no error output";
@@ -578,6 +582,48 @@ async function createIssue(transport, input, dryRun) {
   return issue;
 }
 
+async function updateIssueState(transport, issueId, stateId, dryRun) {
+  if (dryRun) {
+    return {
+      id: issueId,
+      stateId,
+      isDryRun: true,
+    };
+  }
+
+  const mutation = `
+    mutation UpdateIssueState($id: String!, $input: IssueUpdateInput!) {
+      issueUpdate(id: $id, input: $input) {
+        success
+        issue {
+          id
+          identifier
+          title
+          state {
+            id
+            name
+            type
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await transport.request(mutation, {
+    id: issueId,
+    input: {
+      stateId,
+    },
+  });
+
+  const issue = data?.issueUpdate?.issue;
+  if (!issue?.id) {
+    throw new Error(`Failed to update Linear issue state for issue '${issueId}'`);
+  }
+
+  return issue;
+}
+
 async function runProbe(transport, options) {
   const context = await fetchWorkspaceContext(transport, {
     teamSelector: options.teamKey,
@@ -732,6 +778,92 @@ async function runCreate(transport, options) {
   };
 }
 
+async function runSync(transport, options) {
+  const { absolutePath, spec } = await loadSpec(options.specPath);
+
+  const teamSelector = options.teamKey ?? spec.teamKey;
+  const stateName = options.stateName ?? spec.stateName ?? DEFAULT_STATE_NAME;
+
+  const context = await fetchWorkspaceContext(transport, {
+    teamSelector,
+    stateName,
+    issuesLimit: options.issuesLimit,
+  });
+
+  const existingByTitle = new Map();
+  for (const issue of context.team.issues?.nodes ?? []) {
+    existingByTitle.set(normalizeIssueTitle(issue.title), issue);
+  }
+
+  const resultItems = [];
+
+  for (const issueSpec of spec.issues) {
+    const key = normalizeIssueTitle(issueSpec.title);
+    const existing = existingByTitle.get(key);
+    if (!existing) {
+      resultItems.push({
+        title: issueSpec.title,
+        action: "not_found",
+      });
+      continue;
+    }
+
+    const fromState = existing.state?.name ?? null;
+    const fromStateId = existing.state?.id ?? null;
+    if (fromStateId === context.state.id) {
+      resultItems.push({
+        title: issueSpec.title,
+        action: "already_in_state",
+        identifier: existing.identifier,
+        url: existing.url,
+        state: fromState,
+      });
+      continue;
+    }
+
+    const updated = await updateIssueState(transport, existing.id, context.state.id, options.dryRun);
+    resultItems.push({
+      title: issueSpec.title,
+      action: options.dryRun ? "would_transition" : "transitioned",
+      identifier: existing.identifier,
+      url: existing.url,
+      fromState,
+      toState: options.dryRun ? context.state.name : updated.state?.name ?? context.state.name,
+    });
+  }
+
+  const transitioned = resultItems.filter((item) => item.action === "transitioned").length;
+  const wouldTransition = resultItems.filter((item) => item.action === "would_transition").length;
+  const alreadyInState = resultItems.filter((item) => item.action === "already_in_state").length;
+  const notFound = resultItems.filter((item) => item.action === "not_found").length;
+
+  return {
+    status: options.dryRun ? "linear_sync_dry_run_complete" : "linear_sync_complete",
+    transport: transport.name,
+    dryRun: options.dryRun,
+    specPath: absolutePath,
+    viewer: context.viewer,
+    team: {
+      id: context.team.id,
+      key: context.team.key,
+      name: context.team.name,
+    },
+    targetState: {
+      id: context.state.id,
+      name: context.state.name,
+      type: context.state.type,
+    },
+    summary: {
+      requested: spec.issues.length,
+      transitioned,
+      wouldTransition,
+      alreadyInState,
+      notFound,
+    },
+    issues: resultItems,
+  };
+}
+
 async function writeOutput(outputPath, payload) {
   const resolved = resolveOutputPath(outputPath);
   if (!resolved) {
@@ -739,7 +871,7 @@ async function writeOutput(outputPath, payload) {
   }
 
   await fs.mkdir(path.dirname(resolved), { recursive: true });
-  await fs.writeFile(resolved, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  await fs.writeFile(resolved, `${stringifyRedacted(payload, 2)}\n`, "utf8");
 }
 
 function renderError(error) {
@@ -747,26 +879,33 @@ function renderError(error) {
     return {
       status: "linear_harness_failed",
       errorType: error.name,
-      message: error.message,
+      message: redactSecretsInText(error.message),
       transport: error.transportName,
       statusCode: error.statusCode,
-      errors: error.errors,
+      errors: redactSecrets(error.errors),
     };
   }
 
   return {
     status: "linear_harness_failed",
     errorType: error?.name ?? "Error",
-    message: error?.message ?? "Unknown error",
+    message: redactSecretsInText(error?.message ?? "Unknown error"),
   };
 }
 
 async function main() {
+  try {
+    await loadDotenvIntoProcess();
+  } catch (error) {
+    process.stderr.write(`${stringifyRedacted(renderError(error))}\n`);
+    process.exit(1);
+  }
+
   let options;
   try {
     options = parseArgs(process.argv.slice(2));
   } catch (error) {
-    process.stderr.write(`${JSON.stringify(renderError(error))}\n`);
+    process.stderr.write(`${stringifyRedacted(renderError(error))}\n`);
     process.exit(1);
   }
 
@@ -777,7 +916,7 @@ async function main() {
 
   const apiKey = process.env.LINEAR_API_KEY;
   if (!apiKey || apiKey.trim().length === 0) {
-    process.stderr.write(`${JSON.stringify(renderError(new Error("LINEAR_API_KEY is required")))}\n`);
+    process.stderr.write(`${stringifyRedacted(renderError(new Error("LINEAR_API_KEY is required")))}\n`);
     process.exit(1);
   }
 
@@ -786,18 +925,23 @@ async function main() {
   try {
     transport = await resolveTransport(apiKey.trim(), options.transport);
 
-    const result = options.command === "probe"
-      ? await runProbe(transport, options)
-      : await runCreate(transport, options);
+    let result;
+    if (options.command === "probe") {
+      result = await runProbe(transport, options);
+    } else if (options.command === "create") {
+      result = await runCreate(transport, options);
+    } else {
+      result = await runSync(transport, options);
+    }
 
     await writeOutput(options.outputPath, result);
-    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    process.stdout.write(`${stringifyRedacted(result, 2)}\n`);
   } catch (error) {
     const payload = renderError(error);
     if (options?.outputPath) {
       await writeOutput(options.outputPath, payload);
     }
-    process.stderr.write(`${JSON.stringify(payload, null, 2)}\n`);
+    process.stderr.write(`${stringifyRedacted(payload, 2)}\n`);
     process.exitCode = 1;
   } finally {
     if (transport) {

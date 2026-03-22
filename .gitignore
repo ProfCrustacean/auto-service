@@ -10,3 +10,6 @@ test-results/
 data/*.sqlite
 data/*.sqlite-shm
 data/*.sqlite-wal
+evidence/**/*.raw
+evidence/**/*.ndjson
+evidence/**/*.raw.gz
