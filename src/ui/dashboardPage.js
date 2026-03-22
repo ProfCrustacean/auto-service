@@ -86,8 +86,124 @@ function renderQueueRows(rows) {
     .join("\n");
 }
 
+function renderWeekHeaderCells(days) {
+  return days
+    .map(
+      (day) => `
+        <th class="week-day">${escapeHtml(day.dayLabel)}</th>
+      `,
+    )
+    .join("\n");
+}
+
+function renderWeekRows(rows) {
+  if (rows.length === 0) {
+    return '<tr><td colspan="8">Нет данных</td></tr>';
+  }
+
+  return rows
+    .map((row) => {
+      const dayCells = row.days
+        .map((day) => {
+          const conflictLabel = day.slotConflicts > 0 ? ` · Дубль слота: ${day.slotConflicts}` : "";
+          return `
+            <td class="week-cell ${escapeHtml(day.status)}">
+              <strong>${day.plannedCount}</strong>
+              <div class="small">${escapeHtml(day.statusLabel)}${escapeHtml(conflictLabel)}</div>
+            </td>
+          `;
+        })
+        .join("\n");
+
+      return `
+        <tr>
+          <td class="week-resource">
+            <strong>${escapeHtml(row.key)}</strong>
+            <div class="small muted">План: ${row.totalPlanned} · Перегруз дней: ${row.overbookedCells}</div>
+          </td>
+          ${dayCells}
+        </tr>
+      `;
+    })
+    .join("\n");
+}
+
+function renderSearchCustomerRows(rows) {
+  if (rows.length === 0) {
+    return '<tr><td colspan="2">Нет совпадений</td></tr>';
+  }
+
+  return rows
+    .map(
+      (row) => `
+      <tr>
+        <td><strong>${escapeHtml(row.fullName)}</strong><div class="small muted">${escapeHtml(row.id)}</div></td>
+        <td>${escapeHtml(row.phone)}</td>
+      </tr>
+    `,
+    )
+    .join("\n");
+}
+
+function renderSearchVehicleRows(rows) {
+  if (rows.length === 0) {
+    return '<tr><td colspan="4">Нет совпадений</td></tr>';
+  }
+
+  return rows
+    .map(
+      (row) => `
+      <tr>
+        <td><strong>${escapeHtml(row.label)}</strong><div class="small muted">${escapeHtml(row.customerName ?? "н/д")}</div></td>
+        <td>${escapeHtml(row.plateNumber ?? "н/д")}</td>
+        <td>${escapeHtml(row.vin ?? "н/д")}</td>
+        <td>${escapeHtml(row.model ?? "н/д")}</td>
+      </tr>
+    `,
+    )
+    .join("\n");
+}
+
+function renderSearchAppointmentRows(rows) {
+  if (rows.length === 0) {
+    return '<tr><td colspan="4">Нет совпадений</td></tr>';
+  }
+
+  return rows
+    .map(
+      (row) => `
+      <tr>
+        <td><a href="${escapeHtml(row.detailHref)}">${escapeHtml(row.code)}</a></td>
+        <td>${escapeHtml(row.plannedStartLocal)}</td>
+        <td>${escapeHtml(row.customerName)}</td>
+        <td>${escapeHtml(row.vehicleLabel)}</td>
+      </tr>
+    `,
+    )
+    .join("\n");
+}
+
+function renderSearchWorkOrderRows(rows) {
+  if (rows.length === 0) {
+    return '<tr><td colspan="4">Нет совпадений</td></tr>';
+  }
+
+  return rows
+    .map(
+      (row) => `
+      <tr>
+        <td><a href="${escapeHtml(row.detailHref)}">${escapeHtml(row.code)}</a></td>
+        <td>${escapeHtml(row.statusLabelRu)}</td>
+        <td>${escapeHtml(row.customerName)}</td>
+        <td>${escapeHtml(row.vehicleLabel)}</td>
+      </tr>
+    `,
+    )
+    .join("\n");
+}
+
 export function renderDashboardPage(model) {
-  const { service, summary, appointments, queues, load, actions, generatedAt } = model;
+  const { service, summary, appointments, queues, load, week, search, actions, generatedAt } = model;
 
   return `<!doctype html>
 <html lang="ru">
@@ -156,6 +272,38 @@ export function renderDashboardPage(model) {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }
+
+    .search-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .search-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .search-panel {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfcfa;
     }
 
     .btn {
@@ -244,6 +392,91 @@ export function renderDashboardPage(model) {
       font-weight: 600;
     }
 
+    .week-table {
+      min-width: 780px;
+    }
+
+    .week-day {
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .week-resource {
+      min-width: 180px;
+    }
+
+    .week-cell {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      border-left: 1px solid var(--line);
+    }
+
+    .week-cell strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+
+    .week-cell.overbooked {
+      background: var(--danger-bg);
+      color: var(--danger-ink);
+    }
+
+    .week-cell.high {
+      background: var(--warn-bg);
+      color: var(--warn-ink);
+    }
+
+    .week-cell.normal {
+      background: var(--accent-soft);
+      color: var(--ink);
+    }
+
+    .week-cell.underbooked {
+      background: #f1f4f1;
+      color: #546357;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .legend span {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #f8fbf8;
+    }
+
+    .legend .overbooked {
+      border-color: #e4b8a8;
+      background: var(--danger-bg);
+      color: var(--danger-ink);
+    }
+
+    .legend .high {
+      border-color: #e6cc99;
+      background: var(--warn-bg);
+      color: var(--warn-ink);
+    }
+
+    .legend .normal {
+      border-color: #b5d5c4;
+      background: var(--accent-soft);
+      color: var(--ink);
+    }
+
+    .legend .underbooked {
+      border-color: #d5ddd7;
+      background: #f1f4f1;
+      color: #546357;
+    }
+
     .money {
       font-weight: 600;
       color: var(--money);
@@ -252,6 +485,7 @@ export function renderDashboardPage(model) {
     @media (max-width: 900px) {
       .wrap { padding: 12px; }
       .split-grid { grid-template-columns: 1fr; }
+      .search-grid { grid-template-columns: 1fr; }
       table { min-width: 560px; }
     }
   </style>
@@ -268,6 +502,126 @@ export function renderDashboardPage(model) {
         <a class="btn" href="${escapeHtml(actions.newWalkInHref)}">Принять walk-in</a>
         <a class="btn" href="${escapeHtml(actions.openActiveQueueHref)}">Открыть активную очередь</a>
       </div>
+    </section>
+
+    <section class="panel">
+      <h2>Быстрый поиск клиента и авто</h2>
+      <form class="search-form" method="get" action="/">
+        <input
+          class="search-input"
+          type="search"
+          name="q"
+          value="${escapeHtml(search.query)}"
+          placeholder="Имя, телефон, номер, VIN, модель"
+          autocomplete="off"
+        />
+        <button class="btn primary" type="submit">Найти</button>
+        ${search.performed ? '<a class="btn" href="/">Сбросить</a>' : ""}
+      </form>
+      <p class="muted small">Поиск работает по клиенту, телефону, номеру авто, VIN и модели.</p>
+      ${
+        search.performed
+          ? `
+      <div class="triage-grid">
+        <article class="triage-card">
+          Всего совпадений
+          <strong>${search.totals.all}</strong>
+        </article>
+        <article class="triage-card">
+          Клиенты / авто
+          <strong>${search.totals.customers} / ${search.totals.vehicles}</strong>
+        </article>
+        <article class="triage-card">
+          Записи / заказ-наряды
+          <strong>${search.totals.appointments} / ${search.totals.workOrders}</strong>
+        </article>
+        <article class="triage-card ${search.timing.withinBaseline ? "" : "warn"}">
+          Время поиска
+          <strong>${search.timing.durationMs} мс</strong>
+          <div class="small">Цель: до ${search.timing.baselineMs} мс</div>
+        </article>
+      </div>
+      ${
+        search.totals.all === 0
+          ? '<p class="muted small">По этому запросу совпадений не найдено.</p>'
+          : `
+      <div class="search-grid">
+        <article class="search-panel">
+          <h3>Клиенты (${search.customers.length}/${search.totals.customers})</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Клиент</th>
+                  <th>Телефон</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${renderSearchCustomerRows(search.customers)}
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article class="search-panel">
+          <h3>Авто (${search.vehicles.length}/${search.totals.vehicles})</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Авто / владелец</th>
+                  <th>Номер</th>
+                  <th>VIN</th>
+                  <th>Модель</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${renderSearchVehicleRows(search.vehicles)}
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article class="search-panel">
+          <h3>Записи (${search.appointments.length}/${search.totals.appointments})</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Код</th>
+                  <th>Время</th>
+                  <th>Клиент</th>
+                  <th>Авто</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${renderSearchAppointmentRows(search.appointments)}
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article class="search-panel">
+          <h3>Заказ-наряды (${search.workOrders.length}/${search.totals.workOrders})</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Код</th>
+                  <th>Статус</th>
+                  <th>Клиент</th>
+                  <th>Авто</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${renderSearchWorkOrderRows(search.workOrders)}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+      `
+      }
+      `
+          : '<p class="muted small">Введите запрос, чтобы быстро найти клиента, авто, запись или заказ-наряд.</p>'
+      }
     </section>
 
     <section class="panel">
@@ -299,6 +653,67 @@ export function renderDashboardPage(model) {
           <strong>${summary.overdueItemsCount}</strong>
         </article>
       </div>
+    </section>
+
+    <section class="panel">
+      <h2>План недели: загрузка и перегруз</h2>
+      <p class="muted small">Перегруз отмечается при дубле слота или превышении целевой емкости.</p>
+      <div class="triage-grid">
+        <article class="triage-card ${week.summary.overbookedCellsByBay > 0 || week.summary.overbookedCellsByAssignee > 0 ? "danger" : ""}">
+          Ячейки с перегрузом
+          <strong>${week.summary.overbookedCellsByBay + week.summary.overbookedCellsByAssignee}</strong>
+        </article>
+        <article class="triage-card">
+          Записей в окне 7 дней
+          <strong>${week.summary.inWindowAppointmentsCount}</strong>
+        </article>
+        <article class="triage-card ${week.summary.unscheduledAppointmentsCount > 0 ? "warn" : ""}">
+          Записи без даты недели
+          <strong>${week.summary.unscheduledAppointmentsCount}</strong>
+        </article>
+      </div>
+      <div class="legend">
+        <span class="overbooked">Перегруз</span>
+        <span class="high">Высокая загрузка</span>
+        <span class="normal">Норма</span>
+        <span class="underbooked">Недогруз</span>
+      </div>
+    </section>
+
+    <section class="split-grid">
+      <article class="panel">
+        <h2>Неделя по постам</h2>
+        <div class="table-wrap">
+          <table class="week-table">
+            <thead>
+              <tr>
+                <th>Пост</th>
+                ${renderWeekHeaderCells(week.days)}
+              </tr>
+            </thead>
+            <tbody>
+              ${renderWeekRows(week.byBay)}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Неделя по сотрудникам</h2>
+        <div class="table-wrap">
+          <table class="week-table">
+            <thead>
+              <tr>
+                <th>Сотрудник</th>
+                ${renderWeekHeaderCells(week.days)}
+              </tr>
+            </thead>
+            <tbody>
+              ${renderWeekRows(week.byAssignee)}
+            </tbody>
+          </table>
+        </div>
+      </article>
     </section>
 
     <section class="split-grid">

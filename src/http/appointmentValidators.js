@@ -1,13 +1,6 @@
+import { collectUnknownFields, isNonEmptyString } from "./validatorUtils.js";
+
 const APPOINTMENT_STATUSES = new Set(["booked", "confirmed", "arrived", "cancelled", "no-show"]);
-
-function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function collectUnknownFields(body, knownFields) {
-  const fieldSet = new Set(knownFields);
-  return Object.keys(body).filter((field) => !fieldSet.has(field));
-}
 
 function normalizeOptionalString(value, field, errors) {
   if (value === undefined) {

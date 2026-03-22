@@ -1,31 +1,5 @@
 import { validateIncludeInactiveQuery } from "./referenceValidators.js";
-
-function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function normalizeBoolean(value) {
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === "true" || normalized === "1") {
-      return true;
-    }
-    if (normalized === "false" || normalized === "0") {
-      return false;
-    }
-  }
-
-  return null;
-}
-
-function collectUnknownFields(body, knownFields) {
-  const fieldSet = new Set(knownFields);
-  return Object.keys(body).filter((field) => !fieldSet.has(field));
-}
+import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike } from "./validatorUtils.js";
 
 function normalizeOptionalStringForCreate(value, field, errors) {
   if (value === undefined || value === null) {
@@ -143,7 +117,7 @@ export function validateCustomerCreate(body) {
 
   let isActive = true;
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean when provided" });
     } else {
@@ -201,7 +175,7 @@ export function validateCustomerUpdate(body) {
   }
 
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean" });
     } else {
@@ -295,7 +269,7 @@ export function validateVehicleCreate(body) {
 
   let isActive = true;
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean when provided" });
     } else {
@@ -405,7 +379,7 @@ export function validateVehicleUpdate(body) {
   }
 
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean" });
     } else {

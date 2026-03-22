@@ -1,24 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import { bootstrapPersistence } from "../src/persistence/bootstrapPersistence.js";
 import { AppointmentService } from "../src/services/appointmentService.js";
 import { WalkInIntakeService } from "../src/services/walkInIntakeService.js";
-
-function makeSilentLogger() {
-  return {
-    info() {},
-    warn() {},
-    error() {},
-  };
-}
+import { createSilentLogger, createTempDatabase } from "./helpers/httpHarness.js";
 
 test("domain services support scheduling and walk-in acceptance scenario", () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "auto-service-domain-scheduling-walkin-"));
-  const databasePath = path.join(tempDir, "test.sqlite");
-  const logger = makeSilentLogger();
+  const tempDb = createTempDatabase("auto-service-domain-scheduling-walkin");
+  const { databasePath, cleanup } = tempDb;
+  const logger = createSilentLogger();
   const config = { appEnv: "test", port: 0, seedPath: "./data/seed-fixtures.json", databasePath };
 
   const { repository, database } = bootstrapPersistence({ config, logger });
@@ -82,6 +72,6 @@ test("domain services support scheduling and walk-in acceptance scenario", () =>
     assert.equal(intakeEvents.some((item) => item.id === walkIn.intakeEvent.id), true);
   } finally {
     database.close();
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    cleanup();
   }
 });

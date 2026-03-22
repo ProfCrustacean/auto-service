@@ -157,6 +157,7 @@ Phase 1 reference-data APIs:
 - `GET|POST /api/v1/appointments`
 - `GET|PATCH /api/v1/appointments/:id`
 - `POST /api/v1/intake/walk-ins`
+- `GET /api/v1/search?q=<term>` (быстрый поиск по клиенту/телефону/номеру/VIN/модели)
 
 Default local DB path:
 - `data/auto-service.sqlite` (override with `DB_PATH`)
@@ -167,7 +168,64 @@ Default local DB path:
 npm test
 npm run smoke
 npm run verify
+npm run verify:render
+npm run verify:full
 ```
+
+`npm run verify` is self-contained:
+- runs tests,
+- boots an isolated app instance with a temporary SQLite database,
+- runs smoke checks and scheduling+walk-in scenario checks,
+- then stops the app automatically.
+
+Render stage commands:
+- `npm run verify:render`:
+  - triggers Render deploy for configured service,
+  - waits for deploy to reach `live`,
+  - then runs smoke against deployed URL.
+- `npm run verify:full`:
+  - runs local `verify`,
+  - then runs `verify:render`.
+- `npm run up:full`:
+  - installs dependencies,
+  - runs the full local + deploy-aware verification sequence.
+- `RENDER_API_KEY` is required for deploy-triggering mode (`RENDER_SKIP_DEPLOY=0`, default).
+
+Render env defaults:
+- `RENDER_SERVICE_ID` default: `srv-d6vcmt7diees73d0j04g`
+- `APP_BASE_URL` default: `https://auto-service-foundation.onrender.com`
+- `RENDER_USE_RESOLVE=1` by default (uses `curl --resolve api.render.com:443:216.24.57.7` for API reliability in this environment)
+- `RENDER_SKIP_DEPLOY=1` to run deployed smoke without triggering a new deploy
+- `RENDER_DEPLOY_TIMEOUT_MS`, `RENDER_DEPLOY_POLL_INTERVAL_MS` to tune wait behavior
+
+Scenario mode defaults:
+- local base URL (`127.0.0.1`/`localhost`) => write mode
+- non-local base URL => non-destructive read-only mode
+- override with `SCENARIO_NON_DESTRUCTIVE=1|0` or `--non-destructive|--destructive`
+
+Smoke/scenario failures are emitted as machine-parseable JSON with step and request diagnostics.
+
+### Linear task harness commands
+
+The harness includes a Playwright-backed Linear workflow (default transport) for environments where direct GraphQL access can be geo-blocked.
+
+Required:
+- `LINEAR_API_KEY`
+
+Probe workspace/team/state connectivity:
+
+```bash
+LINEAR_API_KEY="<key>" npm run linear:probe -- --team-key AUT --state Backlog
+```
+
+Create tasks from a spec file:
+
+```bash
+LINEAR_API_KEY="<key>" npm run linear:create -- --spec data/linear/phase1-task-template.json --dry-run
+```
+
+Template spec:
+- `data/linear/phase1-task-template.json`
 
 ### Deployment docs
 

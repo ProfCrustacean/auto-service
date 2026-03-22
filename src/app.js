@@ -5,9 +5,47 @@ import { registerReferenceRoutes } from "./http/referenceRoutes.js";
 import { registerCustomerVehicleRoutes } from "./http/customerVehicleRoutes.js";
 import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
 import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
+import { sendApiError, validationError } from "./http/apiErrors.js";
 
 function shouldSkipHttpRequestLog(path, statusCode) {
   return path === "/healthz" && statusCode < 400;
+}
+
+function validateSearchQuery(query) {
+  const errors = [];
+
+  let searchQuery = "";
+  if (query.q !== undefined) {
+    if (typeof query.q !== "string") {
+      errors.push({ field: "q", message: "q must be a string" });
+    } else {
+      searchQuery = query.q.trim();
+      if (searchQuery.length > 120) {
+        errors.push({ field: "q", message: "q length must be <= 120 characters" });
+      }
+    }
+  }
+
+  for (const field of Object.keys(query)) {
+    if (field !== "q") {
+      errors.push({ field, message: "unknown query parameter" });
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    value: {
+      query: searchQuery,
+    },
+  };
+}
+
+function readDashboardSearchQuery(query) {
+  return typeof query.q === "string" ? query.q : "";
 }
 
 export function createApp({
@@ -53,8 +91,29 @@ export function createApp({
     }
   });
 
-  app.get("/api/v1/dashboard/today", (_req, res) => {
-    const payload = dashboardService.getTodayDashboard();
+  app.get("/api/v1/dashboard/today", (req, res) => {
+    const validation = validateSearchQuery(req.query);
+    if (!validation.ok) {
+      sendApiError(res, validationError(validation.errors));
+      return;
+    }
+
+    const payload = dashboardService.getTodayDashboard({
+      searchQuery: validation.value.query,
+    });
+    res.json(payload);
+  });
+
+  app.get("/api/v1/search", (req, res) => {
+    const validation = validateSearchQuery(req.query);
+    if (!validation.ok) {
+      sendApiError(res, validationError(validation.errors));
+      return;
+    }
+
+    const payload = dashboardService.searchLookup({
+      query: validation.value.query,
+    });
     res.json(payload);
   });
 
@@ -63,8 +122,10 @@ export function createApp({
   registerAppointmentRoutes(app, { logger, appointmentService });
   registerWalkInIntakeRoutes(app, { logger, walkInIntakeService });
 
-  app.get("/", (_req, res) => {
-    const model = dashboardService.getTodayDashboard();
+  app.get("/", (req, res) => {
+    const model = dashboardService.getTodayDashboard({
+      searchQuery: readDashboardSearchQuery(req.query),
+    });
     res.status(200).send(renderDashboardPage(model));
   });
 

@@ -44,6 +44,12 @@ Small cleanup and consistency work is good project maintenance.
 
 If Codex finds repeated sloppiness, outdated docs, dead paths, or confusing duplication, it should clean them up in small reviewable slices.
 
+Planning files are included in this rule:
+- keep `PLANS.md` short and operationally scannable,
+- archive older completed plans to `PLANS_ARCHIVE.md`,
+- keep an archived-plan skeleton index in `PLANS.md` for quick historical awareness,
+- and avoid letting historical sections crowd out active execution context.
+
 ## State coherence rule
 
 Repository state files, verification behavior, and actual runnable behavior should agree.

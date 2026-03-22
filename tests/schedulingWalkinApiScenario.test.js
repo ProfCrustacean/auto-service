@@ -1,65 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { bootstrapPersistence } from "../src/persistence/bootstrapPersistence.js";
-import { DashboardService } from "../src/services/dashboardService.js";
-import { ReferenceDataService } from "../src/services/referenceDataService.js";
-import { CustomerVehicleService } from "../src/services/customerVehicleService.js";
-import { AppointmentService } from "../src/services/appointmentService.js";
-import { WalkInIntakeService } from "../src/services/walkInIntakeService.js";
-import { createApp } from "../src/app.js";
-
-function makeServer({ port = 0, databasePath }) {
-  const logger = {
-    info() {},
-    warn() {},
-    error() {},
-  };
-
-  const config = { appEnv: "test", port, seedPath: "./data/seed-fixtures.json", databasePath };
-  const { repository, database } = bootstrapPersistence({ config, logger });
-  const dashboardService = new DashboardService(repository);
-  const referenceDataService = new ReferenceDataService(repository);
-  const customerVehicleService = new CustomerVehicleService(repository);
-  const appointmentService = new AppointmentService(repository);
-  const walkInIntakeService = new WalkInIntakeService(repository);
-  const app = createApp({
-    config,
-    logger,
-    dashboardService,
-    referenceDataService,
-    customerVehicleService,
-    appointmentService,
-    walkInIntakeService,
-  });
-
-  const server = app.listen(port);
-  return { server, database };
-}
-
-async function requestJson(method, url, body = undefined) {
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "content-type": "application/json",
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-
-  const json = await res.json();
-  return { status: res.status, json };
-}
+import {
+  closeServer,
+  createTempDatabase,
+  makeServer,
+  requestJson,
+  waitForServer,
+} from "./helpers/httpHarness.js";
 
 test("API acceptance scenario covers appointment scheduling and walk-in intake", async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "auto-service-api-scheduling-walkin-"));
-  const databasePath = path.join(tempDir, "test.sqlite");
+  const tempDb = createTempDatabase("auto-service-api-scheduling-walkin");
+  const { databasePath, cleanup } = tempDb;
   const { server, database } = makeServer({ databasePath });
 
-  await new Promise((resolve) => {
-    server.once("listening", resolve);
-  });
+  await waitForServer(server);
 
   const address = server.address();
   const baseUrl = `http://127.0.0.1:${address.port}`;
@@ -117,8 +71,8 @@ test("API acceptance scenario covers appointment scheduling and walk-in intake",
     const workOrderDetailHtml = await workOrderDetailRes.text();
     assert.match(workOrderDetailHtml, /Заказ-наряд WO-/);
   } finally {
-    await new Promise((resolve) => server.close(resolve));
+    await closeServer(server);
     database.close();
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    cleanup();
   }
 });

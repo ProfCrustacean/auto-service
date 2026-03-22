@@ -1,10 +1,6 @@
-import { conflictError, internalError, notFoundError, sendApiError, validationError } from "./apiErrors.js";
+import { conflictError, notFoundError, sendApiError, validationError } from "./apiErrors.js";
 import { validateWalkInCreate } from "./walkInIntakeValidators.js";
-
-function handleUnexpectedError(logger, res, error, event) {
-  logger.error(event, { message: error.message });
-  sendApiError(res, internalError());
-}
+import { handleUnexpectedError } from "./routeUtils.js";
 
 function handleDomainError(res, error) {
   if (error.code === "customer_not_found") {

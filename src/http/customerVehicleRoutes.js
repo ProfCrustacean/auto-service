@@ -1,4 +1,4 @@
-import { internalError, notFoundError, sendApiError, validationError } from "./apiErrors.js";
+import { notFoundError, sendApiError, validationError } from "./apiErrors.js";
 import {
   validateCustomerCreate,
   validateCustomerUpdate,
@@ -7,11 +7,7 @@ import {
   validateVehicleCreate,
   validateVehicleUpdate,
 } from "./customerVehicleValidators.js";
-
-function handleUnexpectedError(logger, res, error, event) {
-  logger.error(event, { message: error.message });
-  sendApiError(res, internalError());
-}
+import { handleUnexpectedError } from "./routeUtils.js";
 
 function isMissingVehicleCustomer(error) {
   return error?.code === "customer_not_found";

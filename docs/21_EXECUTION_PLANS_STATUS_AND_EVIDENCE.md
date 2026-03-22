@@ -16,6 +16,11 @@ Use `PLANS.md` for non-trivial work.
 
 A plan should exist before major implementation begins and should remain accurate while the work is active.
 
+`PLANS.md` should stay concise enough for fast operational scanning.
+Keep only a short recent window of completed plans in `PLANS.md` and move older completed plans into `PLANS_ARCHIVE.md`.
+Retain a skeleton index of archived completed plans inside `PLANS.md` so earlier work remains visible at a glance.
+Compaction should happen as part of normal completion handling, not as an occasional manual cleanup.
+
 ## `STATUS.md` rule
 
 Use `STATUS.md` to preserve the latest accepted project state.
@@ -72,4 +77,5 @@ When a slice is accepted:
 - summarize what changed,
 - summarize what was validated,
 - record any remaining caveats,
-- and update both `STATUS.md` and `PLANS.md` accordingly.
+- update both `STATUS.md` and `PLANS.md` accordingly,
+- and run plan compaction when thresholds are exceeded so repository state remains fast to resume.

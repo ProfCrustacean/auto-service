@@ -1,0 +1,13 @@
+{
+  "teamKey": "AUT",
+  "stateName": "Backlog",
+  "defaultLabels": ["Improvement", "Harness", "E2E"],
+  "issues": [
+    {
+      "title": "Harness: Example follow-up task",
+      "description": "Context:\n- Replace this placeholder with concrete findings.\n\nAcceptance:\n- [ ] Criteria 1\n- [ ] Criteria 2",
+      "labels": ["Observability"],
+      "priority": 3
+    }
+  ]
+}

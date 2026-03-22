@@ -28,18 +28,28 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Render build/runtime log audit completed with evidence-backed follow-up triage.
 - Phase 1 health-check log noise reduction implemented (successful `/healthz` request logs suppressed, business-path request logs preserved).
 - Node runtime policy pinned to 22 LTS for deterministic Render deploy/runtime behavior.
+- Repository spring-cleaning slice completed: shared HTTP validator/route utilities and shared test harness removed duplicated logic while preserving behavior.
+- Plan-hygiene automation implemented: `PLANS.md` compaction command, append-only `PLANS_ARCHIVE.md`, archived-plan skeleton index in main plan file, and guard test enforcing compact plan-window policy.
+- Linear harness automation implemented: Playwright-backed `probe/create` CLI for deterministic Linear task operations with dry-run and title-based skip behavior.
+- Verification gate hardened: `npm run verify` now self-boots an isolated app+DB, runs smoke plus scheduling/walk-in scenario checks, and shuts down automatically.
+- Deploy-aware verification gates implemented:
+  - `npm run verify:render` (Render deploy + wait-live + remote smoke),
+  - `npm run verify:full` (local verify + Render stage).
+- Harness hardening follow-ups completed:
+  - `AUT-21`: scenario defaults to non-destructive mode on non-local targets with explicit override switches.
+  - `AUT-22`: smoke/scenario scripts decoupled from fixed fixtures via contract assertions, dynamic entity selection, and minimal resource provisioning.
+  - `AUT-23`: smoke/scenario failures now emit structured diagnostics (step/method/path/url/status/payload/stack).
+- Phase 1 weekly planning board is implemented with 7-day load visibility by bay and assignee plus explicit overbooking/underbooking cues.
+- Phase 1 unified operational search is implemented with API + dashboard entry point for customer/phone/plate/VIN/model lookup.
 - Structured health/readiness checks and JSON logs implemented.
 - Automated tests and smoke harness implemented and executed locally.
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-21: `AUT-16` accepted end-to-end (Node 22 LTS runtime pinning with guard test, local verification, deployed log proof, and Linear update).
+- 2026-03-22: AUT-13 completed (operational search by customer/phone/plate/VIN/model), with API+UI regression and verify gates passing.
 
 ### Current active objective
-- Continue Phase 1 scheduling and intake implementation beyond dashboard shell:
-  - planning board and search experience completion,
-  - day/week planning workflows and operational search UX,
-  - remaining observability/deploy hardening follow-up (`AUT-18`).
+- Complete Phase 1 deployment/observability closeout (`AUT-15`) by deploying current dashboard contract (week board + unified search) to Render and re-running live smoke checks.
 
 ## Confirmed decisions (human input)
 
@@ -60,7 +70,9 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
 - last validated date or commit: 2026-03-21, commit `121df5f`
-- known caveats: no auth yet; single-node SQLite file model only
+- known caveats:
+  - no auth yet; single-node SQLite file model only
+  - Playwright MCP browser smoke can be blocked in this runtime by existing local Chrome profile/session lock (`Opening in existing browser session`); CLI smoke/scenario checks remain available.
 
 2. `render-validation`
 - purpose: first durable external deployment validation
@@ -69,7 +81,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `121df5f`
+- last validated date or commit: 2026-03-21, commit `6344e9f`
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -77,8 +89,36 @@ Codex must keep this file current enough that a new Codex run can answer:
 ## Verification status
 
 ### Automated checks
-- `npm test` (Node test runner): passed on 2026-03-21.
+- `npm test` (Node test runner): passed on 2026-03-22.
 - evidence: `evidence/test-output.txt`
+- `npm test` (Linear harness + full regression rerun): passed on 2026-03-22.
+- `npm test` (AUT-21 regression): passed on 2026-03-22.
+- `npm run verify` (AUT-21 regression): passed on 2026-03-22.
+- `npm test` (AUT-22 regression): passed on 2026-03-22.
+- `npm run verify` (AUT-22 regression): passed on 2026-03-22.
+- `npm test` (AUT-23 regression, includes diagnostics helper tests): passed on 2026-03-22.
+- `npm run verify` (AUT-23 regression): passed on 2026-03-22.
+- `npm test` (AUT-12 week planning board regression): passed on 2026-03-22.
+- `npm run verify` (AUT-12 week planning board regression): passed on 2026-03-22.
+- `npm test` (AUT-13 unified search regression): passed on 2026-03-22.
+- `npm run verify` (AUT-13 unified search regression): passed on 2026-03-22.
+- `npm test` (deploy-gate harness update regression): passed on 2026-03-22.
+- `npm run verify` (deploy-gate harness update regression): passed on 2026-03-22.
+- `RENDER_SKIP_DEPLOY=1 APP_BASE_URL=\"http://127.0.0.1:3231\" npm run verify:render` (deploy gate script in smoke-only mode): passed on 2026-03-22.
+- `RENDER_SKIP_DEPLOY=1 APP_BASE_URL=\"http://127.0.0.1:3232\" npm run verify:full` (full gate wiring with Render stage): passed on 2026-03-22.
+- `npm run verify` (self-contained gate with scenario): passed on 2026-03-22.
+- `VERIFY_INCLUDE_SCENARIO=0 npm run verify` (self-contained gate without scenario): passed on 2026-03-22.
+- `npm test` (spring-cleaning rerun): passed on 2026-03-21.
+- evidence: `evidence/spring-cleaning-test-output.txt`
+- `npm test` (plan-hygiene policy rerun): passed on 2026-03-21.
+- `npm run plans:compact` (policy no-op confirmation): passed on 2026-03-21.
+- evidence:
+  - `evidence/plans-hygiene-test-output.txt`
+  - `evidence/plans-compact-check-output.txt`
+  - `evidence/plans-compact-after-aut18-recheck.txt`
+  - `evidence/plans-line-counts.txt`
+  - `evidence/plans-completed-headings.txt`
+  - `evidence/test-after-aut18-recheck.txt`
 
 ### End-to-end checks
 - local smoke (`npm run smoke`): passed on 2026-03-21.
@@ -87,8 +127,19 @@ Codex must keep this file current enough that a new Codex run can answer:
 - local browser smoke snapshot: passed on 2026-03-21.
 - local scheduling + walk-in scenario script (`node scripts/scheduling-walkin-scenario.js`): passed on 2026-03-21.
 - local scheduling + walk-in browser path snapshots (dashboard + appointment + work-order): passed on 2026-03-21.
+- local smoke (`npm run smoke`, spring-cleaning rerun): passed on 2026-03-21.
+- local scheduling + walk-in scenario script (spring-cleaning rerun): passed on 2026-03-21.
+- local browser smoke via Playwright MCP (spring-cleaning rerun): blocked on 2026-03-21 by local browser profile/session lock (`Opening in existing browser session`); captured as tooling caveat with no API/service regression evidence.
 - local health-check log filter check (successful `/healthz` suppressed): passed on 2026-03-21.
 - local Node runtime policy guard (`engines.node=22.x`, `.node-version=22`): passed on 2026-03-21.
+- local self-contained verify loop (`npm run verify`): passed on 2026-03-22.
+- local self-contained verify loop with scenario disabled (`VERIFY_INCLUDE_SCENARIO=0 npm run verify`): passed on 2026-03-22.
+- local week planning smoke path (inside `npm run verify`): passed on 2026-03-22 (dashboard week payload + UI contract present).
+- local unified search smoke path (inside `npm run verify`): passed on 2026-03-22 (`/api/v1/search` contract + dashboard search entry point present).
+- local standalone smoke rerun (`APP_BASE_URL=\"http://127.0.0.1:3210\" npm run smoke`): passed on 2026-03-22.
+- deployed Render scenario default-mode guard (`APP_BASE_URL=\"https://auto-service-foundation.onrender.com\" npm run scenario:scheduling-walkin`): passed on 2026-03-22 (auto non-destructive mode confirmed).
+- failure-diagnostics smoke check (`APP_BASE_URL=\"http://127.0.0.1:9\" npm run smoke`): passed on 2026-03-22 (structured failure JSON confirmed).
+- failure-diagnostics scenario check (`APP_BASE_URL=\"http://127.0.0.1:9\" npm run scenario:scheduling-walkin`): passed on 2026-03-22 (structured failure JSON confirmed).
 - deployed Render smoke (`APP_BASE_URL="https://auto-service-foundation.onrender.com" npm run smoke`): passed on 2026-03-21.
 - deployed Render appointment lifecycle smoke: passed on 2026-03-21.
 - deployed Render walk-in intake smoke: passed on 2026-03-21.
@@ -99,6 +150,15 @@ Codex must keep this file current enough that a new Codex run can answer:
 - deployed scheduling + walk-in browser path snapshots (dashboard + appointment + work-order): passed on 2026-03-21.
 - deployed AUT-17 log audit (stable window): passed on 2026-03-21 (`healthzRatio = 0.0`).
 - deployed AUT-16 Node runtime audit: passed on 2026-03-21 (`Using Node.js version 22.22.1`).
+- Linear harness probe (`npm run linear:probe -- --team-key AUT --state Backlog`): passed on 2026-03-21 (Playwright transport).
+- Linear harness dry-run task creation (`npm run linear:create -- --spec data/linear/phase1-task-template.json --dry-run`): passed on 2026-03-21.
+- Linear harness auto-transport probe (`node scripts/linear-harness.js probe --transport auto`): passed on 2026-03-21 (direct fallback to Playwright).
+- Render AUT-18 recheck deploy (`dep-d6vi9un5gffc73dbjat0`) reached `live`; post-deploy smoke passed on 2026-03-22.
+- Render AUT-18 recheck #2 deploy (`dep-d6vih4nafjfc73d29b7g`) reached `live`; repo-access warning count `0` and post-deploy smoke passed on 2026-03-22.
+- deploy-aware Render gate run (`npm run verify:render`) reached `live` deploy `dep-d6vjrd75gffc73dcbtsg` on 2026-03-22 and executed remote smoke in the same command.
+- Render smoke after AUT-12 harness contract update (`APP_BASE_URL=\"https://auto-service-foundation.onrender.com\" npm run smoke`) failed on 2026-03-22 with `dashboard week payload is missing`; this reflects deployed environment lagging behind local code and is now tracked as deployment follow-up (`AUT-15`), not a local regression.
+- Render smoke after AUT-13 search contract update (`APP_BASE_URL=\"https://auto-service-foundation.onrender.com\" npm run smoke`) failed on 2026-03-22 with the same `dashboard week payload is missing` signal; deployed environment is still behind current local Phase 1 contract and remains tracked in `AUT-15`.
+- Render smoke inside deploy-aware gate (`npm run verify:render`) also failed on 2026-03-22 with `dashboard week payload is missing`; the gate behavior is correct and the remaining issue is that deployed commit still lacks latest local dashboard contract changes.
 - evidence:
   - `evidence/smoke-output.txt`
   - `evidence/local-appointment-lifecycle-smoke.json`
@@ -108,8 +168,18 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/local-scheduling-walkin-browser-dashboard.md`
   - `evidence/local-scheduling-walkin-browser-appointment.md`
   - `evidence/local-scheduling-walkin-browser-workorder.md`
+  - `evidence/spring-cleaning-smoke-output.txt`
+  - `evidence/spring-cleaning-scenario-output.json`
+  - `evidence/spring-cleaning-browser-smoke.txt`
   - `evidence/local-healthz-log-filter-check.json`
   - `evidence/local-node-runtime-policy.json`
+  - `evidence/verify-self-contained-output.txt`
+  - `evidence/verify-self-contained-no-scenario-output.txt`
+  - `evidence/verify-after-aut18-recheck.txt`
+  - `evidence/verify-server.log`
+  - `evidence/verify-render-skip-deploy-local.txt`
+  - `evidence/verify-full-skip-deploy-local.txt`
+  - `evidence/verify-render-deploy-current.txt`
   - `evidence/render-smoke-output.txt`
   - `evidence/render-appointment-lifecycle-smoke.json`
   - `evidence/render-walkin-intake-smoke.json`
@@ -126,24 +196,76 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/render-aut17-log-audit-window-stable.json`
   - `evidence/render-aut16-node-runtime-summary.json`
   - `evidence/render-aut16-log-window.json`
+  - `evidence/render-aut18-recheck-deploy-response.json`
+  - `evidence/render-aut18-recheck-deploy-poll.txt`
+  - `evidence/render-aut18-recheck-deploy-final.json`
+  - `evidence/render-aut18-recheck-log-window-build.json`
+  - `evidence/render-aut18-recheck-warning-summary.json`
+  - `evidence/render-aut18-recheck-postdeploy-smoke.txt`
+  - `evidence/render-aut18-recheck2-deploy-response.json`
+  - `evidence/render-aut18-recheck2-deploy-poll.txt`
+  - `evidence/render-aut18-recheck2-deploy-final.json`
+  - `evidence/render-aut18-recheck2-log-window-build.json`
+  - `evidence/render-aut18-recheck2-warning-summary.json`
+  - `evidence/render-aut18-recheck2-postdeploy-smoke.txt`
+  - `evidence/linear-harness-probe.json`
+  - `evidence/linear-harness-create-dry-run.json`
+  - `evidence/linear-harness-probe-auto.json`
 
 ### Operational log audit
-- Render API events and logs inspected directly on 2026-03-21.
-- build/deploy event result: 9/9 succeeded (`build_ended`, `deploy_ended`).
+- Render API events and logs inspected directly on 2026-03-22.
+- build/deploy event result: latest verified deploy `dep-d6vih4nafjfc73d29b7g` reached `live`.
 - runtime warn/error signal: none observed in structured app logs (`json_warn_error_count = 0`).
 - finding status:
   - Node runtime drift risk: resolved in `AUT-16` (pinned to Node 22 LTS; Render now resolves `22.22.1`).
   - health-check log noise: resolved in `AUT-17` (`healthzRatio = 0.0` in stable deployed window).
-  - remaining follow-up: repo-access fallback warning on deploy clone step (`AUT-18`).
+  - repo-access fallback warning (`AUT-18`): resolved.
+    - latest recheck deploy shows `warningCount = 0` in build logs:
+      - deploy `dep-d6vih4nafjfc73d29b7g`
+      - summary `evidence/render-aut18-recheck2-warning-summary.json`
 - Linear status:
+  - `AUT-12` done (state moved to Done; closure comment id `575d8222-4e5e-41b3-968a-f69ff727bd2b`).
+  - `AUT-13` done (state moved to Done; closure comment id `b22bc233-1c2b-46ca-8411-95a84b2481c4`).
+  - `AUT-15` still `Todo`; harness deployment-gate status note added (comment id `d9452727-4eb0-474b-b09a-afec46da5bd2`).
   - `AUT-16` done
   - `AUT-17` done
-  - `AUT-18` backlog
+  - `AUT-18` done (state moved to Done; closure comment id `78301235-d432-4163-be51-2a24052849d1` with recheck2 evidence).
+  - Linear issue sync workaround encoded in harness: use Playwright transport (`npm run linear:probe` / `npm run linear:create`).
 - evidence:
   - `evidence/render-log-audit-summary.json`
   - `evidence/render-log-audit-events.json`
   - `evidence/render-log-audit-latest-deploy-window.json`
   - `evidence/render-log-audit-all.ndjson`
+  - `evidence/render-aut18-service-state.json`
+  - `evidence/render-aut18-update-service-body-params.txt`
+  - `evidence/render-aut18-deploy-response.json`
+  - `evidence/render-aut18-deploy-poll.txt`
+  - `evidence/render-aut18-deploy-final.json`
+  - `evidence/render-aut18-deploy-final-compact.json`
+  - `evidence/render-aut18-log-window-build-focus.json`
+  - `evidence/render-aut18-warning-summary-focus.json`
+  - `evidence/render-aut18-log-query-window-focus.json`
+  - `evidence/render-aut18-recheck-deploy-response.json`
+  - `evidence/render-aut18-recheck-deploy-poll.txt`
+  - `evidence/render-aut18-recheck-deploy-final.json`
+  - `evidence/render-aut18-recheck-log-window-build.json`
+  - `evidence/render-aut18-recheck-warning-summary.json`
+  - `evidence/render-aut18-recheck-postdeploy-smoke.txt`
+  - `evidence/render-aut18-recheck2-deploy-response.json`
+  - `evidence/render-aut18-recheck2-deploy-poll.txt`
+  - `evidence/render-aut18-recheck2-deploy-final.json`
+  - `evidence/render-aut18-recheck2-log-window-build.json`
+  - `evidence/render-aut18-recheck2-warning-summary.json`
+  - `evidence/render-aut18-recheck2-postdeploy-smoke.txt`
+  - `evidence/linear-api-country-blocked.json`
+  - `evidence/linear-aut12-aut13-state-before.raw`
+  - `evidence/linear-aut12-aut13-done-mutation.raw`
+  - `evidence/linear-aut12-aut13-comments.raw`
+  - `evidence/linear-aut12-aut13-done-verify.raw`
+  - `evidence/linear-aut15-harness-note.raw`
+  - `evidence/linear-harness-probe.json`
+  - `evidence/linear-harness-create-dry-run.json`
+  - `evidence/linear-harness-probe-auto.json`
 
 ### AUT-17 observability verification
 - middleware behavior: successful `/healthz` requests are skipped in `http_request` logs; business-path requests remain logged.
@@ -154,7 +276,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Deployment smoke checks
 - local deployment smoke (`npm start` + health + dashboard endpoints): passed.
-- Render deployment smoke: passed (`dep-d6vg51buibrs73f0tth0` reached `live`, commit `121df5f`).
+- Render deployment smoke: passed (`dep-d6vih4nafjfc73d29b7g` reached `live`, commit `6344e9f`).
 - evidence:
   - `evidence/healthz.json`
   - `evidence/dashboard-today.json`
@@ -197,8 +319,21 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 Most recent useful evidence:
 - `evidence/test-output.txt`
+- `evidence/spring-cleaning-test-output.txt`
+- `evidence/plans-hygiene-test-output.txt`
+- `evidence/plans-compact-after-aut18-recheck.txt`
 - `evidence/verify-output.txt`
+- `evidence/verify-self-contained-output.txt`
+- `evidence/verify-self-contained-no-scenario-output.txt`
+- `evidence/verify-after-aut18-recheck.txt`
+- `evidence/verify-server.log`
 - `evidence/smoke-output.txt`
+- `evidence/spring-cleaning-smoke-output.txt`
+- `evidence/spring-cleaning-scenario-output.json`
+- `evidence/spring-cleaning-browser-smoke.txt`
+- `evidence/plans-compact-check-output.txt`
+- `evidence/plans-line-counts.txt`
+- `evidence/plans-completed-headings.txt`
 - `evidence/local-appointment-lifecycle-smoke.json`
 - `evidence/local-walkin-intake-smoke.json`
 - `evidence/browser-snapshot.md`
@@ -262,16 +397,80 @@ Most recent useful evidence:
 - `evidence/render-aut17-log-audit-window-stable.json`
 - `evidence/render-aut16-node-runtime-summary.json`
 - `evidence/render-aut16-log-window.json`
+- `evidence/render-aut18-service-state.json`
+- `evidence/render-aut18-update-service-body-params.txt`
+- `evidence/render-aut18-deploy-response.json`
+- `evidence/render-aut18-deploy-poll.txt`
+- `evidence/render-aut18-deploy-final.json`
+- `evidence/render-aut18-deploy-final-compact.json`
+- `evidence/render-aut18-log-window-build-focus.json`
+- `evidence/render-aut18-warning-summary-focus.json`
+- `evidence/render-aut18-log-query-window-focus.json`
+- `evidence/render-aut18-recheck-deploy-response.json`
+- `evidence/render-aut18-recheck-deploy-poll.txt`
+- `evidence/render-aut18-recheck-deploy-final.json`
+- `evidence/render-aut18-recheck-log-window-build.json`
+- `evidence/render-aut18-recheck-warning-summary.json`
+- `evidence/render-aut18-recheck-postdeploy-smoke.txt`
+- `evidence/render-aut18-recheck2-deploy-response.json`
+- `evidence/render-aut18-recheck2-deploy-poll.txt`
+- `evidence/render-aut18-recheck2-deploy-final.json`
+- `evidence/render-aut18-recheck2-log-window-build.json`
+- `evidence/render-aut18-recheck2-warning-summary.json`
+- `evidence/render-aut18-recheck2-postdeploy-smoke.txt`
+- `evidence/test-after-aut18-recheck.txt`
+- `evidence/linear-api-country-blocked.json`
+- `evidence/linear-harness-probe.json`
+- `evidence/linear-harness-create-dry-run.json`
+- `evidence/linear-harness-probe-auto.json`
+- `evidence/linear-harness-probe-backlog-current.json`
+- `evidence/test-after-aut21.txt`
+- `evidence/verify-after-aut21.txt`
+- `evidence/scenario-aut21-remote-default.txt`
+- `evidence/test-after-aut22.txt`
+- `evidence/verify-after-aut22.txt`
+- `evidence/smoke-after-aut22.txt`
+- `evidence/test-after-aut23.txt`
+- `evidence/verify-after-aut23.txt`
+- `evidence/smoke-after-aut23.txt`
+- `evidence/scenario-after-aut23-remote-default.txt`
+- `evidence/smoke-failure-diagnostics-aut23.txt`
+- `evidence/scenario-failure-diagnostics-aut23.txt`
+- `evidence/linear-aut21-raw.json`
+- `evidence/linear-aut22-aut23-raw.json`
+- `evidence/linear-aut21-22-23-done.json`
+- `evidence/test-aut12.txt`
+- `evidence/verify-aut12.txt`
+- `evidence/smoke-aut12-render.txt`
+- `evidence/smoke-aut13-render.txt`
+- `evidence/test-aut13.txt`
+- `evidence/verify-aut13.txt`
+- `evidence/smoke-aut13-local.txt`
+- `evidence/test-after-render-gate-update.txt`
+- `evidence/verify-after-render-gate-update.txt`
+- `evidence/test-after-render-gate-final.txt`
+- `evidence/verify-after-render-gate-final.txt`
+- `evidence/verify-render-skip-deploy-local.txt`
+- `evidence/verify-full-skip-deploy-local.txt`
+- `evidence/verify-render-deploy-current.txt`
+- `evidence/verify-render-skip-deploy-final.txt`
+- `evidence/verify-full-skip-deploy-final.txt`
+- `evidence/verify-after-render-gate-docs-final.txt`
+- `evidence/verify-after-up-full-script.txt`
+- `evidence/plans-compact-after-render-gate.txt`
+- `evidence/linear-aut19-aut20-current.raw`
+- `evidence/linear-aut15-harness-note.raw`
+- `evidence/linear-aut12-aut13-aut15-current.raw`
 
 ## Open blockers
 
-- No blocking external dependencies for continuing Phase 1 product work.
+- `AUT-15` remains blocked on deployment content parity: Render deploys are healthy, but smoke still fails because deployed contract does not yet include latest local week/search dashboard changes.
 
 ## Next recommended milestone
 
-1. Implement day/week planning board endpoint and Russian UI entry for dispatch planning (`AUT-11` scope).
-2. Execute `AUT-18`: remove repo-access fallback warning in Render build clone step.
-3. Add customer/vehicle operational search flow with deterministic filters and acceptance scenarios (`AUT-12` scope).
+1. Complete `AUT-15` by pushing current Phase 1 changes to deployable branch and running `npm run verify:full` (deploy + smoke) against Render.
+2. Confirm Render smoke includes both week-board and unified-search contracts (`/api/v1/dashboard/today` + `/api/v1/search` + dashboard UI search section).
+3. Close Phase 1 parent `AUT-5` after deployment evidence and state docs are updated.
 
 ## Update rule
 

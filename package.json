@@ -10,13 +10,19 @@
   "scripts": {
     "bootstrap": "npm ci",
     "db:init": "node scripts/db-init.js",
+    "plans:compact": "node scripts/compact-plans.js",
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "node --test",
     "smoke": "node scripts/smoke.js",
     "scenario:scheduling-walkin": "node scripts/scheduling-walkin-scenario.js",
-    "verify": "npm test && npm run smoke",
-    "up": "npm ci && npm run verify"
+    "linear:probe": "node scripts/linear-harness.js probe",
+    "linear:create": "node scripts/linear-harness.js create",
+    "verify:render": "node scripts/verify-render.js",
+    "verify:full": "VERIFY_RENDER=1 node scripts/verify.js",
+    "verify": "node scripts/verify.js",
+    "up": "npm ci && npm run verify",
+    "up:full": "npm ci && npm run verify:full"
   },
   "dependencies": {
     "express": "^4.21.2"

@@ -1,11 +1,4 @@
-function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function collectUnknownFields(body, knownFields) {
-  const fieldSet = new Set(knownFields);
-  return Object.keys(body).filter((field) => !fieldSet.has(field));
-}
+import { collectUnknownFields, isNonEmptyString } from "./validatorUtils.js";
 
 function normalizeOptionalString(value, field, errors) {
   if (value === undefined) {

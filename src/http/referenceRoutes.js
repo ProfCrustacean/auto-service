@@ -1,6 +1,5 @@
 import {
   conflictError,
-  internalError,
   notFoundError,
   sendApiError,
   validationError,
@@ -12,14 +11,10 @@ import {
   validateEmployeeUpdate,
   validateIncludeInactiveQuery,
 } from "./referenceValidators.js";
+import { handleUnexpectedError } from "./routeUtils.js";
 
 function isBayNameConflict(error) {
   return typeof error?.message === "string" && error.message.includes("UNIQUE constraint failed: bays.name");
-}
-
-function handleUnexpectedError(logger, res, error, event) {
-  logger.error(event, { message: error.message });
-  sendApiError(res, internalError());
 }
 
 export function registerReferenceRoutes(app, { logger, referenceDataService }) {

@@ -86,7 +86,8 @@ For every meaningful task, follow this loop:
 7. Run end-to-end verification that proves the slice in realistic conditions.
 8. Capture evidence.
 9. Update `STATUS.md`, `PLANS.md`, and any affected packet docs.
-10. Only then consider the slice complete.
+10. Compact `PLANS.md` when needed (archive older completed plans into `PLANS_ARCHIVE.md`) and keep an archived-plan skeleton in `PLANS.md` so planning context stays short but historically visible.
+11. Only then consider the slice complete.
 
 ## Definition of done
 

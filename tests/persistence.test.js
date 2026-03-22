@@ -1,23 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import { openDatabase } from "../src/persistence/database.js";
 import { runMigrations } from "../src/persistence/runMigrations.js";
 import { seedDatabase } from "../src/persistence/seedDatabase.js";
-
-function createSilentLogger() {
-  return {
-    info() {},
-    warn() {},
-    error() {},
-  };
-}
+import { createSilentLogger, createTempDatabase } from "./helpers/httpHarness.js";
 
 test("migrations are idempotent and seed runs only once by default", () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "auto-service-persistence-test-"));
-  const databasePath = path.join(tempDir, "test.sqlite");
+  const tempDb = createTempDatabase("auto-service-persistence-test");
+  const { databasePath, cleanup } = tempDb;
   const database = openDatabase(databasePath);
   const logger = createSilentLogger();
 
@@ -51,6 +41,6 @@ test("migrations are idempotent and seed runs only once by default", () => {
     assert.equal(workOrderCount, 8);
   } finally {
     database.close();
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    cleanup();
   }
 });

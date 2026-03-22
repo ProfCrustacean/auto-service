@@ -1,45 +1,216 @@
+import {
+  assertHarness,
+  buildFailurePayload,
+  expectStatus,
+  failHarness,
+  requestJson,
+  requestText,
+} from "./harness-diagnostics.js";
+
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
 
-function assert(condition, message) {
-  if (!condition) {
-    throw new Error(message);
-  }
+function assertNonNegativeInteger(value, label, step, response) {
+  assertHarness(Number.isInteger(value), `${label} must be an integer`, {
+    step,
+    responseStatus: response.status,
+    responsePayload: response.payload,
+  });
+  assertHarness(value >= 0, `${label} must be >= 0`, {
+    step,
+    responseStatus: response.status,
+    responsePayload: response.payload,
+  });
 }
 
 async function main() {
-  const healthRes = await fetch(`${baseUrl}/healthz`);
-  assert(healthRes.ok, "healthz endpoint failed");
-  const healthJson = await healthRes.json();
-  assert(healthJson.status === "ok", "healthz status must be ok");
+  const health = await requestJson(baseUrl, {
+    step: "healthz",
+    path: "/healthz",
+  });
+  expectStatus(health, 200, "healthz");
+  assertHarness(health.payload?.status === "ok", "healthz status must be ok", {
+    step: "healthz",
+    responseStatus: health.status,
+    responsePayload: health.payload,
+  });
 
-  const dashRes = await fetch(`${baseUrl}/api/v1/dashboard/today`);
-  assert(dashRes.ok, "dashboard endpoint failed");
-  const dashJson = await dashRes.json();
+  const dashboard = await requestJson(baseUrl, {
+    step: "dashboard_api",
+    path: "/api/v1/dashboard/today",
+  });
+  expectStatus(dashboard, 200, "dashboard_api");
 
-  assert(dashJson.summary.appointmentsToday >= 1, "expected seeded appointment");
-  assert(dashJson.summary.waitingPartsCount >= 1, "expected waiting parts queue");
-  assert(dashJson.summary.readyForPickupCount >= 1, "expected ready pickup queue");
+  assertHarness(dashboard.payload?.summary && typeof dashboard.payload.summary === "object", "dashboard summary is missing", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(dashboard.payload?.queues && typeof dashboard.payload.queues === "object", "dashboard queues are missing", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(dashboard.payload?.week && typeof dashboard.payload.week === "object", "dashboard week payload is missing", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.appointments), "dashboard appointments must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.queues?.waitingParts), "dashboard waitingParts queue must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.queues?.readyPickup), "dashboard readyPickup queue must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.queues?.active), "dashboard active queue must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.week?.days), "dashboard week days must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(dashboard.payload.week.days.length === 7, "dashboard week must contain 7 days", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.week?.byBay), "dashboard week.byBay must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.week?.byAssignee), "dashboard week.byAssignee must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
 
-  const appointmentsRes = await fetch(`${baseUrl}/api/v1/appointments`);
-  assert(appointmentsRes.ok, "appointments endpoint failed");
-  const appointmentsJson = await appointmentsRes.json();
-  assert(appointmentsJson.count >= 1, "expected at least one appointment");
+  assertNonNegativeInteger(dashboard.payload.summary.appointmentsToday, "summary.appointmentsToday", "dashboard_api", dashboard);
+  assertNonNegativeInteger(dashboard.payload.summary.waitingPartsCount, "summary.waitingPartsCount", "dashboard_api", dashboard);
+  assertNonNegativeInteger(dashboard.payload.summary.readyForPickupCount, "summary.readyForPickupCount", "dashboard_api", dashboard);
+  assertNonNegativeInteger(dashboard.payload.summary.activeWorkOrders, "summary.activeWorkOrders", "dashboard_api", dashboard);
 
-  const uiRes = await fetch(baseUrl);
-  assert(uiRes.ok, "dashboard UI endpoint failed");
-  const html = await uiRes.text();
-  assert(html.includes("Операционная доска") || html.includes("Автосервис"), "Russian UI content missing");
+  assertHarness(
+    dashboard.payload.summary.appointmentsToday === dashboard.payload.appointments.length,
+    "summary.appointmentsToday must match appointments array length",
+    {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    },
+  );
+  assertHarness(
+    dashboard.payload.summary.waitingPartsCount === dashboard.payload.queues.waitingParts.length,
+    "summary.waitingPartsCount must match waitingParts queue length",
+    {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    },
+  );
+  assertHarness(
+    dashboard.payload.summary.readyForPickupCount === dashboard.payload.queues.readyPickup.length,
+    "summary.readyForPickupCount must match readyPickup queue length",
+    {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    },
+  );
+  assertHarness(
+    dashboard.payload.summary.activeWorkOrders === dashboard.payload.queues.active.length,
+    "summary.activeWorkOrders must match active queue length",
+    {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    },
+  );
+
+  const appointments = await requestJson(baseUrl, {
+    step: "appointments_api",
+    path: "/api/v1/appointments",
+  });
+  expectStatus(appointments, 200, "appointments_api");
+  assertHarness(Array.isArray(appointments.payload?.items), "appointments payload must include items array", {
+    step: "appointments_api",
+    responseStatus: appointments.status,
+    responsePayload: appointments.payload,
+  });
+  assertNonNegativeInteger(appointments.payload.count, "appointments.count", "appointments_api", appointments);
+  assertHarness(appointments.payload.count === appointments.payload.items.length, "appointments.count must match items length", {
+    step: "appointments_api",
+    responseStatus: appointments.status,
+    responsePayload: appointments.payload,
+  });
+
+  const search = await requestJson(baseUrl, {
+    step: "search_api",
+    path: "/api/v1/search?q=A123AA13",
+  });
+  expectStatus(search, 200, "search_api");
+  assertHarness(search.payload?.performed === true, "search_api performed flag must be true for non-empty query", {
+    step: "search_api",
+    responseStatus: search.status,
+    responsePayload: search.payload,
+  });
+  assertHarness(Array.isArray(search.payload?.vehicles), "search_api vehicles must be an array", {
+    step: "search_api",
+    responseStatus: search.status,
+    responsePayload: search.payload,
+  });
+  assertNonNegativeInteger(search.payload?.totals?.vehicles ?? -1, "search_api totals.vehicles", "search_api", search);
+
+  const dashboardUi = await requestText(baseUrl, {
+    step: "dashboard_ui",
+    path: "/",
+  });
+  if (dashboardUi.status !== 200) {
+    failHarness("unexpected response status for GET /", {
+      step: "dashboard_ui",
+      method: "GET",
+      path: "/",
+      url: dashboardUi.url,
+      responseStatus: dashboardUi.status,
+      responseBodySnippet: dashboardUi.text?.slice(0, 400),
+    });
+  }
+  assertHarness(
+    (dashboardUi.text.includes("Операционная доска") || dashboardUi.text.includes("Автосервис")) &&
+      dashboardUi.text.includes("План недели: загрузка и перегруз") &&
+      dashboardUi.text.includes("Быстрый поиск клиента и авто"),
+    "Russian UI content missing",
+    {
+      step: "dashboard_ui",
+      method: "GET",
+      path: "/",
+      url: dashboardUi.url,
+      responseStatus: dashboardUi.status,
+      responseBodySnippet: dashboardUi.text.slice(0, 400),
+    },
+  );
 
   process.stdout.write(
     `${JSON.stringify({
       status: "smoke_passed",
       baseUrl,
-      checks: ["healthz", "dashboard_api", "appointments_api", "dashboard_ui"],
+      checks: ["healthz", "dashboard_api", "appointments_api", "search_api", "dashboard_ui"],
     })}\n`,
   );
 }
 
 main().catch((error) => {
-  process.stderr.write(`${JSON.stringify({ status: "smoke_failed", message: error.message })}\n`);
+  process.stderr.write(`${JSON.stringify(buildFailurePayload("smoke_failed", error))}\n`);
   process.exit(1);
 });

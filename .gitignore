@@ -6,6 +6,7 @@ logs/
 *.log
 playwright-report/
 test-results/
+.playwright-cli/
 data/*.sqlite
 data/*.sqlite-shm
 data/*.sqlite-wal

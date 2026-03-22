@@ -1,6 +1,5 @@
 import {
   conflictError,
-  internalError,
   notFoundError,
   sendApiError,
   validationError,
@@ -10,11 +9,7 @@ import {
   validateAppointmentUpdate,
   validateListAppointmentsQuery,
 } from "./appointmentValidators.js";
-
-function handleUnexpectedError(logger, res, error, event) {
-  logger.error(event, { message: error.message });
-  sendApiError(res, internalError());
-}
+import { handleUnexpectedError } from "./routeUtils.js";
 
 function handleDomainError(res, error) {
   if (error.code === "customer_not_found") {

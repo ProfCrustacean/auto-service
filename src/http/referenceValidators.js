@@ -1,24 +1,4 @@
-function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function normalizeBoolean(value) {
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === "true" || normalized === "1") {
-      return true;
-    }
-    if (normalized === "false" || normalized === "0") {
-      return false;
-    }
-  }
-
-  return null;
-}
+import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike } from "./validatorUtils.js";
 
 function parseRoles(value) {
   if (!Array.isArray(value)) {
@@ -36,17 +16,12 @@ function parseRoles(value) {
   return [...new Set(roles)];
 }
 
-function collectUnknownFields(body, knownFields) {
-  const fieldSet = new Set(knownFields);
-  return Object.keys(body).filter((field) => !fieldSet.has(field));
-}
-
 export function validateIncludeInactiveQuery(query) {
   if (query.includeInactive === undefined) {
     return { ok: true, value: false };
   }
 
-  const normalized = normalizeBoolean(query.includeInactive);
+  const normalized = normalizeBooleanLike(query.includeInactive);
   if (normalized === null) {
     return {
       ok: false,
@@ -71,7 +46,7 @@ export function validateEmployeeCreate(body) {
 
   let isActive = true;
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean when provided" });
     } else {
@@ -120,7 +95,7 @@ export function validateEmployeeUpdate(body) {
   }
 
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean" });
     } else {
@@ -153,7 +128,7 @@ export function validateBayCreate(body) {
 
   let isActive = true;
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean when provided" });
     } else {
@@ -192,7 +167,7 @@ export function validateBayUpdate(body) {
   }
 
   if (body.isActive !== undefined) {
-    const normalized = normalizeBoolean(body.isActive);
+    const normalized = normalizeBooleanLike(body.isActive);
     if (normalized === null) {
       errors.push({ field: "isActive", message: "isActive must be boolean" });
     } else {
