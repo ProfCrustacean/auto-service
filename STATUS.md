@@ -29,11 +29,18 @@ Codex must keep this file current enough that a new Codex run can answer:
   - inline customer/vehicle creation,
   - deterministic conflict preview + submit-time conflict handling,
   - success redirect to appointment detail.
+- Phase 1 `/intake/walk-in` production intake page implemented with:
+  - customer/vehicle lookup,
+  - inline customer/vehicle creation,
+  - deterministic validation and queue-placement behavior,
+  - success redirect to created work-order detail.
 - Phase 1 scheduling + walk-in acceptance verification harness implemented (domain/API scenario tests, reusable scenario runner, local/deployed browser evidence).
-- Verification harness now includes dedicated booking-flow coverage:
+- Verification harness now includes dedicated booking + intake page-flow coverage:
   - smoke contract check for `/appointments/new`,
+  - smoke contract check for `/intake/walk-in`,
   - booking page scenario (`scripts/booking-page-scenario.js`) in `npm run verify`,
-  - deployed non-destructive booking scenario stage in `npm run verify:render`.
+  - walk-in page scenario (`scripts/walkin-page-scenario.js`) in `npm run verify`,
+  - deployed non-destructive booking + walk-in page scenario stages in `npm run verify:render`.
 - Render build/runtime log audit completed with evidence-backed follow-up triage.
 - Phase 1 health-check log noise reduction implemented (successful `/healthz` request logs suppressed, business-path request logs preserved).
 - Node runtime policy pinned to 22 LTS for deterministic Render deploy/runtime behavior.
@@ -59,10 +66,10 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-22: AUT-27..33 completed end-to-end (booking flow + tests + harness + deploy-aware Render validation on live commit).
+- 2026-03-22: AUT-34..40 completed end-to-end (`/intake/walk-in` production flow + tests + harness + deploy-aware Render validation on live commit).
 
 ### Current active objective
-- Maintain gate health and continue Phase 1 closeout by executing Epic 2 (`/intake/walk-in`) with the same deploy-verified quality bar.
+- Close remaining Phase 1 scope beyond booking/intake surfaces (work-order operational depth and VPS migration prep) while keeping deploy-aware gates stable.
 
 ## Confirmed decisions (human input)
 
@@ -82,7 +89,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-22, commit `dd36f33`
+- last validated date or commit: 2026-03-22, commit `79cfb38`
 - known caveats:
   - no auth yet; single-node SQLite file model only
   - Playwright MCP browser smoke can be blocked in this runtime by existing local Chrome profile/session lock (`Opening in existing browser session`); CLI smoke/scenario checks remain available.
@@ -94,7 +101,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-22, commit `dd36f33` (deploy `dep-d6vlgvlactks73d05dsg`)
+- last validated date or commit: 2026-03-22, commit `79cfb38` (deploy `dep-d6vsoq9r0fns73ebsnlg`)
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -102,6 +109,16 @@ Codex must keep this file current enough that a new Codex run can answer:
 ## Verification status
 
 ### Automated checks
+- `npm test` (AUT-34..40 walk-in page flow): passed on 2026-03-22.
+- evidence: `evidence/test-aut34-aut40.txt`
+- `npm run verify` (AUT-34..40 walk-in page flow): passed on 2026-03-22.
+- evidence: `evidence/verify-aut34-aut40.txt`
+- `RENDER_API_KEY=*** npm run verify:render` (AUT-34..40 pre-hardening run): failed on 2026-03-22 due rollout convergence lag after deploy promotion.
+- evidence: `evidence/verify-render-aut34-aut40.txt`
+- `npm run verify` (Render smoke-retry hardening regression): passed on 2026-03-22.
+- evidence: `evidence/verify-aut34-aut40-retry-gate.txt`
+- `RENDER_API_KEY=*** npm run verify:render` (AUT-34..40 final, booking+walk-in non-destructive scenarios + post-deploy log audit): passed on 2026-03-22.
+- evidence: `evidence/verify-render-aut34-aut40-final.txt`
 - `npm test` (AUT-27..33 booking flow): passed on 2026-03-22.
 - evidence: `evidence/test-aut27-aut33.txt`
 - `npm run verify` (AUT-27..33 booking flow): passed on 2026-03-22.
@@ -257,7 +274,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Operational log audit
 - Render API events and logs inspected directly on 2026-03-22.
-- build/deploy event result: latest verified deploy `dep-d6vlgvlactks73d05dsg` reached `live` for commit `dd36f33f0b0e96e52869dc0418b53ad4446924e8`.
+- build/deploy event result: latest verified deploy `dep-d6vsoq9r0fns73ebsnlg` reached `live` for commit `79cfb38dcf274b1ed718564d799a488af0e3088b`.
 - runtime warn/error signal: none observed in structured app logs (`json_warn_error_count = 0`).
 - deploy-gate log audit result (`AUT-25`): passed in-gate with zero warnings/errors/repo-access warnings.
 - finding status:
@@ -284,6 +301,7 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `AUT-31` done (closure comment id `89c37855-13df-40d3-8d91-989a9b954e08`).
   - `AUT-32` done (closure comment id `b52f76ed-d00a-429f-be18-01085c676e81`).
   - `AUT-33` done (closure comment id `1a6a7890-58aa-4f59-90a2-2ac13152a07c`).
+  - `AUT-34..40` done (Epic 2 synced via Playwright GraphQL transport with closure comments and Done-state verification evidence).
   - Linear issue sync workaround encoded in harness: use Playwright transport (`npm run linear:probe` / `npm run linear:create`).
 - evidence:
   - `evidence/render-log-audit-summary.json`
@@ -321,6 +339,8 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/linear-harness-create-dry-run.json`
   - `evidence/linear-harness-probe-auto.json`
   - `evidence/linear-aut27-33-done-sync.json`
+  - `evidence/linear-aut34-40-sync-result.json`
+  - `evidence/linear-aut34-40-done-sync.json`
 
 ### AUT-17 observability verification
 - middleware behavior: successful `/healthz` requests are skipped in `http_request` logs; business-path requests remain logged.

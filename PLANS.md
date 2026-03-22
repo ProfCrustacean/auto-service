@@ -141,11 +141,17 @@ Epic 1 is completed and deploy-verified; `/intake/walk-in` still serves placehol
 
 ### Progress log
 
-- 2026-03-22: Plan initialized; implementation in progress.
+- 2026-03-22: Added production walk-in page renderer/route wiring (`src/ui/walkInIntakePage.js`, `src/http/walkInIntakePageRoutes.js`, `src/app.js`).
+- 2026-03-22: Added walk-in page regression tests (`tests/walkInIntakePage.test.js`) and smoke coverage for `/intake/walk-in`.
+- 2026-03-22: Added `scripts/walkin-page-scenario.js` and integrated it into `verify` + `verify:render` (non-destructive on deployed URLs).
+- 2026-03-22: Added Render smoke-retry hardening in `verify:render` to absorb rollout convergence lag after deploy promotion.
+- 2026-03-22: Local gates passed (`evidence/test-aut34-aut40.txt`, `evidence/verify-aut34-aut40.txt`, `evidence/verify-aut34-aut40-retry-gate.txt`).
+- 2026-03-22: Deploy-aware gate passed on live deploy `dep-d6vsoq9r0fns73ebsnlg` with commit parity for `79cfb38` (`evidence/verify-render-aut34-aut40-final.txt`).
+- 2026-03-22: Linear Epic 2 sync completed via Playwright transport; `AUT-34..40` moved to Done with closure comments (`evidence/linear-aut34-40-sync-result.json`, `evidence/linear-aut34-40-done-sync.json`).
 
 ### Completion checkpoint
 
-Pending.
+Completed on 2026-03-22: Epic 2 (`AUT-34..40`) is implemented, deploy-verified, and documented.
 
 ---
 

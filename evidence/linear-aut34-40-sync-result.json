@@ -1,0 +1,22 @@
+{
+  "status": "linear_epic2_sync_complete",
+  "team": {
+    "id": "68622025-2ea4-49d2-9247-ffe8e60122a1",
+    "key": "AUT",
+    "name": "Automaton-paradise"
+  },
+  "doneState": {
+    "id": "b38573cf-e4a9-419e-a802-76cd0c555d1c",
+    "name": "Done",
+    "type": "completed"
+  },
+  "results": [
+    { "identifier": "AUT-34", "status": "done_and_commented" },
+    { "identifier": "AUT-35", "status": "done_and_commented" },
+    { "identifier": "AUT-36", "status": "done_and_commented" },
+    { "identifier": "AUT-37", "status": "done_and_commented" },
+    { "identifier": "AUT-38", "status": "done_and_commented" },
+    { "identifier": "AUT-39", "status": "done_and_commented" },
+    { "identifier": "AUT-40", "status": "done_and_commented" }
+  ]
+}
