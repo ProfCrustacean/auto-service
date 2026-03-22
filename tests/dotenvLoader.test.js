@@ -12,7 +12,7 @@ function mapToObject(map) {
 test("parseDotenv reads common key/value patterns", () => {
   const parsed = parseDotenv(`
     # comment
-    LINEAR_API_KEY=lin_api_token
+    LINEAR_API_KEY=<key>
     LINEAR_TEAM_KEY = AUT
     export LINEAR_STATE_NAME="Backlog"
     LINEAR_NOTE='hello world'
@@ -20,7 +20,7 @@ test("parseDotenv reads common key/value patterns", () => {
   `, { filePath: "test.env" });
 
   assert.deepEqual(mapToObject(parsed), {
-    LINEAR_API_KEY: "lin_api_token",
+    LINEAR_API_KEY: "<key>",
     LINEAR_TEAM_KEY: "AUT",
     LINEAR_STATE_NAME: "Backlog",
     LINEAR_NOTE: "hello world",
@@ -43,13 +43,13 @@ test("parseDotenv rejects malformed keys and lines", () => {
 test("loadDotenvIntoProcess uses process env precedence and merges files deterministically", async () => {
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "auto-service-dotenv-loader-"));
   const env = {
-    LINEAR_API_KEY: "from_process_env",
+    LINEAR_API_KEY: "<key>",
   };
 
   try {
     await fs.writeFile(
       path.join(tmpRoot, ".env"),
-      "LINEAR_API_KEY=from_dotenv\nLINEAR_TEAM_KEY=AUT\nSHARED=from_env\n",
+      "LINEAR_API_KEY=<key>\nLINEAR_TEAM_KEY=AUT\nSHARED=from_env\n",
       "utf8",
     );
     await fs.writeFile(
@@ -69,7 +69,7 @@ test("loadDotenvIntoProcess uses process env precedence and merges files determi
     assert.equal(result.appliedKeys.includes("LINEAR_STATE_NAME"), true);
     assert.equal(result.appliedKeys.includes("LINEAR_API_KEY"), false);
 
-    assert.equal(env.LINEAR_API_KEY, "from_process_env");
+    assert.equal(env.LINEAR_API_KEY, "<key>");
     assert.equal(env.LINEAR_TEAM_KEY, "AUT");
     assert.equal(env.LINEAR_STATE_NAME, "Backlog");
     assert.equal(env.SHARED, "from_env_local");

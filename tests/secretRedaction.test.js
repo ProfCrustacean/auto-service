@@ -31,7 +31,7 @@ test("redactSecrets recursively masks sensitive object fields", () => {
     nested: {
       renderApiKey: renderToken,
       token: "abc",
-      message: "Authorization: Bearer abcdefghijklmnop",
+      message: "Authorization: Bearer " + renderToken,
     },
   };
 
