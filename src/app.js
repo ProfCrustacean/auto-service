@@ -6,6 +6,7 @@ import { registerCustomerVehicleRoutes } from "./http/customerVehicleRoutes.js";
 import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
 import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
 import { registerAppointmentPageRoutes } from "./http/appointmentPageRoutes.js";
+import { registerWalkInIntakePageRoutes } from "./http/walkInIntakePageRoutes.js";
 import { sendApiError, validationError } from "./http/apiErrors.js";
 
 function shouldSkipHttpRequestLog(path, statusCode) {
@@ -129,22 +130,18 @@ export function createApp({
     customerVehicleService,
     referenceDataService,
   });
+  registerWalkInIntakePageRoutes(app, {
+    logger,
+    walkInIntakeService,
+    customerVehicleService,
+    referenceDataService,
+  });
 
   app.get("/", (req, res) => {
     const model = dashboardService.getTodayDashboard({
       searchQuery: readDashboardSearchQuery(req.query),
     });
     res.status(200).send(renderDashboardPage(model));
-  });
-
-  app.get("/intake/walk-in", (_req, res) => {
-    res.status(200).send(
-      renderSimpleDetailPage({
-        title: "Прием walk-in",
-        backHref: "/",
-        fields: [{ label: "Статус", value: "Экран будет реализован в рамках Phase 1" }],
-      }),
-    );
   });
 
   app.get("/work-orders/active", (_req, res) => {

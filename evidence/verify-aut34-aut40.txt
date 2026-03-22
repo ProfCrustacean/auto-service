@@ -1,0 +1,125 @@
+
+> auto-service@0.1.0 verify
+> node scripts/verify.js
+
+{"status":"verify_step_started","step":"tests"}
+✔ appointments/new renders production booking form and lookup results (235.441291ms)
+✔ appointments/new returns actionable validation and conflict errors without losing input (56.020041ms)
+✔ appointments/new submits successfully and redirects to created appointment detail (49.619375ms)
+✔ appointments/new supports inline customer+vehicle creation in a single submit (19.211875ms)
+✔ appointment lifecycle API enforces transitions and deterministic capacity conflicts (295.938292ms)
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (396.624625ms)
+✔ DashboardService returns expected queue counts from fixtures (68.322667ms)
+✔ DashboardService week plan highlights overbooking and unscheduled appointments (37.415625ms)
+✔ DashboardService search lookup supports customer, phone, plate, VIN and model (22.293916ms)
+✔ domain services support scheduling and walk-in acceptance scenario (38.862542ms)
+✔ parseBooleanFlag normalizes supported values (1.126ms)
+✔ parseBooleanFlag rejects invalid values with harness failure (0.295083ms)
+✔ isLocalBaseUrl detects loopback targets (0.389125ms)
+✔ buildFailurePayload keeps structured details for machine parsing (0.30775ms)
+✔ health and dashboard endpoints return successful responses (304.849208ms)
+✔ request logging suppresses successful health checks and keeps business-path logs (252.405625ms)
+✔ normalizeIssueSpec validates and normalizes issue specs (2.182167ms)
+✔ normalizeIssueSpec rejects duplicate titles and unsupported fields (0.402916ms)
+✔ selectTeam resolves by key or name with clear errors (0.724583ms)
+✔ selectState prefers requested state then backlog/unstarted fallback (0.461666ms)
+✔ parsePlaywrightEvalOutput extracts JSON result payload (0.412041ms)
+✔ mergeLabelNames keeps order while deduplicating (0.216625ms)
+✔ runtime policy pins Node.js to 22 LTS for deterministic deploys (0.969584ms)
+✔ migrations are idempotent and seed runs only once by default (21.017583ms)
+✔ plans hygiene policy keeps PLANS.md compact and archive-backed (1.302209ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (117.168667ms)
+✔ API acceptance scenario covers appointment scheduling and walk-in intake (148.423375ms)
+✔ walk-in intake API creates active flow without prior appointment (161.941375ms)
+✔ intake/walk-in renders production intake form and lookup results (89.375209ms)
+✔ intake/walk-in returns actionable validation/domain errors without losing input (24.102584ms)
+✔ intake/walk-in submits successfully and redirects to created work-order detail (35.252208ms)
+✔ intake/walk-in supports inline customer+vehicle creation in a single submit (20.619041ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1184.157375
+{"status":"verify_step_started","step":"server_boot","baseUrl":"http://127.0.0.1:50688","dbPath":"/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-verify-8lg6i0/verify.sqlite"}
+{"status":"verify_step_started","step":"smoke","baseUrl":"http://127.0.0.1:50688"}
+{"status":"smoke_passed","baseUrl":"http://127.0.0.1:50688","checks":["healthz","dashboard_api","appointments_api","search_api","dashboard_ui","booking_ui","walkin_ui"]}
+{"status":"verify_step_started","step":"scenario_booking_page","baseUrl":"http://127.0.0.1:50688"}
+{
+  "status": "booking_page_scenario_passed",
+  "mode": "default",
+  "modeSource": "auto",
+  "modeReason": "local_default",
+  "baseUrl": "http://127.0.0.1:50688",
+  "writesPerformed": true,
+  "isolation": {
+    "strategy": "write",
+    "writesPerformed": true,
+    "cleanupStatus": "not_performed"
+  },
+  "appointmentId": "apt-78b07f7b",
+  "appointmentCode": "APT-002",
+  "checks": {
+    "appointmentsBefore": 1,
+    "appointmentsAfter": 2
+  }
+}
+{"status":"verify_step_started","step":"scenario_walkin_page","baseUrl":"http://127.0.0.1:50688"}
+{
+  "status": "walkin_page_scenario_passed",
+  "mode": "default",
+  "modeSource": "auto",
+  "modeReason": "local_default",
+  "baseUrl": "http://127.0.0.1:50688",
+  "writesPerformed": true,
+  "isolation": {
+    "strategy": "write",
+    "writesPerformed": true,
+    "cleanupStatus": "not_performed"
+  },
+  "workOrderId": "wo-5fdd78c8",
+  "checks": {
+    "activeWorkOrdersBefore": 4,
+    "activeWorkOrdersAfter": 5
+  }
+}
+{"status":"verify_step_started","step":"scenario_scheduling_walkin","baseUrl":"http://127.0.0.1:50688"}
+{
+  "status": "scheduling_walkin_scenario_passed",
+  "mode": "default",
+  "modeSource": "auto",
+  "modeReason": "local_default",
+  "baseUrl": "http://127.0.0.1:50688",
+  "writesPerformed": true,
+  "isolation": {
+    "strategy": "write",
+    "writesPerformed": true,
+    "cleanupStatus": "not_performed"
+  },
+  "plannedStartLocal": "SCENARIO-1774177096810",
+  "appointmentId": "apt-95d8bcf2",
+  "appointmentCode": "APT-003",
+  "workOrderId": "wo-f5895bf2",
+  "workOrderCode": "WO-1007",
+  "checks": {
+    "appointmentsBefore": 2,
+    "appointmentsAfter": 3,
+    "activeBefore": 5,
+    "activeAfter": 6,
+    "dynamicResources": {
+      "appointmentCustomerId": "cust-4",
+      "appointmentVehicleId": "veh-4",
+      "walkInCustomerId": "cust-1",
+      "walkInVehicleId": "veh-1"
+    },
+    "provisioning": {
+      "customers": 0,
+      "vehicles": 0,
+      "customerIds": [],
+      "vehicleIds": []
+    }
+  }
+}
+{"status":"verify_passed","baseUrl":"http://127.0.0.1:50688","includeBookingScenario":true,"includeWalkInPageScenario":true,"includeScenario":true,"includeRender":false,"serverLogPath":"/Users/ian/auto-service/evidence/verify-server.log","dbPath":"/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-verify-8lg6i0/verify.sqlite"}

@@ -158,6 +158,7 @@ async function main() {
 
   const includeScenario = process.env.VERIFY_INCLUDE_SCENARIO !== "0";
   const includeBookingScenario = process.env.VERIFY_INCLUDE_BOOKING_SCENARIO !== "0";
+  const includeWalkInPageScenario = process.env.VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO !== "0";
   const includeRender = process.env.VERIFY_RENDER === "1";
   const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "auto-service-verify-"));
   const dbPath = path.join(tmpRoot, "verify.sqlite");
@@ -228,6 +229,17 @@ async function main() {
       });
     }
 
+    if (includeWalkInPageScenario) {
+      logJson({ status: "verify_step_started", step: "scenario_walkin_page", baseUrl });
+      await runProcess(process.execPath, ["scripts/walkin-page-scenario.js"], {
+        env: {
+          ...process.env,
+          APP_BASE_URL: baseUrl,
+        },
+        label: "scenario:walkin-page",
+      });
+    }
+
     if (includeScenario) {
       logJson({ status: "verify_step_started", step: "scenario_scheduling_walkin", baseUrl });
       await runProcess(process.execPath, ["scripts/scheduling-walkin-scenario.js"], {
@@ -251,6 +263,7 @@ async function main() {
       status: "verify_passed",
       baseUrl,
       includeBookingScenario,
+      includeWalkInPageScenario,
       includeScenario,
       includeRender,
       serverLogPath,
@@ -262,6 +275,7 @@ async function main() {
       message: error.message,
       baseUrl,
       includeBookingScenario,
+      includeWalkInPageScenario,
       includeScenario,
       includeRender,
       serverLogPath,

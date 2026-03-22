@@ -685,6 +685,11 @@ async function main() {
     "RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO",
     true,
   );
+  const includeWalkInPageScenario = normalizeFlag(
+    process.env.RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO,
+    "RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO",
+    true,
+  );
   const verifyCommitParity = normalizeFlag(process.env.RENDER_VERIFY_COMMIT_PARITY, "RENDER_VERIFY_COMMIT_PARITY", true);
   const enableLogAudit = normalizeFlag(process.env.RENDER_VERIFY_LOG_AUDIT, "RENDER_VERIFY_LOG_AUDIT", true);
   const failOnLogTruncation = normalizeFlag(
@@ -733,6 +738,7 @@ async function main() {
     skipDeploy,
     includeScenario,
     includeBookingScenario,
+    includeWalkInPageScenario,
     verifyCommitParity,
     enableLogAudit,
     logAuditLimit: logLimit,
@@ -881,6 +887,24 @@ async function main() {
     });
   }
 
+  if (includeWalkInPageScenario) {
+    logJson({
+      status: "render_verify_step_started",
+      step: "scenario_walkin_page_non_destructive",
+      baseUrl,
+      skipDeploy,
+    });
+
+    await runProcess(process.execPath, ["scripts/walkin-page-scenario.js", "--non-destructive"], {
+      env: {
+        ...process.env,
+        APP_BASE_URL: baseUrl,
+        SCENARIO_NON_DESTRUCTIVE: "1",
+      },
+      label: "render scenario:walkin-page",
+    });
+  }
+
   if (includeScenario) {
     logJson({
       status: "render_verify_step_started",
@@ -942,6 +966,7 @@ async function main() {
     skipDeploy,
     includeScenario,
     includeBookingScenario,
+    includeWalkInPageScenario,
     verifyCommitParity,
     enableLogAudit,
     deployId: deployPayload?.id ?? null,

@@ -229,11 +229,39 @@ async function main() {
     },
   );
 
+  const walkInUi = await requestText(baseUrl, {
+    step: "walkin_ui",
+    path: "/intake/walk-in",
+  });
+  if (walkInUi.status !== 200) {
+    failHarness("unexpected response status for GET /intake/walk-in", {
+      step: "walkin_ui",
+      method: "GET",
+      path: "/intake/walk-in",
+      url: walkInUi.url,
+      responseStatus: walkInUi.status,
+      responseBodySnippet: walkInUi.text?.slice(0, 400),
+    });
+  }
+  assertHarness(
+    walkInUi.text.includes("Прием walk-in") &&
+      walkInUi.text.includes("Форма intake"),
+    "walk-in UI content missing",
+    {
+      step: "walkin_ui",
+      method: walkInUi.method,
+      path: walkInUi.path,
+      url: walkInUi.url,
+      responseStatus: walkInUi.status,
+      responseBodySnippet: walkInUi.text.slice(0, 400),
+    },
+  );
+
   process.stdout.write(
     `${JSON.stringify({
       status: "smoke_passed",
       baseUrl,
-      checks: ["healthz", "dashboard_api", "appointments_api", "search_api", "dashboard_ui", "booking_ui"],
+      checks: ["healthz", "dashboard_api", "appointments_api", "search_api", "dashboard_ui", "booking_ui", "walkin_ui"],
     })}\n`,
   );
 }

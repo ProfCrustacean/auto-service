@@ -175,7 +175,7 @@ npm run verify:full
 `npm run verify` is self-contained:
 - runs tests,
 - boots an isolated app instance with a temporary SQLite database,
-- runs smoke checks plus booking-page and scheduling/walk-in scenarios,
+- runs smoke checks plus booking-page, walk-in-page, and scheduling/walk-in scenarios,
 - then stops the app automatically.
 
 Render stage commands:
@@ -185,6 +185,7 @@ Render stage commands:
   - verifies deploy commit matches expected local commit (`git HEAD` by default),
   - runs smoke against deployed URL,
   - runs non-destructive booking-page scenario against deployed URL,
+  - runs non-destructive walk-in-page scenario against deployed URL,
   - runs non-destructive scheduling+walk-in scenario against deployed URL,
   - and runs a post-deploy Render build/runtime log audit.
 - `npm run verify:full`:
@@ -203,6 +204,7 @@ Render env defaults:
 - `RENDER_DEPLOY_TIMEOUT_MS`, `RENDER_DEPLOY_POLL_INTERVAL_MS` to tune wait behavior
 - `RENDER_VERIFY_COMMIT_PARITY=1` by default; set `RENDER_EXPECT_COMMIT=<sha>` to pin expected commit explicitly
 - `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=1` by default (runs deployed read-only booking-page scenario gate)
+- `RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=1` by default (runs deployed read-only walk-in-page scenario gate)
 - `RENDER_VERIFY_INCLUDE_SCENARIO=1` by default (runs deployed read-only scenario gate)
 - `RENDER_VERIFY_LOG_AUDIT=1` by default (runs post-deploy log audit)
 - `RENDER_LOG_AUDIT_LIMIT=1000` per log type (`build` + `app`)
@@ -212,7 +214,7 @@ Render env defaults:
 Scenario mode defaults:
 - local base URL (`127.0.0.1`/`localhost`) => write mode
 - non-local base URL => non-destructive read-only mode
-- override with `SCENARIO_NON_DESTRUCTIVE=1|0` or `--non-destructive|--destructive` for both `scenario:booking-page` and `scenario:scheduling-walkin`
+- override with `SCENARIO_NON_DESTRUCTIVE=1|0` or `--non-destructive|--destructive` for `scenario:booking-page`, `scenario:walkin-page`, and `scenario:scheduling-walkin`
 
 Smoke/scenario failures are emitted as machine-parseable JSON with step and request diagnostics.
 

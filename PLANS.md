@@ -71,94 +71,81 @@ Use this template for the active plan:
 
 ---
 
-## Active Plan — AUT-27..33 `/appointments/new` end-to-end completion
+## Active Plan — AUT-34..40 `/intake/walk-in` end-to-end completion
 
 ### Objective
 
-Implement Epic 1 (`AUT-27..33`) for `/appointments/new`: production booking UI/route flow, conflict-aware validation, redirect behavior, regression tests, and harness integration.
+Implement Epic 2 (`AUT-34..40`) for `/intake/walk-in`: production intake UI flow, validation/queue placement behavior, submit redirect to work-order detail, regression tests, and harness integration.
 
 ### Why now
 
-Epic was prepared in Linear but runtime still served placeholder booking page and did not enforce this flow in default verification gates.
+Epic 1 is completed and deploy-verified; `/intake/walk-in` still serves placeholder UI while Linear Epic 2 is scoped and ready.
 
 ### Scope
 
-- Wire `GET|POST /appointments/new` production route into app runtime.
-- Enable URL-encoded form submission parsing.
-- Ensure booking UX supports:
-  - customer/vehicle lookup and inline create,
-  - deterministic validation and conflict feedback,
-  - successful redirect to appointment detail.
-- Add booking page test coverage.
-- Add booking scenario to `verify` and `verify:render` flows.
-- Update docs/state and sync Linear.
+- Add production `GET|POST /intake/walk-in` page route.
+- Implement lookup + inline customer/vehicle creation for intake flow.
+- Enforce deterministic validation and queue-placement outcome checks.
+- Redirect successful submit to created work-order detail.
+- Add tests and scenario coverage, then wire into `verify` and `verify:render`.
+- Update docs/state and sync `AUT-34..40` issue states.
 
 ### Out of scope
 
-- `/intake/walk-in` Epic 2 implementation.
-- Work-order/payment/parts feature expansion.
+- Work-order lifecycle expansion beyond walk-in creation handoff.
+- Payment/parts workflow changes.
 
 ### Current-state validation
 
-- Booking UI/route files existed but were not wired into `src/app.js`.
-- `app` parsed JSON only; HTML form posts were not supported.
-- Smoke/verify gates did not include booking-flow scenario checks.
+- API intake flow exists (`POST /api/v1/intake/walk-ins`) and is test-covered.
+- Runtime UI route `/intake/walk-in` still returns placeholder detail page.
+- Smoke/verify gates have booking and scheduling/walk-in scenario coverage, but no dedicated walk-in page flow scenario.
 
 ### Relevant packet rules and defaults
 
-- Keep Russian-first UI copy.
-- Keep harness deterministic and machine-parseable.
-- Keep updates evidence-backed and reflected in repo state docs.
+- Russian-only user-facing UI.
+- Deterministic harness contracts with machine-parseable failures.
+- End-to-end completion requires local + deploy verification and updated repo state docs.
 
 ### Target outcome
 
-- `/appointments/new` is production route (no placeholder).
-- Epic 1 flow is test-covered and enforced in verification gates.
-- Local and deploy-aware verification prove flow health.
+- `/intake/walk-in` is production page (no placeholder).
+- Epic 2 acceptance slices AUT-35..40 are implemented in code and enforced by gates.
+- `npm test`, `npm run verify`, and `npm run verify:render` pass on latest head.
 
 ### Ordered execution slices
-1. Wire booking page route and body parsing in runtime.
-2. Finalize conflict/validation behavior and error UX.
-3. Add HTTP/UI/flow tests.
-4. Add booking scenario script and integrate with verify gates.
-5. Validate (`npm test`, `npm run verify`, `npm run verify:render`) and sync docs/Linear.
+1. Implement intake page UI and route wiring in app runtime.
+2. Add inline lookup/create and deterministic validation/error behavior.
+3. Add HTTP/UI regression tests for page flow.
+4. Add walk-in page scenario and wire it into smoke/verify/render gates.
+5. Run full verification, update docs/status, and sync Linear done states/comments.
 
 ### Verification and evidence plan
 
-- `npm test` → `evidence/test-aut27-aut33.txt`
-- `npm run verify` → `evidence/verify-aut27-aut33.txt`
-- `npm run verify:render` after push to main.
+- `npm test`
+- `npm run verify`
+- `npm run verify:render`
+- Save new artifacts under `evidence/`.
 
 ### Deployment / update plan
 
-- Commit and push to `main`.
-- Run `verify:render` post-push so commit parity validates shipped revision.
+- Commit/push to `main`.
+- Run deploy-aware gate post-push to ensure commit parity against live Render deploy.
 
 ### Risks and fallback plan
 
-- Risk: Render gate fails pre-push because commit parity deploys stale revision.
-  - Mitigation: run deploy-aware gate only after pushing current commit.
-- Risk: Non-local scenario writes.
-  - Mitigation: booking/scheduling scenarios default to non-destructive mode on non-local targets.
+- Risk: scenario writes in deployed environment.
+  - Mitigation: walk-in page scenario defaults to non-destructive mode on non-local URLs.
+- Risk: regressions in existing booking/scheduling scenarios.
+  - Mitigation: keep existing scenarios intact and run full gate after each major slice.
 
 ### Progress log
 
-- 2026-03-22: Wired `registerAppointmentPageRoutes` + `express.urlencoded` in app runtime.
-- 2026-03-22: Added production booking UI/route modules (`src/ui/appointmentBookingPage.js`, `src/http/appointmentPageRoutes.js`).
-- 2026-03-22: Added booking page tests (`tests/appointmentBookingPage.test.js`) and updated `tests/http.test.js`.
-- 2026-03-22: Added booking scenario script (`scripts/booking-page-scenario.js`) + smoke/verify/verify-render integration.
-- 2026-03-22: Updated README + runbook for new scenario and toggles.
-- 2026-03-22: `npm test` and `npm run verify` passed locally.
-- 2026-03-22: Pre-push `npm run verify:render` failed at smoke by design because live deploy still ran old commit (`1d0788a`) without booking page.
-- 2026-03-22: Committed and pushed revision `54acfc4` to `main`.
-- 2026-03-22: Post-push `npm run verify:render` passed for deploy `dep-d6vldcbuibrs73adis10` (parity + smoke + booking scenario + scheduling scenario + log audit).
-- 2026-03-22: Synced Linear AUT-27..33 to Done via Playwright transport with closure comments (`evidence/linear-aut27-33-done-sync.json`).
-- 2026-03-22: Committed and pushed docs/state sync revision `dd36f33` to `main`.
-- 2026-03-22: Final `npm run verify:render` passed for latest head on deploy `dep-d6vlgvlactks73d05dsg` (parity + smoke + booking scenario + scheduling scenario + log audit).
+- 2026-03-22: Plan initialized; implementation in progress.
 
 ### Completion checkpoint
 
-Completed on 2026-03-22: implementation, deploy verification, and Linear Epic 1 issue-state sync are all finished.
+Pending.
 
 ---
 
