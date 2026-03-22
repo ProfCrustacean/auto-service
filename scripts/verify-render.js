@@ -186,6 +186,47 @@ async function renderApiRequest({
   };
 }
 
+function unwrapDeployRecord(entry) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  if (entry.deploy && typeof entry.deploy === "object") {
+    return entry.deploy;
+  }
+
+  return entry;
+}
+
+async function resolveLatestDeployId({
+  serviceId,
+  apiBaseUrl,
+  apiKey,
+  useResolve,
+  resolveIp,
+}) {
+  const listResponse = await renderApiRequest({
+    method: "GET",
+    path: `/services/${serviceId}/deploys?limit=5`,
+    apiBaseUrl,
+    apiKey,
+    useResolve,
+    resolveIp,
+  });
+
+  if (!Array.isArray(listResponse.payload) || listResponse.payload.length === 0) {
+    throw new Error("Render deploy trigger returned empty body and no deploy history entries were available");
+  }
+
+  const latestDeploy = unwrapDeployRecord(listResponse.payload[0]);
+  const deployId = latestDeploy?.id;
+  if (!deployId) {
+    throw new Error("Render deploy trigger returned empty body and latest deploy entry did not include id");
+  }
+
+  return latestDeploy;
+}
+
 function isTerminalFailureStatus(status) {
   const normalized = String(status ?? "").toLowerCase();
   return normalized.includes("failed")
@@ -323,20 +364,36 @@ async function main() {
 
     const deployId = deployPayload?.id;
     if (!deployId) {
-      throw new Error("Render deploy trigger response did not include deploy id");
+      logJson({
+        status: "render_verify_deploy_id_fallback",
+        reason: "trigger_response_missing_id",
+      });
+
+      deployPayload = await resolveLatestDeployId({
+        serviceId,
+        apiBaseUrl,
+        apiKey,
+        useResolve,
+        resolveIp,
+      });
+    }
+
+    const resolvedDeployId = deployPayload?.id;
+    if (!resolvedDeployId) {
+      throw new Error("Unable to resolve Render deploy id after trigger");
     }
 
     logJson({
       status: "render_verify_step_started",
       step: "deploy_wait_live",
       serviceId,
-      deployId,
+      deployId: resolvedDeployId,
       initialStatus: deployPayload?.status ?? null,
     });
 
     deployPayload = await waitForDeployLive({
       serviceId,
-      deployId,
+      deployId: resolvedDeployId,
       apiBaseUrl,
       apiKey,
       useResolve,
