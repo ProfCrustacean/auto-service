@@ -24,6 +24,23 @@ async function postJson(url, body, token = null) {
   return { status: response.status, payload };
 }
 
+async function patchJson(url, body, token = null) {
+  const headers = {
+    "content-type": "application/json",
+  };
+  if (token) {
+    headers.authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json();
+  return { status: response.status, payload };
+}
+
 test("mutating API endpoints require auth and enforce role policies", async () => {
   const tempDb = createTempDatabase("auto-service-authz");
   const { databasePath, cleanup } = tempDb;
@@ -69,10 +86,32 @@ test("mutating API endpoints require auth and enforce role policies", async () =
     }, "owner-dev-token");
     assert.equal(ownerCreateEmployee.status, 201);
     assert.equal(ownerCreateEmployee.payload.item.name, "Владелец Сотрудник");
+
+    const technicianUpdateWorkOrder = await patchJson(`${baseUrl}/api/v1/work-orders/wo-1002`, {
+      findings: "Проверка права техника на тех. обновление",
+    }, "technician-dev-token");
+    assert.equal(technicianUpdateWorkOrder.status, 200);
+    assert.equal(technicianUpdateWorkOrder.payload.item.findings, "Проверка права техника на тех. обновление");
+
+    const createAppointment = await postJson(`${baseUrl}/api/v1/appointments`, {
+      plannedStartLocal: "2026-03-28 14:10",
+      customerId: "cust-2",
+      vehicleId: "veh-3",
+      complaint: "Проверка прав на конвертацию",
+      status: "booked",
+    }, "owner-dev-token");
+    assert.equal(createAppointment.status, 201);
+
+    const technicianConvertAppointment = await postJson(
+      `${baseUrl}/api/v1/appointments/${createAppointment.payload.item.id}/convert-to-work-order`,
+      {},
+      "technician-dev-token",
+    );
+    assert.equal(technicianConvertAppointment.status, 403);
+    assert.equal(technicianConvertAppointment.payload.error.code, "forbidden");
   } finally {
     await closeServer(server);
     database.close();
     cleanup();
   }
 });
-

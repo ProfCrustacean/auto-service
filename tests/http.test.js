@@ -50,6 +50,19 @@ test("health and dashboard endpoints return successful responses", async () => {
     assert.ok(search.totals.vehicles >= 1);
     assert.equal(search.vehicles.some((item) => item.id === "veh-1"), true);
 
+    const workOrdersApiRes = await fetch(`${baseUrl}/api/v1/work-orders`);
+    assert.equal(workOrdersApiRes.status, 200);
+    const workOrdersApi = await workOrdersApiRes.json();
+    assert.equal(Array.isArray(workOrdersApi.items), true);
+    assert.ok(workOrdersApi.count >= 1);
+
+    const workOrderApiDetail = await fetch(`${baseUrl}/api/v1/work-orders/wo-1005`);
+    assert.equal(workOrderApiDetail.status, 200);
+    const workOrderApiPayload = await workOrderApiDetail.json();
+    assert.equal(workOrderApiPayload.item.id, "wo-1005");
+    assert.equal(Array.isArray(workOrderApiPayload.item.statusHistory), true);
+    assert.ok(workOrderApiPayload.item.statusHistory.length >= 1);
+
     const searchUiRes = await fetch(`${baseUrl}/?q=E321EE13`);
     assert.equal(searchUiRes.status, 200);
     const searchHtml = await searchUiRes.text();

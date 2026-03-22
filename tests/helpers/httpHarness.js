@@ -7,6 +7,7 @@ import { ReferenceDataService } from "../../src/services/referenceDataService.js
 import { CustomerVehicleService } from "../../src/services/customerVehicleService.js";
 import { AppointmentService } from "../../src/services/appointmentService.js";
 import { WalkInIntakeService } from "../../src/services/walkInIntakeService.js";
+import { WorkOrderService } from "../../src/services/workOrderService.js";
 import { createApp } from "../../src/app.js";
 
 export function createSilentLogger() {
@@ -49,6 +50,7 @@ export function makeServer({ databasePath, port = 0, logger = createSilentLogger
   const customerVehicleService = new CustomerVehicleService(repository);
   const appointmentService = new AppointmentService(repository);
   const walkInIntakeService = new WalkInIntakeService(repository);
+  const workOrderService = new WorkOrderService(repository);
 
   const app = createApp({
     config,
@@ -58,6 +60,7 @@ export function makeServer({ databasePath, port = 0, logger = createSilentLogger
     customerVehicleService,
     appointmentService,
     walkInIntakeService,
+    workOrderService,
   });
 
   return {

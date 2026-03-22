@@ -37,6 +37,7 @@ test("list APIs support deterministic limit/offset pagination", async () => {
     await assertPagedSlice(baseUrl, "/api/v1/customers", { limit: 2, offset: 1 });
     await assertPagedSlice(baseUrl, "/api/v1/vehicles", { limit: 2, offset: 1 });
     await assertPagedSlice(baseUrl, "/api/v1/appointments", { limit: 1, offset: 0 });
+    await assertPagedSlice(baseUrl, "/api/v1/work-orders", { limit: 2, offset: 1 });
     await assertPagedSlice(baseUrl, "/api/v1/employees", { limit: 1, offset: 1 });
     await assertPagedSlice(baseUrl, "/api/v1/bays", { limit: 1, offset: 1 });
 
@@ -49,4 +50,3 @@ test("list APIs support deterministic limit/offset pagination", async () => {
     cleanup();
   }
 });
-

@@ -31,7 +31,10 @@ test("DashboardService returns expected queue counts from fixtures", () => {
     const payload = service.getTodayDashboard();
 
     assert.equal(payload.summary.appointmentsToday, payload.appointments.length);
+    assert.equal(payload.summary.waitingDiagnosisCount, 1);
+    assert.equal(payload.summary.waitingApprovalCount, 0);
     assert.equal(payload.summary.waitingPartsCount, 1);
+    assert.equal(payload.summary.pausedCount, 0);
     assert.equal(payload.summary.readyForPickupCount, 1);
     assert.ok(payload.summary.activeWorkOrders >= 4);
     assert.equal(payload.summary.unpaidReadyForPickupCount, 1);
@@ -39,6 +42,9 @@ test("DashboardService returns expected queue counts from fixtures", () => {
     assert.equal(payload.summary.totalOutstandingActiveRub, 27000);
     assert.ok(payload.load.byBay.length >= 2);
     assert.ok(payload.load.byAssignee.length >= 3);
+    assert.equal(Array.isArray(payload.queues.waitingDiagnosis), true);
+    assert.equal(Array.isArray(payload.queues.waitingApproval), true);
+    assert.equal(Array.isArray(payload.queues.paused), true);
     assert.equal(payload.queues.waitingParts[0].nextActionLabel, "Уточнить поставку");
     assert.equal(payload.week.days.length, 7);
     assert.ok(Array.isArray(payload.week.byBay));

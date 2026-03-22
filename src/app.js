@@ -8,7 +8,9 @@ import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
 import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
 import { registerAppointmentPageRoutes } from "./http/appointmentPageRoutes.js";
 import { registerWalkInIntakePageRoutes } from "./http/walkInIntakePageRoutes.js";
-import { sendApiError, validationError } from "./http/apiErrors.js";
+import { registerWorkOrderRoutes } from "./http/workOrderRoutes.js";
+import { registerWorkOrderPageRoutes } from "./http/workOrderPageRoutes.js";
+import { internalError, sendApiError, validationError } from "./http/apiErrors.js";
 import { createApiAuthMiddleware } from "./http/authz.js";
 
 function shouldSkipHttpRequestLog(path, statusCode) {
@@ -78,6 +80,7 @@ export function createApp({
   customerVehicleService,
   appointmentService,
   walkInIntakeService,
+  workOrderService,
 }) {
   const app = express();
   const apiAuthMiddleware = createApiAuthMiddleware({
@@ -154,10 +157,16 @@ export function createApp({
   registerCustomerVehicleRoutes(app, { logger, customerVehicleService });
   registerAppointmentRoutes(app, { logger, appointmentService });
   registerWalkInIntakeRoutes(app, { logger, walkInIntakeService });
+  registerWorkOrderRoutes(app, { logger, workOrderService });
   registerAppointmentPageRoutes(app, {
     logger,
     appointmentService,
     customerVehicleService,
+    referenceDataService,
+  });
+  registerWorkOrderPageRoutes(app, {
+    logger,
+    workOrderService,
     referenceDataService,
   });
   registerWalkInIntakePageRoutes(app, {
@@ -172,46 +181,6 @@ export function createApp({
       searchQuery: readDashboardSearchQuery(req.query),
     });
     res.status(200).send(renderDashboardPage(model));
-  });
-
-  app.get("/work-orders/active", (_req, res) => {
-    const model = dashboardService.getTodayDashboard();
-    const activeCount = model.summary.activeWorkOrders;
-    res.status(200).send(
-      renderSimpleDetailPage({
-        title: "Активная очередь",
-        backHref: "/",
-        fields: [{ label: "Активных заказ-нарядов", value: String(activeCount) }],
-      }),
-    );
-  });
-
-  app.get("/work-orders/:id", (req, res) => {
-    const item = dashboardService.getWorkOrderById(req.params.id);
-    if (!item) {
-      res.status(404).send(
-        renderSimpleDetailPage({
-          title: "Заказ-наряд не найден",
-          backHref: "/",
-          fields: [{ label: "Идентификатор", value: req.params.id }],
-        }),
-      );
-      return;
-    }
-
-    res.status(200).send(
-      renderSimpleDetailPage({
-        title: `Заказ-наряд ${item.code}`,
-        backHref: "/",
-        fields: [
-          { label: "Клиент", value: item.customerName },
-          { label: "Авто", value: item.vehicleLabel },
-          { label: "Статус", value: item.statusLabelRu },
-          { label: "Ответственный", value: item.primaryAssignee },
-          { label: "Долг", value: `${item.balanceDueRub ?? 0} руб.` },
-        ],
-      }),
-    );
   });
 
   app.get("/appointments/:id", (req, res) => {

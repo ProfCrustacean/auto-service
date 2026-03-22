@@ -30,9 +30,12 @@ Service defaults:
 - Vehicle CRUD API: `GET|POST /api/v1/vehicles`, `GET|PATCH|DELETE /api/v1/vehicles/:id`
 - Vehicle ownership history API: `GET /api/v1/vehicles/:id/ownership-history`
 - Appointment API: `GET|POST /api/v1/appointments`, `GET|PATCH /api/v1/appointments/:id`
+- Appointment conversion API: `POST /api/v1/appointments/:id/convert-to-work-order`
 - Walk-in intake API: `POST /api/v1/intake/walk-ins`
+- Work-order lifecycle API: `GET /api/v1/work-orders`, `GET|PATCH /api/v1/work-orders/:id`
 - Unified lookup API: `GET /api/v1/search?q=<term>` (customer/phone/plate/VIN/model)
 - Russian dashboard UI: `GET /`
+- Work-order lifecycle UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
 - SQLite runtime pragmas: `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=1000ms` (override timeout via `SQLITE_BUSY_TIMEOUT_MS`)
 - API auth baseline for mutating `/api/v1/**` requests:
@@ -102,6 +105,7 @@ Scenario fixture assumptions (current):
 - Booking-page scenario validates `/appointments/new` read/write behavior locally and non-destructive behavior remotely.
 - Walk-in-page scenario validates `/intake/walk-in` read/write behavior locally and non-destructive behavior remotely.
 - Scheduling/walk-in scenario resolves customers/vehicles/bays/employees dynamically from live API data.
+- Scheduling/walk-in scenario also validates appointment -> work-order conversion idempotency and lifecycle transitions (`scheduled -> in_progress -> ready_pickup`).
 - In write mode, if no customer/vehicle exists, the scenario provisions the minimum required records before creating appointment/walk-in entries.
 - Bays/employees are optional in scenario payloads; they are used only when available.
 - Smoke/scenario failure output is structured JSON and includes step, method/path, URL, response status, and parsed payload when available.
@@ -221,6 +225,11 @@ If deployment fails:
 2. Roll back to the previous healthy Render deployment revision.
 3. Re-run smoke verification.
 4. Record incident details in `STATUS.md` evidence section.
+
+If lifecycle logic regresses after deployment:
+1. Roll back to the previous healthy deployment revision.
+2. Re-run `npm run verify:render` to confirm recovery.
+3. Re-apply critical status corrections through `PATCH /api/v1/work-orders/:id` with explicit `reason` values so audit history remains intact.
 
 ## Known current limits
 

@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { getWorkOrderStatusLabel } from "../domain/workOrderLifecycle.js";
 
 const WALK_IN_STATUS = "waiting_diagnosis";
-const WALK_IN_STATUS_LABEL_RU = "Ожидает диагностики";
+const WALK_IN_STATUS_LABEL_RU = getWorkOrderStatusLabel(WALK_IN_STATUS);
 
 function toId(prefix) {
   return `${prefix}-${randomUUID().split("-")[0]}`;

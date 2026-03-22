@@ -67,6 +67,21 @@ async function main() {
     responseStatus: dashboard.status,
     responsePayload: dashboard.payload,
   });
+  assertHarness(Array.isArray(dashboard.payload?.queues?.waitingDiagnosis), "dashboard waitingDiagnosis queue must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.queues?.waitingApproval), "dashboard waitingApproval queue must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
+  assertHarness(Array.isArray(dashboard.payload?.queues?.paused), "dashboard paused queue must be an array", {
+    step: "dashboard_api",
+    responseStatus: dashboard.status,
+    responsePayload: dashboard.payload,
+  });
   assertHarness(Array.isArray(dashboard.payload?.queues?.readyPickup), "dashboard readyPickup queue must be an array", {
     step: "dashboard_api",
     responseStatus: dashboard.status,
@@ -99,7 +114,10 @@ async function main() {
   });
 
   assertNonNegativeInteger(dashboard.payload.summary.appointmentsToday, "summary.appointmentsToday", "dashboard_api", dashboard);
+  assertNonNegativeInteger(dashboard.payload.summary.waitingDiagnosisCount, "summary.waitingDiagnosisCount", "dashboard_api", dashboard);
+  assertNonNegativeInteger(dashboard.payload.summary.waitingApprovalCount, "summary.waitingApprovalCount", "dashboard_api", dashboard);
   assertNonNegativeInteger(dashboard.payload.summary.waitingPartsCount, "summary.waitingPartsCount", "dashboard_api", dashboard);
+  assertNonNegativeInteger(dashboard.payload.summary.pausedCount, "summary.pausedCount", "dashboard_api", dashboard);
   assertNonNegativeInteger(dashboard.payload.summary.readyForPickupCount, "summary.readyForPickupCount", "dashboard_api", dashboard);
   assertNonNegativeInteger(dashboard.payload.summary.activeWorkOrders, "summary.activeWorkOrders", "dashboard_api", dashboard);
 
@@ -113,8 +131,35 @@ async function main() {
     },
   );
   assertHarness(
+    dashboard.payload.summary.waitingDiagnosisCount === dashboard.payload.queues.waitingDiagnosis.length,
+    "summary.waitingDiagnosisCount must match waitingDiagnosis queue length",
+    {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    },
+  );
+  assertHarness(
+    dashboard.payload.summary.waitingApprovalCount === dashboard.payload.queues.waitingApproval.length,
+    "summary.waitingApprovalCount must match waitingApproval queue length",
+    {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    },
+  );
+  assertHarness(
     dashboard.payload.summary.waitingPartsCount === dashboard.payload.queues.waitingParts.length,
     "summary.waitingPartsCount must match waitingParts queue length",
+    {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    },
+  );
+  assertHarness(
+    dashboard.payload.summary.pausedCount === dashboard.payload.queues.paused.length,
+    "summary.pausedCount must match paused queue length",
     {
       step: "dashboard_api",
       responseStatus: dashboard.status,

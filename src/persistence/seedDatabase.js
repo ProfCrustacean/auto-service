@@ -31,10 +31,14 @@ function getSummaryCounts(database) {
     appointments: getRowCount(database, "appointments"),
     intakeEvents: getRowCount(database, "intake_events"),
     workOrders: getRowCount(database, "work_orders"),
+    workOrderStatusHistory: getRowCount(database, "work_order_status_history"),
+    appointmentWorkOrderLinks: getRowCount(database, "appointment_work_order_links"),
   };
 }
 
 function clearAllData(database) {
+  database.exec("DELETE FROM appointment_work_order_links;");
+  database.exec("DELETE FROM work_order_status_history;");
   database.exec("DELETE FROM vehicle_ownership_history;");
   database.exec("DELETE FROM intake_events;");
   database.exec("DELETE FROM appointments;");
@@ -204,6 +208,20 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
       updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?)`,
   );
+  const insertWorkOrderStatusHistory = database.prepare(
+    `INSERT INTO work_order_status_history(
+      id,
+      work_order_id,
+      from_status,
+      from_status_label_ru,
+      to_status,
+      to_status_label_ru,
+      changed_at,
+      changed_by,
+      reason,
+      source
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
 
   try {
     database.exec("BEGIN TRANSACTION;");
@@ -302,6 +320,19 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
         orderCreatedAt,
         closedAt,
         nowIso,
+      );
+
+      insertWorkOrderStatusHistory.run(
+        `woh-${order.id}-seed`,
+        order.id,
+        null,
+        null,
+        order.status,
+        order.statusLabelRu,
+        orderCreatedAt,
+        "seed",
+        "Initial seed lifecycle event",
+        "seed",
       );
 
       if (order.status === "waiting_diagnosis") {

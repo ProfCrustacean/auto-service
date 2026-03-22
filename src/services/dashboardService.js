@@ -514,8 +514,17 @@ export class DashboardService {
     });
 
     const activeWorkOrders = workOrders.filter((order) => ACTIVE_STATUSES.has(order.status));
+    const waitingDiagnosis = activeWorkOrders
+      .filter((order) => order.status === "waiting_diagnosis")
+      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
+    const waitingApproval = activeWorkOrders
+      .filter((order) => order.status === "waiting_approval")
+      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
     const waitingParts = activeWorkOrders
       .filter((order) => order.status === "waiting_parts")
+      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
+    const paused = activeWorkOrders
+      .filter((order) => order.status === "paused")
       .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
     const readyPickup = activeWorkOrders
       .filter((order) => order.status === "ready_pickup")
@@ -572,7 +581,10 @@ export class DashboardService {
       summary: {
         appointmentsToday: appointmentsToday.length,
         activeWorkOrders: activeWorkOrders.length,
+        waitingDiagnosisCount: waitingDiagnosis.length,
+        waitingApprovalCount: waitingApproval.length,
         waitingPartsCount: waitingParts.length,
+        pausedCount: paused.length,
         readyForPickupCount: readyPickup.length,
         unpaidReadyForPickupCount: unpaidReadyForPickup.length,
         unpaidReadyForPickupAmountRub,
@@ -596,7 +608,10 @@ export class DashboardService {
       week,
       search,
       queues: {
+        waitingDiagnosis,
+        waitingApproval,
         waitingParts,
+        paused,
         readyPickup,
         active: activeWorkOrders,
       },
@@ -611,7 +626,7 @@ export class DashboardService {
   }
 
   getWorkOrderById(id) {
-    return this.repository.listWorkOrders().find((workOrder) => workOrder.id === id) ?? null;
+    return this.repository.getWorkOrderRecordById(id);
   }
 
   getAppointmentById(id) {

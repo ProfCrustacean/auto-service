@@ -635,9 +635,21 @@ export function renderDashboardPage(model) {
           Активные заказ-наряды
           <strong>${summary.activeWorkOrders}</strong>
         </article>
+        <article class="triage-card">
+          Ожидают диагностику
+          <strong>${summary.waitingDiagnosisCount}</strong>
+        </article>
+        <article class="triage-card">
+          Ожидают согласование
+          <strong>${summary.waitingApprovalCount}</strong>
+        </article>
         <article class="triage-card warn">
           Ожидают запчасти
           <strong>${summary.waitingPartsCount}</strong>
+        </article>
+        <article class="triage-card warn">
+          На паузе
+          <strong>${summary.pausedCount}</strong>
         </article>
         <article class="triage-card danger">
           Готово к выдаче, но не оплачено
@@ -778,6 +790,52 @@ export function renderDashboardPage(model) {
     </section>
 
     <section class="panel">
+      <h2>Очередь: ожидают диагностику</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Код</th>
+              <th>Клиент</th>
+              <th>Авто</th>
+              <th>Пост</th>
+              <th>Статус</th>
+              <th>Блокировка</th>
+              <th>Долг</th>
+              <th>Следующий шаг</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderQueueRows(queues.waitingDiagnosis)}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Очередь: ожидают согласование</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Код</th>
+              <th>Клиент</th>
+              <th>Авто</th>
+              <th>Пост</th>
+              <th>Статус</th>
+              <th>Блокировка</th>
+              <th>Долг</th>
+              <th>Следующий шаг</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderQueueRows(queues.waitingApproval)}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Очередь: ожидание запчастей</h2>
       <div class="table-wrap">
         <table>
@@ -795,6 +853,29 @@ export function renderDashboardPage(model) {
           </thead>
           <tbody>
             ${renderQueueRows(queues.waitingParts)}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Очередь: пауза</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Код</th>
+              <th>Клиент</th>
+              <th>Авто</th>
+              <th>Пост</th>
+              <th>Статус</th>
+              <th>Блокировка</th>
+              <th>Долг</th>
+              <th>Следующий шаг</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderQueueRows(queues.paused)}
           </tbody>
         </table>
       </div>

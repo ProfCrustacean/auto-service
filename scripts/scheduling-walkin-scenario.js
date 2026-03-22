@@ -259,6 +259,30 @@ async function runNonDestructiveScenario(mode) {
   const employees = await request("/api/v1/employees", { step: "list_employees" });
   expectStatus(employees, 200, "list_employees");
 
+  const workOrders = await request("/api/v1/work-orders?includeClosed=false&limit=20", { step: "list_work_orders" });
+  expectStatus(workOrders, 200, "list_work_orders");
+  assertHarness(Array.isArray(workOrders.payload?.items), "work-orders payload must include items array", {
+    step: "list_work_orders",
+    method: workOrders.method,
+    path: workOrders.path,
+    url: workOrders.url,
+    responseStatus: workOrders.status,
+    responsePayload: workOrders.payload,
+  });
+
+  if (workOrders.payload.items.length > 0) {
+    const detail = await request(`/api/v1/work-orders/${workOrders.payload.items[0].id}`, { step: "work_order_detail" });
+    expectStatus(detail, 200, "work_order_detail");
+    assertHarness(Array.isArray(detail.payload?.item?.statusHistory), "work-order detail must include statusHistory", {
+      step: "work_order_detail",
+      method: detail.method,
+      path: detail.path,
+      url: detail.url,
+      responseStatus: detail.status,
+      responsePayload: detail.payload,
+    });
+  }
+
   const result = {
     status: "scheduling_walkin_scenario_passed",
     mode: mode.name,
@@ -274,6 +298,7 @@ async function runNonDestructiveScenario(mode) {
       vehicles: vehicles.payload.count,
       bays: bays.payload.count,
       employees: employees.payload.count,
+      activeWorkOrdersApi: workOrders.payload.count,
     },
   };
 
@@ -329,6 +354,68 @@ async function runDefaultScenario(mode) {
   });
   expectStatus(confirmAppointment, 200, "confirm_appointment");
 
+  const convertAppointment = await request(`/api/v1/appointments/${appointmentId}/convert-to-work-order`, {
+    step: "convert_appointment_to_work_order",
+    method: "POST",
+    body: {
+      reason: "Scenario conversion from appointment",
+    },
+  });
+  expectStatus(convertAppointment, 201, "convert_appointment_to_work_order");
+  assertHarness(
+    convertAppointment.payload?.item?.id,
+    "appointment conversion response missing work-order item.id",
+    {
+      step: "convert_appointment_to_work_order",
+      method: convertAppointment.method,
+      path: convertAppointment.path,
+      url: convertAppointment.url,
+      responseStatus: convertAppointment.status,
+      responsePayload: convertAppointment.payload,
+    },
+  );
+
+  const convertedWorkOrderId = convertAppointment.payload.item.id;
+
+  const convertAppointmentIdempotent = await request(`/api/v1/appointments/${appointmentId}/convert-to-work-order`, {
+    step: "convert_appointment_idempotent",
+    method: "POST",
+    body: {
+      reason: "Scenario idempotency probe",
+    },
+  });
+  expectStatus(convertAppointmentIdempotent, 200, "convert_appointment_idempotent");
+  assertHarness(
+    convertAppointmentIdempotent.payload?.item?.id === convertedWorkOrderId,
+    "idempotent conversion should return existing work-order id",
+    {
+      step: "convert_appointment_idempotent",
+      responsePayload: convertAppointmentIdempotent.payload,
+      convertedWorkOrderId,
+    },
+  );
+
+  const convertedInProgress = await request(`/api/v1/work-orders/${convertedWorkOrderId}`, {
+    step: "update_converted_work_order_in_progress",
+    method: "PATCH",
+    body: {
+      status: "in_progress",
+      reason: "Scenario progress update",
+    },
+  });
+  expectStatus(convertedInProgress, 200, "update_converted_work_order_in_progress");
+
+  const convertedReadyPickup = await request(`/api/v1/work-orders/${convertedWorkOrderId}`, {
+    step: "update_converted_work_order_ready_pickup",
+    method: "PATCH",
+    body: {
+      status: "ready_pickup",
+      balanceDueRub: 0,
+      reason: "Scenario ready for pickup",
+    },
+  });
+  expectStatus(convertedReadyPickup, 200, "update_converted_work_order_ready_pickup");
+
   const walkInCreateBody = {
     customerId: resources.walkInCustomerId,
     vehicleId: resources.walkInVehicleId,
@@ -374,8 +461,8 @@ async function runDefaultScenario(mode) {
     },
   );
   assertHarness(
-    after.payload.summary.activeWorkOrders === before.payload.summary.activeWorkOrders + 1,
-    "activeWorkOrders did not increment by 1",
+    after.payload.summary.activeWorkOrders === before.payload.summary.activeWorkOrders + 2,
+    "activeWorkOrders did not increment by 2",
     {
       step: "dashboard_after",
       beforeActive: before.payload.summary.activeWorkOrders,
@@ -388,6 +475,15 @@ async function runDefaultScenario(mode) {
     appointmentId,
     responsePayload: after.payload,
   });
+  assertHarness(
+    after.payload.queues.active.some((item) => item.id === convertedWorkOrderId),
+    "converted appointment work order not present in active queue",
+    {
+      step: "dashboard_after",
+      convertedWorkOrderId,
+      responsePayload: after.payload,
+    },
+  );
   assertHarness(after.payload.queues.active.some((item) => item.id === workOrderId), "walk-in work order not present in active queue", {
     step: "dashboard_after",
     workOrderId,
@@ -405,6 +501,8 @@ async function runDefaultScenario(mode) {
     plannedStartLocal,
     appointmentId,
     appointmentCode: createAppointment.payload.item.code,
+    convertedWorkOrderId,
+    convertedWorkOrderCode: convertAppointment.payload.item.code,
     workOrderId,
     workOrderCode: createWalkIn.payload.item.workOrder.code,
     checks: {

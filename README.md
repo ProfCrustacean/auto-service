@@ -158,8 +158,15 @@ Phase 1 reference-data APIs:
 - `GET /api/v1/vehicles/:id/ownership-history`
 - `GET|POST /api/v1/appointments`
 - `GET|PATCH /api/v1/appointments/:id`
+- `POST /api/v1/appointments/:id/convert-to-work-order`
 - `POST /api/v1/intake/walk-ins`
+- `GET /api/v1/work-orders`
+- `GET|PATCH /api/v1/work-orders/:id`
 - `GET /api/v1/search?q=<term>` (быстрый поиск по клиенту/телефону/номеру/VIN/модели)
+
+Phase 2 lifecycle UI:
+- `GET /work-orders/active`
+- `GET|POST /work-orders/:id`
 
 Mutating `/api/v1/**` endpoints require auth tokens:
 - header: `Authorization: Bearer <token>` or `x-api-token`
@@ -167,7 +174,7 @@ Mutating `/api/v1/**` endpoints require auth tokens:
 - role baseline:
   - `owner`: all mutations
   - `front_desk`: customers/vehicles/appointments/walk-ins mutations
-  - `technician`: read-only API access (mutations denied)
+  - `technician`: work-order technical progress mutations (`PATCH /api/v1/work-orders/:id`) and read-only access elsewhere
 
 Default local DB path:
 - `data/auto-service.sqlite` (override with `DB_PATH`)

@@ -117,6 +117,54 @@ function mapIntakeEventRecord(row) {
   };
 }
 
+function mapWorkOrderRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    code: row.code,
+    customerId: row.customerId,
+    customerName: row.customerName,
+    vehicleId: row.vehicleId,
+    vehicleLabel: row.vehicleLabel,
+    status: row.status,
+    statusLabelRu: row.statusLabelRu,
+    bayId: row.bayId,
+    bayName: row.bayName,
+    primaryAssignee: row.primaryAssignee,
+    complaint: row.complaint ?? null,
+    findings: row.findings ?? null,
+    internalNotes: row.internalNotes ?? null,
+    customerNotes: row.customerNotes ?? null,
+    blockedSinceIso: row.blockedSinceIso ?? null,
+    balanceDueRub: row.balanceDueRub ?? 0,
+    createdAt: row.createdAt,
+    closedAt: row.closedAt ?? null,
+    updatedAt: row.updatedAt,
+  };
+}
+
+function mapWorkOrderStatusHistoryRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    workOrderId: row.workOrderId,
+    fromStatus: row.fromStatus ?? null,
+    fromStatusLabelRu: row.fromStatusLabelRu ?? null,
+    toStatus: row.toStatus,
+    toStatusLabelRu: row.toStatusLabelRu,
+    changedAt: row.changedAt,
+    changedBy: row.changedBy ?? null,
+    reason: row.reason ?? null,
+    source: row.source,
+  };
+}
+
 export class SqliteRepository {
   constructor(database) {
     this.database = database;
@@ -606,6 +654,67 @@ export class SqliteRepository {
   }
 
   listWorkOrders() {
+    return this.listWorkOrderRecords({
+      includeClosed: true,
+      limit: null,
+      offset: 0,
+    });
+  }
+
+  listWorkOrderRecords({
+    status = null,
+    bayId = null,
+    primaryAssignee = null,
+    query = "",
+    includeClosed = true,
+    limit = null,
+    offset = 0,
+  } = {}) {
+    const conditions = [];
+    const values = [];
+
+    if (status) {
+      conditions.push("w.status = ?");
+      values.push(status);
+    }
+
+    if (bayId) {
+      conditions.push("w.bay_id = ?");
+      values.push(bayId);
+    }
+
+    if (primaryAssignee) {
+      conditions.push("w.primary_assignee = ?");
+      values.push(primaryAssignee);
+    }
+
+    if (!includeClosed) {
+      conditions.push("w.status NOT IN ('completed', 'cancelled')");
+    }
+
+    const trimmedQuery = String(query ?? "").trim();
+    if (trimmedQuery.length > 0) {
+      const pattern = `%${trimmedQuery}%`;
+      conditions.push(
+        "(w.code LIKE ? OR w.customer_name_snapshot LIKE ? OR w.vehicle_label_snapshot LIKE ? OR w.status_label_ru LIKE ? OR COALESCE(w.primary_assignee, '') LIKE ?)",
+      );
+      values.push(pattern, pattern, pattern, pattern, pattern);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const hasLimit = Number.isInteger(limit);
+    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
+    const paginationClause = hasLimit
+      ? " LIMIT ? OFFSET ?"
+      : hasOffsetOnly
+        ? " LIMIT -1 OFFSET ?"
+        : "";
+    const paginationValues = hasLimit
+      ? [limit, offset]
+      : hasOffsetOnly
+        ? [offset]
+        : [];
+
     return this.database
       .prepare(
         `SELECT
@@ -615,17 +724,27 @@ export class SqliteRepository {
           w.customer_name_snapshot AS customerName,
           w.vehicle_id AS vehicleId,
           w.vehicle_label_snapshot AS vehicleLabel,
-          COALESCE(w.bay_name_snapshot, b.name, 'Без поста') AS bayName,
           w.status,
           w.status_label_ru AS statusLabelRu,
+          w.bay_id AS bayId,
+          COALESCE(w.bay_name_snapshot, b.name, 'Без поста') AS bayName,
           COALESCE(w.primary_assignee, 'Без ответственного') AS primaryAssignee,
+          w.complaint,
+          w.findings,
+          w.internal_notes AS internalNotes,
+          w.customer_notes AS customerNotes,
+          w.blocked_since_iso AS blockedSinceIso,
           w.balance_due_rub AS balanceDueRub,
-          w.blocked_since_iso AS blockedSinceIso
+          w.created_at AS createdAt,
+          w.closed_at AS closedAt,
+          w.updated_at AS updatedAt
          FROM work_orders w
          LEFT JOIN bays b ON b.id = w.bay_id
-         ORDER BY w.code ASC`,
+         ${whereClause}
+         ORDER BY w.code ASC${paginationClause}`,
       )
-      .all();
+      .all(...values, ...paginationValues)
+      .map(mapWorkOrderRecord);
   }
 
   searchWorkOrders({ query, limit }) {
@@ -672,7 +791,11 @@ export class SqliteRepository {
   }
 
   getWorkOrderById(id) {
-    return this.database
+    return this.getWorkOrderRecordById(id);
+  }
+
+  getWorkOrderRecordById(id) {
+    const row = this.database
       .prepare(
         `SELECT
           w.id,
@@ -681,20 +804,345 @@ export class SqliteRepository {
           w.customer_name_snapshot AS customerName,
           w.vehicle_id AS vehicleId,
           w.vehicle_label_snapshot AS vehicleLabel,
-          COALESCE(w.bay_name_snapshot, b.name, 'Без поста') AS bayName,
           w.status,
           w.status_label_ru AS statusLabelRu,
+          w.bay_id AS bayId,
+          COALESCE(w.bay_name_snapshot, b.name, 'Без поста') AS bayName,
           COALESCE(w.primary_assignee, 'Без ответственного') AS primaryAssignee,
           w.complaint,
+          w.findings,
+          w.internal_notes AS internalNotes,
+          w.customer_notes AS customerNotes,
           w.balance_due_rub AS balanceDueRub,
           w.blocked_since_iso AS blockedSinceIso,
           w.created_at AS createdAt,
+          w.closed_at AS closedAt,
           w.updated_at AS updatedAt
          FROM work_orders w
          LEFT JOIN bays b ON b.id = w.bay_id
          WHERE w.id = ?`,
       )
       .get(id);
+
+    return mapWorkOrderRecord(row);
+  }
+
+  listWorkOrderStatusHistory(workOrderId) {
+    return this.database
+      .prepare(
+        `SELECT
+          id,
+          work_order_id AS workOrderId,
+          from_status AS fromStatus,
+          from_status_label_ru AS fromStatusLabelRu,
+          to_status AS toStatus,
+          to_status_label_ru AS toStatusLabelRu,
+          changed_at AS changedAt,
+          changed_by AS changedBy,
+          reason,
+          source
+         FROM work_order_status_history
+         WHERE work_order_id = ?
+         ORDER BY changed_at DESC, id DESC`,
+      )
+      .all(workOrderId)
+      .map(mapWorkOrderStatusHistoryRecord);
+  }
+
+  createWorkOrderStatusHistoryEntry({
+    id,
+    workOrderId,
+    fromStatus,
+    fromStatusLabelRu,
+    toStatus,
+    toStatusLabelRu,
+    changedAt,
+    changedBy = null,
+    reason = null,
+    source,
+  }) {
+    this.database
+      .prepare(
+        `INSERT INTO work_order_status_history(
+          id,
+          work_order_id,
+          from_status,
+          from_status_label_ru,
+          to_status,
+          to_status_label_ru,
+          changed_at,
+          changed_by,
+          reason,
+          source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        workOrderId,
+        fromStatus ?? null,
+        fromStatusLabelRu ?? null,
+        toStatus,
+        toStatusLabelRu,
+        changedAt,
+        changedBy ?? null,
+        reason ?? null,
+        source,
+      );
+  }
+
+  updateWorkOrderRecord({ id, updates, transitionEntry = null }) {
+    const existing = this.getWorkOrderRecordById(id);
+    if (!existing) {
+      return null;
+    }
+
+    const assignments = [];
+    const values = [];
+    const nowIso = new Date().toISOString();
+
+    if (updates.status !== undefined) {
+      assignments.push("status = ?");
+      values.push(updates.status);
+    }
+
+    if (updates.statusLabelRu !== undefined) {
+      assignments.push("status_label_ru = ?");
+      values.push(updates.statusLabelRu);
+    }
+
+    if (updates.bayId !== undefined) {
+      assignments.push("bay_id = ?");
+      values.push(updates.bayId);
+    }
+
+    if (updates.bayNameSnapshot !== undefined) {
+      assignments.push("bay_name_snapshot = ?");
+      values.push(updates.bayNameSnapshot);
+    }
+
+    if (updates.primaryAssignee !== undefined) {
+      assignments.push("primary_assignee = ?");
+      values.push(updates.primaryAssignee);
+    }
+
+    if (updates.complaint !== undefined) {
+      assignments.push("complaint = ?");
+      values.push(updates.complaint);
+    }
+
+    if (updates.findings !== undefined) {
+      assignments.push("findings = ?");
+      values.push(updates.findings);
+    }
+
+    if (updates.internalNotes !== undefined) {
+      assignments.push("internal_notes = ?");
+      values.push(updates.internalNotes);
+    }
+
+    if (updates.customerNotes !== undefined) {
+      assignments.push("customer_notes = ?");
+      values.push(updates.customerNotes);
+    }
+
+    if (updates.balanceDueRub !== undefined) {
+      assignments.push("balance_due_rub = ?");
+      values.push(updates.balanceDueRub);
+    }
+
+    if (updates.blockedSinceIso !== undefined) {
+      assignments.push("blocked_since_iso = ?");
+      values.push(updates.blockedSinceIso);
+    }
+
+    if (updates.closedAt !== undefined) {
+      assignments.push("closed_at = ?");
+      values.push(updates.closedAt);
+    }
+
+    if (assignments.length > 0) {
+      assignments.push("updated_at = ?");
+      values.push(nowIso);
+      values.push(id);
+    }
+
+    this.runInTransaction(() => {
+      if (assignments.length > 0) {
+        this.database
+          .prepare(`UPDATE work_orders SET ${assignments.join(", ")} WHERE id = ?`)
+          .run(...values);
+      }
+
+      if (transitionEntry) {
+        this.createWorkOrderStatusHistoryEntry({
+          id: `woh-${randomUUID().split("-")[0]}`,
+          workOrderId: id,
+          fromStatus: transitionEntry.fromStatus,
+          fromStatusLabelRu: transitionEntry.fromStatusLabelRu,
+          toStatus: transitionEntry.toStatus,
+          toStatusLabelRu: transitionEntry.toStatusLabelRu,
+          changedAt: nowIso,
+          changedBy: transitionEntry.changedBy ?? null,
+          reason: transitionEntry.reason ?? null,
+          source: transitionEntry.source ?? "status_transition",
+        });
+      }
+    });
+
+    return this.getWorkOrderRecordById(id);
+  }
+
+  getWorkOrderLinkByAppointmentId(appointmentId) {
+    const row = this.database
+      .prepare(
+        `SELECT appointment_id AS appointmentId, work_order_id AS workOrderId
+         FROM appointment_work_order_links
+         WHERE appointment_id = ?`,
+      )
+      .get(appointmentId);
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      appointmentId: row.appointmentId,
+      workOrderId: row.workOrderId,
+    };
+  }
+
+  createWorkOrderFromAppointment({
+    appointmentId,
+    intakeEventId,
+    workOrderId,
+    workOrderCode,
+    customerId,
+    customerNameSnapshot,
+    vehicleId,
+    vehicleLabelSnapshot,
+    complaint,
+    status,
+    statusLabelRu,
+    bayId,
+    bayNameSnapshot,
+    primaryAssignee,
+    changedBy = null,
+    reason = null,
+    source = "appointment_conversion",
+  }) {
+    const nowIso = new Date().toISOString();
+
+    const result = this.runInTransaction(() => {
+      const existingLink = this.database
+        .prepare(
+          `SELECT appointment_id AS appointmentId, work_order_id AS workOrderId
+           FROM appointment_work_order_links
+           WHERE appointment_id = ?`,
+        )
+        .get(appointmentId);
+
+      if (existingLink?.workOrderId) {
+        return {
+          created: false,
+          appointmentId,
+          workOrderId: existingLink.workOrderId,
+        };
+      }
+
+      this.database
+        .prepare(
+          `INSERT INTO intake_events(
+            id,
+            source,
+            source_appointment_id,
+            customer_id,
+            vehicle_id,
+            complaint,
+            status,
+            created_at,
+            updated_at
+          ) VALUES (?, 'appointment', ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(intakeEventId, appointmentId, customerId, vehicleId, complaint, "converted_to_work_order", nowIso, nowIso);
+
+      this.database
+        .prepare(
+          `INSERT INTO work_orders(
+            id,
+            code,
+            customer_id,
+            customer_name_snapshot,
+            vehicle_id,
+            vehicle_label_snapshot,
+            status,
+            status_label_ru,
+            bay_id,
+            bay_name_snapshot,
+            primary_assignee,
+            complaint,
+            findings,
+            internal_notes,
+            customer_notes,
+            blocked_since_iso,
+            balance_due_rub,
+            created_at,
+            closed_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, 0, ?, NULL, ?)`,
+        )
+        .run(
+          workOrderId,
+          workOrderCode,
+          customerId,
+          customerNameSnapshot,
+          vehicleId,
+          vehicleLabelSnapshot,
+          status,
+          statusLabelRu,
+          bayId ?? null,
+          bayNameSnapshot ?? null,
+          primaryAssignee ?? null,
+          complaint,
+          nowIso,
+          nowIso,
+        );
+
+      this.database
+        .prepare(
+          `INSERT INTO appointment_work_order_links(
+            appointment_id,
+            work_order_id,
+            created_at
+          ) VALUES (?, ?, ?)`,
+        )
+        .run(appointmentId, workOrderId, nowIso);
+
+      this.createWorkOrderStatusHistoryEntry({
+        id: `woh-${randomUUID().split("-")[0]}`,
+        workOrderId,
+        fromStatus: null,
+        fromStatusLabelRu: null,
+        toStatus: status,
+        toStatusLabelRu: statusLabelRu,
+        changedAt: nowIso,
+        changedBy,
+        reason,
+        source,
+      });
+
+      return {
+        created: true,
+        appointmentId,
+        workOrderId,
+      };
+    });
+
+    return {
+      created: result.created,
+      appointmentId: result.appointmentId,
+      workOrder: this.getWorkOrderRecordById(result.workOrderId),
+      intakeEvent: result.created ? this.getIntakeEventById(intakeEventId) : null,
+    };
   }
 
   listVehicles() {
@@ -1547,6 +1995,19 @@ export class SqliteRepository {
           nowIso,
           nowIso,
         );
+
+      this.createWorkOrderStatusHistoryEntry({
+        id: `woh-${randomUUID().split("-")[0]}`,
+        workOrderId,
+        fromStatus: null,
+        fromStatusLabelRu: null,
+        toStatus: status,
+        toStatusLabelRu: statusLabelRu,
+        changedAt: nowIso,
+        changedBy: "front_desk",
+        reason: "Прием walk-in",
+        source: "walk_in_intake",
+      });
     });
 
     return {

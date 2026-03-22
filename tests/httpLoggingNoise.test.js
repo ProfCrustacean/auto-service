@@ -126,6 +126,12 @@ test("unexpected API failures log request context with requestId", async () => {
     walkInIntakeService: {
       createWalkInIntake() { throw new Error("not_implemented"); },
     },
+    workOrderService: {
+      listWorkOrders() { return []; },
+      getWorkOrderById() { return null; },
+      updateWorkOrderById() { return null; },
+      convertAppointmentToWorkOrder() { throw new Error("not_implemented"); },
+    },
   });
 
   const server = app.listen(0);

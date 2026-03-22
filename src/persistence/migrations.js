@@ -269,4 +269,66 @@ export const MIGRATIONS = [
       DROP INDEX IF EXISTS idx_vehicles_label;
     `,
   },
+  {
+    version: "007",
+    name: "add_work_order_lifecycle_audit_tables",
+    up: `
+      CREATE TABLE IF NOT EXISTS work_order_status_history (
+        id TEXT PRIMARY KEY,
+        work_order_id TEXT NOT NULL REFERENCES work_orders(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        from_status TEXT,
+        from_status_label_ru TEXT,
+        to_status TEXT NOT NULL,
+        to_status_label_ru TEXT NOT NULL,
+        changed_at TEXT NOT NULL,
+        changed_by TEXT,
+        reason TEXT,
+        source TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_work_order_status_history_order_changed
+      ON work_order_status_history(work_order_id, changed_at DESC);
+
+      CREATE TABLE IF NOT EXISTS appointment_work_order_links (
+        appointment_id TEXT PRIMARY KEY REFERENCES appointments(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        work_order_id TEXT NOT NULL UNIQUE REFERENCES work_orders(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        created_at TEXT NOT NULL
+      );
+
+      INSERT INTO work_order_status_history(
+        id,
+        work_order_id,
+        from_status,
+        from_status_label_ru,
+        to_status,
+        to_status_label_ru,
+        changed_at,
+        changed_by,
+        reason,
+        source
+      )
+      SELECT
+        'woh-' || lower(hex(randomblob(8))),
+        w.id,
+        NULL,
+        NULL,
+        w.status,
+        w.status_label_ru,
+        COALESCE(w.created_at, w.updated_at, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+        'migration',
+        'Initial lifecycle history backfill',
+        'migration_007_backfill'
+      FROM work_orders w
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM work_order_status_history h
+        WHERE h.work_order_id = w.id
+      );
+    `,
+    down: `
+      DROP TABLE IF EXISTS appointment_work_order_links;
+      DROP INDEX IF EXISTS idx_work_order_status_history_order_changed;
+      DROP TABLE IF EXISTS work_order_status_history;
+    `,
+  },
 ];
