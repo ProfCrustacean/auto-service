@@ -122,7 +122,10 @@ RENDER_API_KEY="<key>" npm run verify:render
 Behavior:
 - triggers deploy for `RENDER_SERVICE_ID` (default `srv-d6vcmt7diees73d0j04g`)
 - polls deploy until `live` (configurable timeout/interval)
+- asserts deploy commit parity against expected commit (`git HEAD` by default)
 - runs `npm run smoke` against `APP_BASE_URL` (default service URL)
+- runs `npm run scenario:scheduling-walkin -- --non-destructive` against deployed URL
+- audits Render build/app logs for warn/error/repo-access signals in the deploy window
 - deploy-triggering mode requires `RENDER_API_KEY`
 
 Useful toggles:
@@ -130,6 +133,13 @@ Useful toggles:
 - `RENDER_USE_RESOLVE=0` → disable `curl --resolve` workaround
 - `RENDER_RESOLVE_IP=<ip>` → override resolve IP (default `216.24.57.7`)
 - `RENDER_DEPLOY_TIMEOUT_MS=<ms>` and `RENDER_DEPLOY_POLL_INTERVAL_MS=<ms>` → tune polling
+- `RENDER_VERIFY_COMMIT_PARITY=0` → disable deploy commit parity check (default enabled)
+- `RENDER_EXPECT_COMMIT=<sha>` → override expected commit for parity check
+- `RENDER_VERIFY_INCLUDE_SCENARIO=0` → skip deployed non-destructive scenario check
+- `RENDER_VERIFY_LOG_AUDIT=0` → skip post-deploy log audit
+- `RENDER_LOG_AUDIT_LIMIT=<n>` → per-type (`build`/`app`) log row cap (default `1000`)
+- `RENDER_LOG_AUDIT_MAX_WARNINGS=<n>` / `RENDER_LOG_AUDIT_MAX_ERRORS=<n>` / `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=<n>` → audit thresholds (default `0`)
+- `RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION=0` → do not fail when log API reports `hasMore=true`
 
 ### Current validated Render target (2026-03-21)
 

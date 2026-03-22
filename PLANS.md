@@ -128,6 +128,91 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-21 — Linear Playwright workflow integrated into harness
 - 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
 
+## Completed Plan — AUT-24/25/26 deploy-gate hardening (2026-03-22)
+
+### Objective
+
+Harden the Render deployment gate so `verify:render` validates actual release parity and post-deploy runtime quality, not only deploy status.
+
+### Why now
+
+Phase 1 closeout needed stronger deploy confidence checks and less manual post-deploy investigation.
+
+### Scope
+
+- Add deploy commit parity assertion.
+- Add non-destructive deployed scheduling/walk-in scenario to the gate.
+- Add post-deploy Render log audit with explicit thresholds.
+- Update runbook/README contract.
+
+### Out of scope
+
+- Work-order/product feature expansion.
+- VPS migration path (still Render-first for Phase 1).
+
+### Current-state validation
+
+- Existing gate covered deploy trigger + wait-live + smoke only.
+- No automated proof that deployed commit matched local intent.
+- No automated post-deploy log triage in gate path.
+
+### Relevant packet rules and defaults
+
+- Prefer deterministic one-command verification.
+- Keep deployed verification safe by default (read-only scenario on non-local targets).
+- Keep machine-parseable diagnostics and clear failure signals.
+
+### Target outcome
+
+- `npm run verify:render` now:
+  1. deploys and waits for `live`,
+  2. checks deployed commit parity,
+  3. runs deployed smoke,
+  4. runs deployed non-destructive scenario,
+  5. audits post-deploy logs and enforces thresholds.
+
+### Ordered execution slices
+1. Extend `scripts/verify-render.js` with parity/log-audit/scenario stages.
+2. Keep thresholds/env toggles explicit and fail-fast.
+3. Update README + runbook for the new gate contract.
+4. Re-run local and deployed verification.
+
+### Verification and evidence plan
+
+- `npm test`
+- `npm run verify`
+- `RENDER_API_KEY=... npm run verify:render`
+- capture outputs in `evidence/`.
+
+### Deployment / update plan
+
+- Push to `main`.
+- Run `verify:render` after push so commit parity proves the shipped commit, not pre-push state.
+
+### Risks and fallback plan
+
+- Risk: Render logs API truncation.
+  - Mitigation: fail by default on `hasMore=true`, configurable via env toggle.
+- Risk: parity check cannot infer expected commit.
+  - Mitigation: explicit `RENDER_EXPECT_COMMIT=<sha>` override.
+- Risk: over-strict thresholds.
+  - Mitigation: explicit env thresholds with secure defaults.
+
+### Progress log
+
+- 2026-03-22: Implemented commit parity gate (`RENDER_VERIFY_COMMIT_PARITY`, `RENDER_EXPECT_COMMIT`).
+- 2026-03-22: Added deployed non-destructive scenario stage in `verify:render`.
+- 2026-03-22: Added post-deploy log audit for build/app logs with threshold checks.
+- 2026-03-22: Updated `README.md` and `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`.
+- 2026-03-22: Verification reruns passed:
+  - `npm test`,
+  - `npm run verify`,
+  - `npm run verify:render` (deploy `dep-d6vke77kijhs73ctdecg`, parity + smoke + scenario + log audit all passed).
+
+### Completion checkpoint
+
+Completed on 2026-03-22 with deploy gate behavior expanded from deploy+smoke to deploy+parity+smoke+scenario+log-audit.
+
 ## Completed Plan — Deploy-aware verification gate for Render (2026-03-22)
 
 ### Objective

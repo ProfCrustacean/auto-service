@@ -33,8 +33,12 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Linear harness automation implemented: Playwright-backed `probe/create` CLI for deterministic Linear task operations with dry-run and title-based skip behavior.
 - Verification gate hardened: `npm run verify` now self-boots an isolated app+DB, runs smoke plus scheduling/walk-in scenario checks, and shuts down automatically.
 - Deploy-aware verification gates implemented:
-  - `npm run verify:render` (Render deploy + wait-live + remote smoke),
+  - `npm run verify:render` (Render deploy + wait-live + commit-parity + remote smoke + deployed non-destructive scenario + post-deploy log audit),
   - `npm run verify:full` (local verify + Render stage).
+- Deploy gate hardening follow-ups completed:
+  - `AUT-24`: commit parity assertion in Render deploy gate.
+  - `AUT-25`: automated post-deploy Render build/app log audit with threshold gating.
+  - `AUT-26`: deployed non-destructive scheduling/walk-in scenario integrated into `verify:render`.
 - Harness hardening follow-ups completed:
   - `AUT-21`: scenario defaults to non-destructive mode on non-local targets with explicit override switches.
   - `AUT-22`: smoke/scenario scripts decoupled from fixed fixtures via contract assertions, dynamic entity selection, and minimal resource provisioning.
@@ -46,10 +50,10 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-22: AUT-13 completed (operational search by customer/phone/plate/VIN/model), with API+UI regression and verify gates passing.
+- 2026-03-22: AUT-24/25/26 completed (Render deploy gate hardening: commit parity + post-deploy log audit + deployed non-destructive scenario).
 
 ### Current active objective
-- Complete Phase 1 deployment/observability closeout (`AUT-15`) by deploying current dashboard contract (week board + unified search) to Render and re-running live smoke checks.
+- Maintain Phase 1 closeout quality bar by keeping deploy-aware verification as the release gate and syncing Linear issue state with latest evidence.
 
 ## Confirmed decisions (human input)
 
@@ -89,6 +93,12 @@ Codex must keep this file current enough that a new Codex run can answer:
 ## Verification status
 
 ### Automated checks
+- `npm test` (AUT-24/25/26 regression): passed on 2026-03-22.
+- evidence: `evidence/test-after-aut24-aut26-v2.txt`
+- `npm run verify` (AUT-24/25/26 regression): passed on 2026-03-22.
+- evidence: `evidence/verify-after-aut24-aut26-v2.txt`
+- `RENDER_API_KEY=*** npm run verify:render` (deploy parity + smoke + scenario + log audit): passed on 2026-03-22.
+- evidence: `evidence/verify-render-after-aut24-aut26.txt`
 - `npm test` (Node test runner): passed on 2026-03-22.
 - evidence: `evidence/test-output.txt`
 - `npm test` (Linear harness + full regression rerun): passed on 2026-03-22.
@@ -121,6 +131,12 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/test-after-aut18-recheck.txt`
 
 ### End-to-end checks
+- deploy-aware Render gate (`npm run verify:render`) passed on 2026-03-22 for deploy `dep-d6vke77kijhs73ctdecg`:
+  - deploy reached `live`,
+  - commit parity check passed (`expected == actual`),
+  - deployed smoke passed,
+  - deployed scheduling/walk-in scenario passed in explicit non-destructive mode,
+  - post-deploy log audit passed (`warn=0`, `error=0`, `repoAccessWarnings=0`).
 - local smoke (`npm run smoke`): passed on 2026-03-21.
 - local appointment lifecycle smoke: passed on 2026-03-21.
 - local walk-in intake smoke: passed on 2026-03-21.
@@ -464,13 +480,13 @@ Most recent useful evidence:
 
 ## Open blockers
 
-- `AUT-15` remains blocked on deployment content parity: Render deploys are healthy, but smoke still fails because deployed contract does not yet include latest local week/search dashboard changes.
+- No active technical blockers are currently confirmed for the Phase 1 harness scope.
 
 ## Next recommended milestone
 
-1. Complete `AUT-15` by pushing current Phase 1 changes to deployable branch and running `npm run verify:full` (deploy + smoke) against Render.
-2. Confirm Render smoke includes both week-board and unified-search contracts (`/api/v1/dashboard/today` + `/api/v1/search` + dashboard UI search section).
-3. Close Phase 1 parent `AUT-5` after deployment evidence and state docs are updated.
+1. Sync Linear states/comments for `AUT-24`, `AUT-25`, and `AUT-26` to `Done` with deploy evidence links.
+2. Run `npm run verify:full` as the default pre-merge/pre-release gate for all Phase 1 closeout changes.
+3. Start Phase 2 planning slice (work-order lifecycle) with the hardened deploy gate as baseline acceptance.
 
 ## Update rule
 

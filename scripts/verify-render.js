@@ -7,10 +7,31 @@ const DEFAULT_RENDER_BASE_URL = "https://auto-service-foundation.onrender.com";
 const DEFAULT_RENDER_RESOLVE_IP = "216.24.57.7";
 const DEFAULT_POLL_TIMEOUT_MS = 15 * 60 * 1000;
 const DEFAULT_POLL_INTERVAL_MS = 10 * 1000;
+const DEFAULT_LOG_AUDIT_LIMIT = 1000;
+const DEFAULT_LOG_AUDIT_MAX_WARNINGS = 0;
+const DEFAULT_LOG_AUDIT_MAX_ERRORS = 0;
+const DEFAULT_LOG_AUDIT_MAX_REPO_WARNINGS = 0;
+const DEFAULT_LOG_AUDIT_WINDOW_PAD_MS = 30 * 1000;
+const ANSI_ESCAPE_PATTERN = /\u001B\[[0-?]*[ -/]*[@-~]/gu;
+const COMMIT_ID_PATTERN = /^[a-f0-9]{7,40}$/u;
+const ERROR_TEXT_PATTERN = /\b(error|exception|fatal|failed|panic|traceback|unhandled)\b/iu;
+const REPO_ACCESS_WARNING_PATTERN = /don't have access to your repo/iu;
+const LOG_SEVERITY_RANK = {
+  info: 0,
+  warn: 1,
+  error: 2,
+  fatal: 3,
+};
 
 function assertPositiveInteger(value, fieldName) {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${fieldName} must be a positive integer`);
+  }
+}
+
+function assertNonNegativeInteger(value, fieldName) {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${fieldName} must be a non-negative integer`);
   }
 }
 
@@ -112,6 +133,207 @@ function describeResponseBody(payload, fallbackText) {
   }
 
   return fallbackText;
+}
+
+function normalizeFlag(value, fieldName, defaultValue) {
+  if (value === undefined) {
+    return defaultValue;
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on") {
+    return true;
+  }
+  if (normalized === "0" || normalized === "false" || normalized === "no" || normalized === "off") {
+    return false;
+  }
+
+  throw new Error(`${fieldName} must be a boolean flag (1/0, true/false, yes/no, on/off)`);
+}
+
+function parseNonNegativeInteger(value, fieldName) {
+  const parsed = Number.parseInt(value, 10);
+  assertNonNegativeInteger(parsed, fieldName);
+  return parsed;
+}
+
+function parsePositiveInteger(value, fieldName) {
+  const parsed = Number.parseInt(value, 10);
+  assertPositiveInteger(parsed, fieldName);
+  return parsed;
+}
+
+function normalizeCommitId(value, fieldName) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${fieldName} is required`);
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (!COMMIT_ID_PATTERN.test(normalized)) {
+    throw new Error(`${fieldName} must be 7-40 lowercase hex characters`);
+  }
+
+  return normalized;
+}
+
+function commitIdsMatch(expectedCommitId, actualCommitId) {
+  return actualCommitId.startsWith(expectedCommitId) || expectedCommitId.startsWith(actualCommitId);
+}
+
+async function resolveExpectedCommitId(explicitCommitId) {
+  if (explicitCommitId.length > 0) {
+    return {
+      expectedCommitId: normalizeCommitId(explicitCommitId, "RENDER_EXPECT_COMMIT"),
+      source: "env",
+    };
+  }
+
+  const { stdout } = await runCommandCapture("git", ["rev-parse", "HEAD"], {
+    env: process.env,
+    label: "git rev-parse HEAD",
+  });
+  const gitCommitId = stdout.trim();
+  if (gitCommitId.length === 0) {
+    throw new Error("git rev-parse HEAD returned empty output");
+  }
+
+  return {
+    expectedCommitId: normalizeCommitId(gitCommitId, "git HEAD commit"),
+    source: "git",
+  };
+}
+
+function assertDeployCommitParity({ expectedCommitId, deployPayload }) {
+  const actualCommitRaw = deployPayload?.commit?.id;
+  if (typeof actualCommitRaw !== "string" || actualCommitRaw.trim().length === 0) {
+    throw new Error("Render deploy payload did not include commit.id for parity verification");
+  }
+
+  const actualCommitId = normalizeCommitId(actualCommitRaw, "deploy.commit.id");
+  if (!commitIdsMatch(expectedCommitId, actualCommitId)) {
+    throw new Error(
+      `Render deploy commit mismatch: expected ${expectedCommitId}, actual ${actualCommitId}`,
+    );
+  }
+
+  return actualCommitId;
+}
+
+function stripAnsi(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+  return value.replace(ANSI_ESCAPE_PATTERN, "");
+}
+
+function parseJsonObject(text) {
+  if (typeof text !== "string") {
+    return null;
+  }
+
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch {
+    // Best-effort parser for log lines.
+  }
+
+  return null;
+}
+
+function resolveLogLabelValue(entry, labelName) {
+  if (!Array.isArray(entry?.labels)) {
+    return "";
+  }
+
+  const match = entry.labels.find((label) => label?.name === labelName);
+  return typeof match?.value === "string" ? match.value.trim() : "";
+}
+
+function normalizeSeverity(value) {
+  if (typeof value !== "string") {
+    return "info";
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized.includes("fatal")) {
+    return "fatal";
+  }
+  if (normalized.includes("error")) {
+    return "error";
+  }
+  if (normalized.includes("warn")) {
+    return "warn";
+  }
+  return "info";
+}
+
+function highestSeverity(current, incoming) {
+  if (LOG_SEVERITY_RANK[incoming] > LOG_SEVERITY_RANK[current]) {
+    return incoming;
+  }
+  return current;
+}
+
+function resolveLogSeverity(entry) {
+  const message = stripAnsi(entry?.message ?? "");
+  const parsedJsonMessage = parseJsonObject(message);
+  const labelLevel = normalizeSeverity(resolveLogLabelValue(entry, "level"));
+  const jsonLevel = normalizeSeverity(parsedJsonMessage?.level);
+
+  let severity = highestSeverity(labelLevel, jsonLevel);
+  if (severity === "info" && ERROR_TEXT_PATTERN.test(message)) {
+    severity = "error";
+  }
+
+  return {
+    severity,
+    message,
+  };
+}
+
+function makeRenderLogsPath({
+  ownerId,
+  serviceId,
+  type,
+  startTime,
+  endTime,
+  limit,
+}) {
+  const params = new URLSearchParams();
+  params.set("ownerId", ownerId);
+  params.set("resource", serviceId);
+  params.set("type", type);
+  params.set("startTime", startTime);
+  params.set("endTime", endTime);
+  params.set("limit", String(limit));
+  return `/logs?${params.toString()}`;
+}
+
+function safeIsoDateOrNull(value) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return null;
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed.toISOString();
+}
+
+function getLogAuditWindowStart(deployPayload) {
+  const candidate = safeIsoDateOrNull(deployPayload?.startedAt)
+    ?? safeIsoDateOrNull(deployPayload?.createdAt)
+    ?? new Date(Date.now() - (15 * 60 * 1000)).toISOString();
+  const shifted = new Date(new Date(candidate).getTime() - DEFAULT_LOG_AUDIT_WINDOW_PAD_MS);
+  return shifted.toISOString();
 }
 
 async function renderApiRequest({
@@ -295,6 +517,160 @@ function resolveBaseUrl({ explicitBaseUrl, servicePayload }) {
   return DEFAULT_RENDER_BASE_URL;
 }
 
+async function runPostDeployLogAudit({
+  serviceId,
+  ownerId,
+  deployPayload,
+  apiBaseUrl,
+  apiKey,
+  useResolve,
+  resolveIp,
+  logLimit,
+  maxWarnings,
+  maxErrors,
+  maxRepoWarnings,
+  failOnTruncation,
+}) {
+  const startTime = getLogAuditWindowStart(deployPayload);
+  const endTime = new Date().toISOString();
+
+  const logTypes = ["build", "app"];
+  const typedResponses = await Promise.all(
+    logTypes.map(async (type) => {
+      const path = makeRenderLogsPath({
+        ownerId,
+        serviceId,
+        type,
+        startTime,
+        endTime,
+        limit: logLimit,
+      });
+
+      const response = await renderApiRequest({
+        method: "GET",
+        path,
+        apiBaseUrl,
+        apiKey,
+        useResolve,
+        resolveIp,
+      });
+
+      const payload = response.payload ?? {};
+      const logs = Array.isArray(payload.logs) ? payload.logs : [];
+      return {
+        type,
+        hasMore: payload?.hasMore === true,
+        logs,
+      };
+    }),
+  );
+
+  const dedupedLogs = [];
+  const seen = new Set();
+  for (const response of typedResponses) {
+    for (const logEntry of response.logs) {
+      const key = typeof logEntry?.id === "string"
+        ? logEntry.id
+        : `${logEntry?.timestamp ?? ""}|${logEntry?.message ?? ""}|${response.type}`;
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        dedupedLogs.push(logEntry);
+      }
+    }
+  }
+
+  dedupedLogs.sort((left, right) => {
+    const leftTime = new Date(left?.timestamp ?? "").getTime();
+    const rightTime = new Date(right?.timestamp ?? "").getTime();
+    return leftTime - rightTime;
+  });
+
+  const severityCounts = {
+    info: 0,
+    warn: 0,
+    error: 0,
+    fatal: 0,
+  };
+  const severeSamples = [];
+  let repoAccessWarningCount = 0;
+  for (const logEntry of dedupedLogs) {
+    const { severity, message } = resolveLogSeverity(logEntry);
+    severityCounts[severity] += 1;
+
+    if (REPO_ACCESS_WARNING_PATTERN.test(message)) {
+      repoAccessWarningCount += 1;
+    }
+
+    if ((severity === "warn" || severity === "error" || severity === "fatal") && severeSamples.length < 10) {
+      severeSamples.push({
+        id: logEntry?.id ?? null,
+        timestamp: logEntry?.timestamp ?? null,
+        severity,
+        message: message.slice(0, 240),
+      });
+    }
+  }
+
+  const typeSummary = Object.fromEntries(
+    typedResponses.map((item) => [
+      item.type,
+      {
+        rows: item.logs.length,
+        hasMore: item.hasMore,
+      },
+    ]),
+  );
+  const truncatedTypes = typedResponses.filter((item) => item.hasMore).map((item) => item.type);
+
+  const summary = {
+    startTime,
+    endTime,
+    totals: {
+      rows: dedupedLogs.length,
+      bySeverity: severityCounts,
+      repoAccessWarningCount,
+      truncatedTypes,
+    },
+    thresholds: {
+      maxWarnings,
+      maxErrors,
+      maxRepoWarnings,
+      failOnTruncation,
+    },
+    types: typeSummary,
+    severeSamples,
+  };
+
+  logJson({
+    status: "render_verify_log_audit_summary",
+    serviceId,
+    deployId: deployPayload?.id ?? null,
+    summary,
+  });
+
+  const warningCount = severityCounts.warn;
+  const errorCount = severityCounts.error + severityCounts.fatal;
+  const failures = [];
+
+  if (warningCount > maxWarnings) {
+    failures.push(`warnings=${warningCount} exceeded threshold=${maxWarnings}`);
+  }
+  if (errorCount > maxErrors) {
+    failures.push(`errors=${errorCount} exceeded threshold=${maxErrors}`);
+  }
+  if (repoAccessWarningCount > maxRepoWarnings) {
+    failures.push(`repoAccessWarnings=${repoAccessWarningCount} exceeded threshold=${maxRepoWarnings}`);
+  }
+  if (failOnTruncation && truncatedTypes.length > 0) {
+    failures.push(`log response truncated for types: ${truncatedTypes.join(", ")}`);
+  }
+
+  if (failures.length > 0) {
+    throw new Error(`Render post-deploy log audit failed: ${failures.join("; ")}`);
+  }
+}
+
 async function main() {
   const apiBaseUrl = process.env.RENDER_API_BASE_URL ?? DEFAULT_RENDER_API_BASE_URL;
   const serviceId = process.env.RENDER_SERVICE_ID ?? DEFAULT_RENDER_SERVICE_ID;
@@ -303,6 +679,31 @@ async function main() {
   const useResolve = process.env.RENDER_USE_RESOLVE !== "0";
   const resolveIp = process.env.RENDER_RESOLVE_IP ?? DEFAULT_RENDER_RESOLVE_IP;
   const skipDeploy = process.env.RENDER_SKIP_DEPLOY === "1";
+  const includeScenario = normalizeFlag(process.env.RENDER_VERIFY_INCLUDE_SCENARIO, "RENDER_VERIFY_INCLUDE_SCENARIO", true);
+  const verifyCommitParity = normalizeFlag(process.env.RENDER_VERIFY_COMMIT_PARITY, "RENDER_VERIFY_COMMIT_PARITY", true);
+  const enableLogAudit = normalizeFlag(process.env.RENDER_VERIFY_LOG_AUDIT, "RENDER_VERIFY_LOG_AUDIT", true);
+  const failOnLogTruncation = normalizeFlag(
+    process.env.RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION,
+    "RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION",
+    true,
+  );
+  const expectedCommitOverride = process.env.RENDER_EXPECT_COMMIT?.trim() ?? "";
+  const logLimit = parsePositiveInteger(
+    process.env.RENDER_LOG_AUDIT_LIMIT ?? String(DEFAULT_LOG_AUDIT_LIMIT),
+    "RENDER_LOG_AUDIT_LIMIT",
+  );
+  const maxWarnings = parseNonNegativeInteger(
+    process.env.RENDER_LOG_AUDIT_MAX_WARNINGS ?? String(DEFAULT_LOG_AUDIT_MAX_WARNINGS),
+    "RENDER_LOG_AUDIT_MAX_WARNINGS",
+  );
+  const maxErrors = parseNonNegativeInteger(
+    process.env.RENDER_LOG_AUDIT_MAX_ERRORS ?? String(DEFAULT_LOG_AUDIT_MAX_ERRORS),
+    "RENDER_LOG_AUDIT_MAX_ERRORS",
+  );
+  const maxRepoWarnings = parseNonNegativeInteger(
+    process.env.RENDER_LOG_AUDIT_MAX_REPO_WARNINGS ?? String(DEFAULT_LOG_AUDIT_MAX_REPO_WARNINGS),
+    "RENDER_LOG_AUDIT_MAX_REPO_WARNINGS",
+  );
 
   const pollIntervalMs = Number.parseInt(
     process.env.RENDER_DEPLOY_POLL_INTERVAL_MS ?? String(DEFAULT_POLL_INTERVAL_MS),
@@ -325,6 +726,15 @@ async function main() {
     serviceId,
     apiBaseUrl,
     skipDeploy,
+    includeScenario,
+    verifyCommitParity,
+    enableLogAudit,
+    logAuditLimit: logLimit,
+    maxWarnings,
+    maxErrors,
+    maxRepoWarnings,
+    failOnLogTruncation,
+    expectedCommitSource: expectedCommitOverride.length > 0 ? "env" : "git",
     useResolve,
     resolveIp: useResolve ? resolveIp : null,
   });
@@ -401,6 +811,33 @@ async function main() {
       pollIntervalMs,
       timeoutMs: pollTimeoutMs,
     });
+
+    if (verifyCommitParity) {
+      logJson({
+        status: "render_verify_step_started",
+        step: "deploy_commit_parity",
+        deployId: deployPayload?.id ?? null,
+      });
+
+      const { expectedCommitId, source } = await resolveExpectedCommitId(expectedCommitOverride);
+      const actualCommitId = assertDeployCommitParity({
+        expectedCommitId,
+        deployPayload,
+      });
+      logJson({
+        status: "render_verify_commit_parity_passed",
+        deployId: deployPayload?.id ?? null,
+        expectedCommitId,
+        expectedCommitSource: source,
+        actualCommitId,
+      });
+    }
+  } else if (verifyCommitParity) {
+    logJson({
+      status: "render_verify_step_skipped",
+      step: "deploy_commit_parity",
+      reason: "skip_deploy_enabled",
+    });
   }
 
   const baseUrl = resolveBaseUrl({ explicitBaseUrl, servicePayload });
@@ -420,13 +857,71 @@ async function main() {
     label: "render smoke",
   });
 
+  if (includeScenario) {
+    logJson({
+      status: "render_verify_step_started",
+      step: "scenario_scheduling_walkin_non_destructive",
+      baseUrl,
+      skipDeploy,
+    });
+
+    await runProcess(process.execPath, ["scripts/scheduling-walkin-scenario.js", "--non-destructive"], {
+      env: {
+        ...process.env,
+        APP_BASE_URL: baseUrl,
+        SCENARIO_NON_DESTRUCTIVE: "1",
+      },
+      label: "render scenario:scheduling-walkin",
+    });
+  }
+
+  if (!skipDeploy && enableLogAudit) {
+    const ownerId = servicePayload?.ownerId;
+    if (typeof ownerId !== "string" || ownerId.trim().length === 0) {
+      throw new Error("Render service payload did not include ownerId required for log audit");
+    }
+
+    logJson({
+      status: "render_verify_step_started",
+      step: "post_deploy_log_audit",
+      serviceId,
+      ownerId,
+      deployId: deployPayload?.id ?? null,
+    });
+
+    await runPostDeployLogAudit({
+      serviceId,
+      ownerId,
+      deployPayload,
+      apiBaseUrl,
+      apiKey,
+      useResolve,
+      resolveIp,
+      logLimit,
+      maxWarnings,
+      maxErrors,
+      maxRepoWarnings,
+      failOnTruncation: failOnLogTruncation,
+    });
+  } else if (enableLogAudit) {
+    logJson({
+      status: "render_verify_step_skipped",
+      step: "post_deploy_log_audit",
+      reason: "skip_deploy_enabled",
+    });
+  }
+
   logJson({
     status: "render_verify_passed",
     serviceId,
     baseUrl,
     skipDeploy,
+    includeScenario,
+    verifyCommitParity,
+    enableLogAudit,
     deployId: deployPayload?.id ?? null,
     deployStatus: deployPayload?.status ?? null,
+    deployCommitId: deployPayload?.commit?.id ?? null,
   });
 }
 

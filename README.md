@@ -182,7 +182,10 @@ Render stage commands:
 - `npm run verify:render`:
   - triggers Render deploy for configured service,
   - waits for deploy to reach `live`,
-  - then runs smoke against deployed URL.
+  - verifies deploy commit matches expected local commit (`git HEAD` by default),
+  - runs smoke against deployed URL,
+  - runs non-destructive scheduling+walk-in scenario against deployed URL,
+  - and runs a post-deploy Render build/runtime log audit.
 - `npm run verify:full`:
   - runs local `verify`,
   - then runs `verify:render`.
@@ -197,6 +200,12 @@ Render env defaults:
 - `RENDER_USE_RESOLVE=1` by default (uses `curl --resolve api.render.com:443:216.24.57.7` for API reliability in this environment)
 - `RENDER_SKIP_DEPLOY=1` to run deployed smoke without triggering a new deploy
 - `RENDER_DEPLOY_TIMEOUT_MS`, `RENDER_DEPLOY_POLL_INTERVAL_MS` to tune wait behavior
+- `RENDER_VERIFY_COMMIT_PARITY=1` by default; set `RENDER_EXPECT_COMMIT=<sha>` to pin expected commit explicitly
+- `RENDER_VERIFY_INCLUDE_SCENARIO=1` by default (runs deployed read-only scenario gate)
+- `RENDER_VERIFY_LOG_AUDIT=1` by default (runs post-deploy log audit)
+- `RENDER_LOG_AUDIT_LIMIT=1000` per log type (`build` + `app`)
+- `RENDER_LOG_AUDIT_MAX_WARNINGS=0`, `RENDER_LOG_AUDIT_MAX_ERRORS=0`, `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=0`
+- `RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION=1` by default
 
 Scenario mode defaults:
 - local base URL (`127.0.0.1`/`localhost`) => write mode
