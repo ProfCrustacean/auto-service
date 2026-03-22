@@ -242,6 +242,7 @@ export function renderDashboardPage(model) {
       margin: 0 auto;
       padding: 20px;
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 14px;
     }
 
@@ -250,6 +251,7 @@ export function renderDashboardPage(model) {
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 14px;
+      min-width: 0;
     }
 
     .header {
@@ -294,7 +296,7 @@ export function renderDashboardPage(model) {
 
     .search-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin-top: 10px;
     }
@@ -355,7 +357,7 @@ export function renderDashboardPage(model) {
 
     .split-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
     }
 

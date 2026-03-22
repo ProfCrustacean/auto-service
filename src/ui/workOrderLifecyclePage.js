@@ -19,6 +19,15 @@ const FIELD_LABELS = {
   reason: "Причина изменения",
 };
 
+const HISTORY_DATE_FORMATTER = new Intl.DateTimeFormat("ru-RU", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Moscow",
+});
+
 function dedupe(values) {
   const seen = new Set();
   const result = [];
@@ -43,6 +52,19 @@ function normalizeFormValue(values, field, fallback = "") {
   return String(value);
 }
 
+function formatHistoryTimestamp(isoValue) {
+  if (typeof isoValue !== "string" || isoValue.trim().length === 0) {
+    return "н/д";
+  }
+
+  const date = new Date(isoValue);
+  if (Number.isNaN(date.getTime())) {
+    return "н/д";
+  }
+
+  return HISTORY_DATE_FORMATTER.format(date);
+}
+
 function renderHistoryRows(history) {
   if (!Array.isArray(history) || history.length === 0) {
     return '<tr><td colspan="5" class="muted">История переходов пока пустая</td></tr>';
@@ -54,11 +76,15 @@ function renderHistoryRows(history) {
       const to = entry.toStatusLabelRu;
       const changedBy = entry.changedBy ?? "system";
       const reason = entry.reason ?? "Без комментария";
-      const changedAt = entry.changedAt ?? "н/д";
+      const changedAtIso = typeof entry.changedAt === "string" ? entry.changedAt : "";
+      const changedAtLabel = formatHistoryTimestamp(changedAtIso);
+      const changedAtCell = changedAtIso.length > 0
+        ? `<time datetime="${escapeHtml(changedAtIso)}" title="${escapeHtml(changedAtIso)}">${escapeHtml(changedAtLabel)}</time>`
+        : escapeHtml(changedAtLabel);
 
       return `<tr>
         <td>${escapeHtml(from)} → ${escapeHtml(to)}</td>
-        <td>${escapeHtml(changedAt)}</td>
+        <td>${changedAtCell}</td>
         <td>${escapeHtml(changedBy)}</td>
         <td>${escapeHtml(reason)}</td>
         <td>${escapeHtml(entry.source ?? "manual")}</td>
@@ -237,15 +263,22 @@ export function renderActiveWorkOrderQueuePage({ items }) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Активная очередь заказ-нарядов</title>
   <style>
+    * { box-sizing: border-box; }
     body { margin: 0; font-family: "Manrope", "Segoe UI", sans-serif; background: #f4f7f3; color: #1d2c22; }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 20px; display: grid; gap: 12px; }
-    .panel { background: #fff; border: 1px solid #d3ddd4; border-radius: 14px; padding: 14px; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .panel { background: #fff; border: 1px solid #d3ddd4; border-radius: 14px; padding: 14px; min-width: 0; }
     .btn { text-decoration: none; border: 1px solid #d3ddd4; border-radius: 999px; padding: 6px 12px; color: #1d2c22; display: inline-block; }
     .table-wrap { overflow-x: auto; border: 1px solid #d3ddd4; border-radius: 10px; }
     table { width: 100%; border-collapse: collapse; min-width: 680px; }
-    th, td { text-align: left; padding: 8px; border-top: 1px solid #d3ddd4; vertical-align: top; }
+    th, td { text-align: left; padding: 8px; border-top: 1px solid #d3ddd4; vertical-align: top; word-break: break-word; }
     th { border-top: none; background: #f8fbf8; color: #5b6d61; }
     td a { color: #1f7a55; text-decoration: none; font-weight: 600; }
+    @media (max-width: 760px) {
+      .wrap { padding: 12px; }
+      table { min-width: 0; table-layout: fixed; }
+      th:nth-child(4), td:nth-child(4),
+      th:nth-child(5), td:nth-child(5) { display: none; }
+    }
   </style>
 </head>
 <body>

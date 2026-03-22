@@ -53,12 +53,15 @@ test("work-order workspace page renders lifecycle controls and history", async (
     assert.match(detailHtml, /Заказ-наряд WO-1004/u);
     assert.match(detailHtml, /Управление жизненным циклом/u);
     assert.match(detailHtml, /История статусов/u);
+    assert.match(detailHtml, /<time datetime="[^"]+T[^"]+Z" title="[^"]+T[^"]+Z">\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}<\/time>/u);
 
     const queueRes = await fetch(`${baseUrl}/work-orders/active`);
     assert.equal(queueRes.status, 200);
     const queueHtml = await queueRes.text();
     assert.match(queueHtml, /Активная очередь заказ-нарядов/u);
     assert.match(queueHtml, /WO-1004/u);
+    assert.match(queueHtml, /grid-template-columns: minmax\(0, 1fr\);/u);
+    assert.match(queueHtml, /@media \(max-width: 760px\)/u);
   } finally {
     await closeServer(server);
     database.close();

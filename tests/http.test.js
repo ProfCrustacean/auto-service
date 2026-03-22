@@ -36,6 +36,8 @@ test("health and dashboard endpoints return successful responses", async () => {
     assert.match(html, /План недели: загрузка и перегруз/);
     assert.match(html, /Быстрый поиск клиента и авто/);
     assert.match(html, /Готово к выдаче, но не оплачено/);
+    assert.match(html, /grid-template-columns: minmax\(0, 1fr\);/);
+    assert.match(html, /min-width: 0;/);
 
     const dashboardSearchRes = await fetch(`${baseUrl}/api/v1/dashboard/today?q=Focus`);
     assert.equal(dashboardSearchRes.status, 200);
