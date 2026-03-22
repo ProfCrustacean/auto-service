@@ -5,6 +5,7 @@ import { spawn } from "node:child_process";
 import { gzipSync } from "node:zlib";
 import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 import { redactSecrets, redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
+import { parseRenderVerifyCliArgs, resolveSkipDeployFromInputs } from "./verify-render-cli.js";
 
 loadDotenvIntoProcessSync();
 const DEFAULT_RENDER_API_BASE_URL = "https://api.render.com/v1";
@@ -773,13 +774,17 @@ async function runPostDeployLogAudit({
 }
 
 async function main() {
+  const cliOptions = parseRenderVerifyCliArgs(process.argv.slice(2));
   const apiBaseUrl = process.env.RENDER_API_BASE_URL ?? DEFAULT_RENDER_API_BASE_URL;
   const serviceId = process.env.RENDER_SERVICE_ID ?? DEFAULT_RENDER_SERVICE_ID;
   const explicitBaseUrl = process.env.APP_BASE_URL?.trim() ?? "";
   const apiKey = process.env.RENDER_API_KEY?.trim() ?? "";
   const useResolve = process.env.RENDER_USE_RESOLVE !== "0";
   const resolveIp = process.env.RENDER_RESOLVE_IP ?? DEFAULT_RENDER_RESOLVE_IP;
-  const skipDeploy = process.env.RENDER_SKIP_DEPLOY === "1";
+  const skipDeploy = resolveSkipDeployFromInputs({
+    envValue: process.env.RENDER_SKIP_DEPLOY,
+    cliOptions,
+  });
   const includeScenario = normalizeFlag(process.env.RENDER_VERIFY_INCLUDE_SCENARIO, "RENDER_VERIFY_INCLUDE_SCENARIO", true);
   const includeBookingScenario = normalizeFlag(
     process.env.RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO,
@@ -868,6 +873,7 @@ async function main() {
     serviceId,
     apiBaseUrl,
     skipDeploy,
+    cliDeployMode: cliOptions.deployMode,
     includeScenario,
     includeBookingScenario,
     includeWalkInPageScenario,

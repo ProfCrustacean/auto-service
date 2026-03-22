@@ -71,6 +71,13 @@ npm run verify
 npm run audit:bloat
 ```
 
+Repository hygiene dry-run/apply:
+
+```bash
+npm run cleanup:spring
+npm run cleanup:spring:apply
+```
+
 Harness scripts auto-load `.env` and `.env.local` without overriding explicitly exported environment variables.
 Harness outputs written to stdout/stderr/files are redacted before persistence to avoid credential leakage.
 
@@ -177,6 +184,8 @@ Behavior:
 
 Useful toggles:
 - `RENDER_SKIP_DEPLOY=1` → smoke deployed URL without triggering a new deploy
+- `npm run verify:render -- --skip-deploy` → explicit CLI deploy skip override
+- `npm run verify:render -- --deploy` → explicit CLI deploy mode override
 - `RENDER_USE_RESOLVE=0` → disable `curl --resolve` workaround
 - `RENDER_RESOLVE_IP=<ip>` → override resolve IP (default `216.24.57.7`)
 - `RENDER_DEPLOY_TIMEOUT_MS=<ms>` and `RENDER_DEPLOY_POLL_INTERVAL_MS=<ms>` → tune polling

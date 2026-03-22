@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-22T22:52:34.670Z",
+  "generatedAt": "2026-03-22T23:18:27.085Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1217833,
+      "totalBytes": 1031375,
       "byArea": {
         "src": 414505,
         "tests": 132398,
-        "scripts": 177353,
-        "docs": 73386,
-        "evidence": 196419,
-        "other": 223772
+        "scripts": 177619,
+        "docs": 73999,
+        "evidence": 7468,
+        "other": 225386
       }
     },
     "topTrackedFiles": [
@@ -43,10 +43,6 @@
         "bytes": 69135
       },
       {
-        "path": "evidence/render-log-audit-latest-deploy-window.json",
-        "bytes": 46295
-      },
-      {
         "path": "STATUS_ARCHIVE.md",
         "bytes": 33641
       },
@@ -56,7 +52,7 @@
       },
       {
         "path": "scripts/verify-render.js",
-        "bytes": 31894
+        "bytes": 32160
       },
       {
         "path": "package-lock.json",
@@ -107,37 +103,41 @@
         "bytes": 15957
       },
       {
-        "path": "evidence/render-aut16-log-window.json",
-        "bytes": 14900
-      },
-      {
         "path": "scripts/booking-page-scenario.js",
         "bytes": 14710
+      },
+      {
+        "path": "docs/23_LOCAL_AND_RENDER_RUNBOOK.md",
+        "bytes": 13691
+      },
+      {
+        "path": "src/http/appointmentPageRoutes.js",
+        "bytes": 13175
       }
     ],
     "evidence": {
-      "trackedFileCount": 75,
-      "totalBytes": 196419,
+      "trackedFileCount": 3,
+      "totalBytes": 7468,
       "largestFile": {
-        "path": "evidence/render-log-audit-latest-deploy-window.json",
-        "bytes": 46295
+        "path": "evidence/linear-aut73-81-done-sync.json",
+        "bytes": 3567
       },
       "rawLikeTracked": []
     },
     "docs": {
       "lineCounts": {
-        "README": 311,
-        "STATUS": 117,
-        "PLANS": 174
+        "README": 320,
+        "STATUS": 123,
+        "PLANS": 190
       }
     },
     "duplication": {
-      "percentage": 10.66,
-      "duplicatedLines": 2059,
-      "clones": 143,
-      "sources": 91,
-      "lines": 19309,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-XTo1gN/report/jscpd-report.json"
+      "percentage": 10.57,
+      "duplicatedLines": 2085,
+      "clones": 146,
+      "sources": 96,
+      "lines": 19732,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-EvP9sp/report/jscpd-report.json"
     }
   },
   "violations": []

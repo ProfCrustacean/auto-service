@@ -233,6 +233,8 @@ Render env defaults:
 - `APP_BASE_URL` default: `https://auto-service-foundation.onrender.com`
 - `RENDER_USE_RESOLVE=1` by default (uses `curl --resolve api.render.com:443:216.24.57.7` for API reliability in this environment)
 - `RENDER_SKIP_DEPLOY=1` to run deployed smoke without triggering a new deploy
+- `npm run verify:render -- --skip-deploy` explicitly skips deploy regardless of env defaults
+- `npm run verify:render -- --deploy` explicitly forces deploy mode regardless of env defaults
 - `RENDER_DEPLOY_TIMEOUT_MS`, `RENDER_DEPLOY_POLL_INTERVAL_MS` to tune wait behavior
 - `RENDER_VERIFY_COMMIT_PARITY=1` by default; set `RENDER_EXPECT_COMMIT=<sha>` to pin expected commit explicitly
 - `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=1` by default (runs deployed read-only booking-page scenario gate)
@@ -271,6 +273,13 @@ Smoke/scenario failures are emitted as machine-parseable JSON with step and requ
 ```bash
 npm run evidence:summary -- --input evidence/example.raw.ndjson --output evidence/example.summary.json --gzip-raw --delete-input-after-gzip
 ```
+
+### Spring cleanup commands
+
+- canonical tracked evidence allowlist: `data/hygiene/evidence-canonical.json`
+- `npm run cleanup:spring` runs deterministic dry-run analysis for tracked and untracked `evidence/` files
+- `npm run cleanup:spring:apply` removes tracked evidence outside allowlist and prunes stale untracked `evidence/*`
+- both commands emit machine-readable JSON with candidate/pruned counts, bytes, and file lists
 
 ### Linear task harness commands
 

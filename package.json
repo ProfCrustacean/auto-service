@@ -19,6 +19,8 @@
     "scenario:walkin-page": "node scripts/walkin-page-scenario.js",
     "scenario:parts-flow": "node scripts/parts-flow-scenario.js",
     "scenario:scheduling-walkin": "node scripts/scheduling-walkin-scenario.js",
+    "cleanup:spring": "node scripts/cleanup-spring.js --dry-run --prune-tracked --prune-untracked",
+    "cleanup:spring:apply": "node scripts/cleanup-spring.js --apply --prune-tracked --prune-untracked",
     "evidence:summary": "node scripts/evidence-log-summary.js",
     "linear:probe": "node scripts/linear-harness.js probe",
     "linear:create": "node scripts/linear-harness.js create",

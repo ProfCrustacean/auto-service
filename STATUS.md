@@ -14,7 +14,7 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Phase 3 parts-flow block is delivered and verified; next priority is Phase 4 (payments and reporting closure).
+Spring cleanup wave is delivered and verified; next priority is Phase 4 (payments and reporting closure).
 
 ## Current state (2026-03-22)
 
@@ -43,6 +43,10 @@ Phase 3 parts-flow block is delivered and verified; next priority is Phase 4 (pa
 ### Harness/operations
 - Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
 - Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios including parts-flow, log audit).
+- Spring cleanup tooling is now available:
+  - `npm run cleanup:spring` (dry-run)
+  - `npm run cleanup:spring:apply` (tracked/untracked evidence pruning)
+  - canonical tracked evidence policy in `data/hygiene/evidence-canonical.json`
 - Linear harness supports probe/create/sync via Playwright fallback:
   - `npm run linear:probe`
   - `npm run linear:create`
@@ -53,6 +57,7 @@ Phase 3 parts-flow block is delivered and verified; next priority is Phase 4 (pa
 - 2026-03-22: Phase 2 lifecycle core epic completed (`AUT-61..AUT-69`) and synced to Done.
 - 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented and synced to Done.
 - 2026-03-22: Phase 3 parts-flow epic implemented and deployed (`AUT-73..AUT-81`), verification gates green.
+- 2026-03-22: Spring cleanup wave executed (`AUT-82..AUT-88`) with canonical evidence retention and harness CLI hardening.
 
 ## Verification snapshot
 
@@ -61,19 +66,20 @@ Most recent local gate results:
 - `npm run verify`: passed
 - `npm run audit:bloat`: passed
 
-Most recent deploy-aware gate result:
-- `npm run verify:render`: passed
-  - deploy id: `dep-d7071q1r0fns73cm2o70`
-  - commit parity: passed (`be422e1752d37e9ad190fce47bd9bc99100e4401`)
-  - deployed smoke: passed
-  - deployed non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
+Most recent deploy-aware gate results:
+- `npm run verify:render -- --skip-deploy`: passed
+  - explicit CLI skip mode confirmed (`skipDeploy=true`, deploy/parity/log-audit steps skipped by design)
+  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
+- `npm run verify:render -- --deploy`: passed
+  - deploy id: `dep-d707g6ngi27c73fd15pg`
+  - commit parity: passed (`54a74b204d069557d9ce2d324acc6d35b17c9422`)
+  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
 Primary evidence pointers:
 - `evidence/render-log-audit-summary.json`
 - `evidence/bloat-audit-latest.json`
-- `evidence/linear-aut61-69-done-sync.json`
-- `evidence/verify-server.log`
+- `evidence/linear-aut73-81-done-sync.json`
 
 ## Environments
 

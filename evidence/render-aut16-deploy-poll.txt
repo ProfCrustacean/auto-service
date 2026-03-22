@@ -1,4 +1,0 @@
-2026-03-21T20:41:55Z attempt=1 status=build_in_progress
-2026-03-21T20:42:06Z attempt=2 status=build_in_progress
-2026-03-21T20:42:18Z attempt=3 status=update_in_progress
-2026-03-21T20:42:29Z attempt=4 status=live

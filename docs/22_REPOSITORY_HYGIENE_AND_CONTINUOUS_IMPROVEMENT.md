@@ -55,6 +55,12 @@ Repository budget governance is part of hygiene:
 - keep thresholds in `data/bloat/budgets.json`,
 - and allow temporary budget regressions only with explicit override (`BLOAT_ALLOW_REGRESSION=1`) plus documented follow-up.
 
+Evidence retention is governed explicitly:
+- canonical tracked evidence allowlist lives in `data/hygiene/evidence-canonical.json`,
+- tracked `evidence/*` must match that allowlist exactly,
+- run `npm run cleanup:spring` to inspect drift (dry-run),
+- run `npm run cleanup:spring:apply` to prune tracked legacy artifacts and stale untracked evidence files.
+
 ## State coherence rule
 
 Repository state files, verification behavior, and actual runnable behavior should agree.
