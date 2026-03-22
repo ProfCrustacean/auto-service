@@ -1,0 +1,33 @@
+{
+  "teamKey": "AUT",
+  "stateName": "Done",
+  "issues": [
+    {
+      "title": "Epic: Phase 2 — Work-order lifecycle core"
+    },
+    {
+      "title": "WO-1 Domain: status transition engine and lifecycle invariants"
+    },
+    {
+      "title": "WO-2 API: work-order lifecycle endpoints (list/detail/update)"
+    },
+    {
+      "title": "WO-3 Flow: convert appointment to work order with idempotency"
+    },
+    {
+      "title": "WO-4 Persistence: status history and lifecycle audit trail"
+    },
+    {
+      "title": "WO-5 UI: Russian work-order lifecycle workspace at /work-orders/:id"
+    },
+    {
+      "title": "WO-6 Dashboard: status-driven operational queues"
+    },
+    {
+      "title": "WO-7 Verification: lifecycle tests and scenario harness coverage"
+    },
+    {
+      "title": "WO-8 Docs/Ops: lifecycle runbook, acceptance mapping, rollback path"
+    }
+  ]
+}

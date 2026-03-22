@@ -14,24 +14,27 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Keep Phase 1 stable while moving from bloat cleanup into next feature-delivery slices.
+Phase 2 lifecycle core is delivered and stable; next priority is the next feature block (parts flow under work orders).
 
 ## Current state (2026-03-22)
 
 ### Product/runtime
-- Phase 1 scheduling and intake slices are implemented end-to-end:
+- Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
-  - appointment lifecycle with capacity conflict checks,
-  - walk-in intake API and queue insertion,
-  - production `/appointments/new` and `/intake/walk-in` pages,
-  - dashboard day/week planning and unified search.
-- Mutating `/api/v1/**` endpoints enforce auth + role baseline (`owner`, `front_desk`, `technician`).
-- Persistence is SQLite with migrations, seed bootstrap, WAL/busy-timeout tuning, and transactional write flows.
+  - appointment lifecycle with deterministic capacity checks,
+  - walk-in intake API + production pages,
+  - dashboard day/week planning + unified lookup.
+- Phase 2 lifecycle core is now implemented:
+  - work-order lifecycle domain status map and transition invariants,
+  - idempotent appointment -> work-order conversion flow,
+  - lifecycle API (`/api/v1/work-orders*`, conversion endpoint),
+  - persistent work-order status history and appointment/work-order linkage,
+  - Russian lifecycle workspace (`/work-orders/:id`) + active queue page,
+  - dashboard lifecycle queue expansion (diagnosis/approval/parts/paused/ready pickup).
 
 ### Harness/operations
-- Local verification gate is self-contained: `npm run verify` boots isolated app+DB, runs smoke + scenarios, then stops server.
-- Deploy-aware gate exists: `npm run verify:render` (deploy, live wait, commit parity, smoke, non-destructive scenarios, log audit).
-- Full gate exists: `npm run verify:full` (local verify + Render verify).
+- Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling scenarios).
+- Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios, log audit).
 - Linear harness supports probe/create/sync via Playwright fallback:
   - `npm run linear:probe`
   - `npm run linear:create`
@@ -39,28 +42,28 @@ Keep Phase 1 stable while moving from bloat cleanup into next feature-delivery s
 
 ## Last accepted milestones
 
-- 2026-03-22: Technical audit closure (`AUT-41..AUT-54`) implemented and synced to Done.
-- 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented end-to-end and synced to Done.
+- 2026-03-22: Phase 2 lifecycle core epic completed (`AUT-61..AUT-69`) and synced to Done.
+- 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented and synced to Done.
 
 ## Verification snapshot
 
 Most recent local gate results:
 - `npm test`: passed
 - `npm run verify`: passed
-- `npm run secrets:scan`: passed
+- `npm run audit:bloat`: passed
 
 Most recent deploy-aware gate result:
-- `npm run verify:full`: passed
-  - Render deploy reached `live`
-  - commit parity passed
-  - deployed smoke passed
-  - deployed non-destructive scenarios passed
-  - post-deploy log audit passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- `npm run verify:render`: passed
+  - deploy id: `dep-d703dqk50q8c73fhb08g`
+  - commit parity: passed (`b404dccd7a81279dd8f917040f4724b0486d03f6`)
+  - deployed smoke: passed
+  - deployed non-destructive scenarios: passed
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
 Primary evidence pointers:
-- `evidence/bloat-audit-latest.json`
 - `evidence/render-log-audit-summary.json`
-- `evidence/linear-bloat-sync-done.json`
+- `evidence/linear-aut61-69-done-sync.json`
+- `evidence/bloat-audit-latest.json`
 - `evidence/verify-server.log`
 
 ## Environments
@@ -78,14 +81,15 @@ Primary evidence pointers:
 
 ## Known caveats
 
-- Render API can be unreliable from this local environment without `--resolve` fallback; harness already supports this path.
-- Token auth is baseline-only (no IdP/session management yet).
+- Render API access can require `--resolve` fallback from this local environment; harness already supports this path.
+- Token auth remains baseline-level (no IdP/session/rotation service yet).
+- SQLite remains single-node file persistence.
 
 ## Active work focus
 
-1. Prepare the next Phase 1 delivery plan (new workflow/value slice) in `PLANS.md`.
+1. Plan and execute the next Phase 2 block: parts requests and waiting-for-parts operational control.
 2. Keep baseline gates green (`npm test`, `npm run verify`, `npm run audit:bloat`).
-3. Keep Linear state and repository status/plans synchronized per completed slice.
+3. Keep Linear states and repository status/plans synchronized per completed slice.
 
 ## Archive pointers
 

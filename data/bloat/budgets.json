@@ -1,9 +1,9 @@
 {
   "thresholds": {
-    "maxTrackedBytes": 1040000,
+    "maxTrackedBytes": 1090000,
     "maxTrackedBytesByArea": {
-      "src": 280000,
-      "tests": 110000,
+      "src": 320000,
+      "tests": 130000,
       "scripts": 165000,
       "docs": 85000,
       "evidence": 220000

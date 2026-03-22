@@ -6,51 +6,51 @@ Hot-path execution plan file for current non-trivial work.
 
 Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-## Active Plan — `AUT-61` Phase 2 work-order lifecycle core (2026-03-22)
+## Active Plan — None
+
+No active multi-step implementation plan is open right now.
+
+Create a new active plan before the next non-trivial feature/refactor/deployment slice.
+
+## Completed Plan — Phase 2 lifecycle core (`AUT-61..AUT-69`) (2026-03-22)
 
 ### Objective
 
-Deliver the first complete Phase 2 slice so a job can move from intake/appointment to completion through explicit work-order lifecycle rules, API, UI, queue visibility, and harness verification.
+Deliver the first complete Phase 2 lifecycle slice so a vehicle can move from intake/appointment to completion through explicit work-order statuses, auditable transitions, operational queues, and deploy-verified harness coverage.
 
-### Scope map (Linear)
+### Delivered
 
-- `AUT-62`: domain transition engine + lifecycle invariants
-- `AUT-63`: work-order lifecycle API (list/detail/update)
-- `AUT-64`: appointment -> work-order conversion (idempotent)
-- `AUT-65`: persistence for status history + lifecycle audit trail
-- `AUT-66`: Russian work-order lifecycle workspace (`/work-orders/:id`)
-- `AUT-67`: dashboard queues aligned to lifecycle statuses
-- `AUT-68`: lifecycle tests + scenario harness coverage
-- `AUT-69`: docs/runbook/rollback/status evidence updates
+- `AUT-62`: centralized lifecycle domain map (statuses, labels, allowed transitions, blocked/terminal semantics).
+- `AUT-63`: work-order lifecycle API (`GET /api/v1/work-orders`, `GET|PATCH /api/v1/work-orders/:id`).
+- `AUT-64`: idempotent appointment conversion API (`POST /api/v1/appointments/:id/convert-to-work-order`).
+- `AUT-65`: persistence audit trail (`work_order_status_history`, `appointment_work_order_links`, seed + runtime history writes).
+- `AUT-66`: Russian lifecycle workspace and active queue UI (`/work-orders/:id`, `/work-orders/active`).
+- `AUT-67`: dashboard expanded with lifecycle-driven queues and summary metrics.
+- `AUT-68`: lifecycle domain/API/UI tests + scenario/smoke harness upgrades.
+- `AUT-69`: runbook/README lifecycle updates, rollback guidance, and Linear sync artifacts.
 
-### Planned sequence
+### Verification
 
-1. Domain + persistence foundation (`AUT-62`, `AUT-65`):
-   - add lifecycle transition map and invariants,
-   - add status-history persistence,
-   - wire audit trail writes for create + transition flows.
-2. API layer (`AUT-63`, `AUT-64`):
-   - add `GET /api/v1/work-orders`,
-   - add `GET /api/v1/work-orders/:id`,
-   - add `PATCH /api/v1/work-orders/:id`,
-   - add idempotent `POST /api/v1/appointments/:id/convert-to-work-order`.
-3. UI + board integration (`AUT-66`, `AUT-67`):
-   - replace simple work-order detail with lifecycle workspace,
-   - add transition form with Russian operator copy,
-   - expand dashboard lifecycle queues and summary blocks.
-4. Verification/harness (`AUT-68`):
-   - add domain/API/UI lifecycle tests,
-   - extend smoke/scenario checks for lifecycle endpoints and conversion flow.
-5. Ops/docs/closure (`AUT-69`):
-   - update packet/runbook/status for new lifecycle behavior,
-   - run local + deploy-aware verification,
-   - sync Linear card states after evidence is captured.
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run verify:render`: passed
+  - deploy: `dep-d703dqk50q8c73fhb08g`
+  - commit parity: `b404dccd7a81279dd8f917040f4724b0486d03f6`
+  - deployed smoke + non-destructive scenarios: passed
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
-### Verification policy for this plan
+### Linear sync
 
-- After each completed step: run focused tests for the touched slice.
-- After all steps: run `npm test`, `npm run verify`, `npm run audit:bloat`.
-- Final acceptance gate: run `npm run verify:render` (deploy + post-deploy checks).
+- `AUT-61..AUT-69` transitioned to `Done`.
+- Sync artifact: `evidence/linear-aut61-69-done-sync.json`.
+
+### Primary evidence
+
+- `evidence/render-log-audit-summary.json`
+- `evidence/linear-aut61-69-done-sync.json`
+- `evidence/verify-server.log`
+- `evidence/bloat-audit-latest.json`
 
 ## Completed Plan — Bloat audit execution (`AUT-55..AUT-60`) (2026-03-22)
 
