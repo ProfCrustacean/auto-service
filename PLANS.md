@@ -150,10 +150,13 @@ Epic was prepared in Linear but runtime still served placeholder booking page an
 - 2026-03-22: Updated README + runbook for new scenario and toggles.
 - 2026-03-22: `npm test` and `npm run verify` passed locally.
 - 2026-03-22: Pre-push `npm run verify:render` failed at smoke by design because live deploy still ran old commit (`1d0788a`) without booking page.
+- 2026-03-22: Committed and pushed revision `54acfc4` to `main`.
+- 2026-03-22: Post-push `npm run verify:render` passed for deploy `dep-d6vldcbuibrs73adis10` (parity + smoke + booking scenario + scheduling scenario + log audit).
+- 2026-03-22: Synced Linear AUT-27..33 to Done via Playwright transport with closure comments (`evidence/linear-aut27-33-done-sync.json`).
 
 ### Completion checkpoint
 
-In progress: pending post-push Render verification and Linear state sync.
+Completed on 2026-03-22: implementation, deploy verification, and Linear Epic 1 issue-state sync are all finished.
 
 ---
 

@@ -59,10 +59,10 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-22: AUT-27..33 implementation completed locally (booking flow + tests + harness); post-push Render validation pending.
+- 2026-03-22: AUT-27..33 completed end-to-end (booking flow + tests + harness + deploy-aware Render validation on live commit).
 
 ### Current active objective
-- Push Epic 1 booking-flow revision, re-run deploy-aware Render gate against the new commit, and sync AUT-27..33 issue state in Linear.
+- Maintain gate health and continue Phase 1 closeout by executing Epic 2 (`/intake/walk-in`) with the same deploy-verified quality bar.
 
 ## Confirmed decisions (human input)
 
@@ -82,7 +82,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-22, commit `36295bd`
+- last validated date or commit: 2026-03-22, commit `54acfc4`
 - known caveats:
   - no auth yet; single-node SQLite file model only
   - Playwright MCP browser smoke can be blocked in this runtime by existing local Chrome profile/session lock (`Opening in existing browser session`); CLI smoke/scenario checks remain available.
@@ -94,7 +94,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-22, commit `36295bd` (deploy `dep-d6vkg34jppes738kuh2g`)
+- last validated date or commit: 2026-03-22, commit `54acfc4` (deploy `dep-d6vldcbuibrs73adis10`)
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -106,6 +106,8 @@ Codex must keep this file current enough that a new Codex run can answer:
 - evidence: `evidence/test-aut27-aut33.txt`
 - `npm run verify` (AUT-27..33 booking flow): passed on 2026-03-22.
 - evidence: `evidence/verify-aut27-aut33.txt`
+- `RENDER_API_KEY=*** npm run verify:render` (AUT-27..33 booking flow, post-push): passed on 2026-03-22.
+- evidence: `evidence/verify-render-aut27-aut33.txt`
 - `npm test` (AUT-24/25/26 regression): passed on 2026-03-22.
 - evidence: `evidence/test-after-aut24-aut26-v2.txt`
 - `npm run verify` (AUT-24/25/26 regression): passed on 2026-03-22.
@@ -146,6 +148,13 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/test-after-aut18-recheck.txt`
 
 ### End-to-end checks
+- deploy-aware Render gate for booking-flow changes (`RENDER_API_KEY=*** npm run verify:render`) passed on 2026-03-22 after push:
+  - live deploy: `dep-d6vldcbuibrs73adis10`
+  - commit parity: expected `54acfc4` == actual `54acfc4`
+  - smoke: passed (includes `/appointments/new`)
+  - non-destructive booking scenario: passed
+  - non-destructive scheduling/walk-in scenario: passed
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarnings=0`)
 - pre-push deploy-aware Render gate for booking-flow changes (`RENDER_API_KEY=*** npm run verify:render`) reached live deploy `dep-d6vlauuuk2gs738r5k60` on 2026-03-22 but failed smoke at `/appointments/new` because live commit parity target remained old revision `1d0788a` (booking page not yet deployed).
 - deploy-aware Render gate (`npm run verify:render`) passed on 2026-03-22 for deploy `dep-d6vke77kijhs73ctdecg`:
   - deploy reached `live`,
@@ -246,7 +255,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Operational log audit
 - Render API events and logs inspected directly on 2026-03-22.
-- build/deploy event result: latest verified deploy `dep-d6vkg34jppes738kuh2g` reached `live` for commit `36295bd6d25dc2d90ed2740b7c48731878a28720`.
+- build/deploy event result: latest verified deploy `dep-d6vldcbuibrs73adis10` reached `live` for commit `54acfc41c72b89dfd2cf628035c2c2a824ca24cf`.
 - runtime warn/error signal: none observed in structured app logs (`json_warn_error_count = 0`).
 - deploy-gate log audit result (`AUT-25`): passed in-gate with zero warnings/errors/repo-access warnings.
 - finding status:
@@ -266,6 +275,13 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `AUT-24` done (closure comment id `d31cfcc3-41e8-463e-aa4a-c277d9d623f9`).
   - `AUT-25` done (closure comment id `46bb5af3-f0cd-45a8-b951-5a5a2f9131d0`).
   - `AUT-26` done (closure comment id `f7b4d6f3-1941-45e5-bfb1-592613f80f00`).
+  - `AUT-27` done (closure comment id `e2d4f02e-cec0-49bd-a862-4611c200b322`).
+  - `AUT-28` done (closure comment id `0f3d83d1-b207-4ae8-8f2d-ab90c627dde7`).
+  - `AUT-29` done (closure comment id `709e52ae-2940-4a06-a2f5-a26f0d71f970`).
+  - `AUT-30` done (closure comment id `23fac23d-fbca-44a6-a49f-3c61117f6c50`).
+  - `AUT-31` done (closure comment id `89c37855-13df-40d3-8d91-989a9b954e08`).
+  - `AUT-32` done (closure comment id `b52f76ed-d00a-429f-be18-01085c676e81`).
+  - `AUT-33` done (closure comment id `1a6a7890-58aa-4f59-90a2-2ac13152a07c`).
   - Linear issue sync workaround encoded in harness: use Playwright transport (`npm run linear:probe` / `npm run linear:create`).
 - evidence:
   - `evidence/render-log-audit-summary.json`
@@ -302,6 +318,7 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/linear-harness-probe.json`
   - `evidence/linear-harness-create-dry-run.json`
   - `evidence/linear-harness-probe-auto.json`
+  - `evidence/linear-aut27-33-done-sync.json`
 
 ### AUT-17 observability verification
 - middleware behavior: successful `/healthz` requests are skipped in `http_request` logs; business-path requests remain logged.
