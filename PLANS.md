@@ -148,6 +148,7 @@ Epic 1 is completed and deploy-verified; `/intake/walk-in` still serves placehol
 - 2026-03-22: Local gates passed (`evidence/test-aut34-aut40.txt`, `evidence/verify-aut34-aut40.txt`, `evidence/verify-aut34-aut40-retry-gate.txt`).
 - 2026-03-22: Deploy-aware gate passed on live deploy `dep-d6vsoq9r0fns73ebsnlg` with commit parity for `79cfb38` (`evidence/verify-render-aut34-aut40-final.txt`).
 - 2026-03-22: Linear Epic 2 sync completed via Playwright transport; `AUT-34..40` moved to Done with closure comments (`evidence/linear-aut34-40-sync-result.json`, `evidence/linear-aut34-40-done-sync.json`).
+- 2026-03-22: Post-docs head parity check passed on deploy `dep-d6vsrp5actks73d21o90` for commit `39ea926` (`evidence/verify-render-aut34-aut40-postdocs.txt`).
 
 ### Completion checkpoint
 

@@ -1,0 +1,81 @@
+
+> auto-service@0.1.0 verify:render
+> node scripts/verify-render.js
+
+{"status":"render_verify_started","serviceId":"srv-d6vcmt7diees73d0j04g","apiBaseUrl":"https://api.render.com/v1","skipDeploy":false,"includeScenario":true,"includeBookingScenario":true,"includeWalkInPageScenario":true,"verifyCommitParity":true,"enableLogAudit":true,"logAuditLimit":1000,"maxWarnings":0,"maxErrors":0,"maxRepoWarnings":0,"failOnLogTruncation":true,"expectedCommitSource":"git","useResolve":true,"resolveIp":"216.24.57.7","smokeMaxAttempts":3,"smokeRetryDelayMs":10000}
+{"status":"render_verify_step_started","step":"service_lookup","serviceId":"srv-d6vcmt7diees73d0j04g"}
+{"status":"render_verify_step_started","step":"deploy_trigger","serviceId":"srv-d6vcmt7diees73d0j04g","serviceUrl":"https://auto-service-foundation.onrender.com"}
+{"status":"render_verify_deploy_id_fallback","reason":"trigger_response_missing_id"}
+{"status":"render_verify_step_started","step":"deploy_wait_live","serviceId":"srv-d6vcmt7diees73d0j04g","deployId":"dep-d6vsrp5actks73d21o90","initialStatus":"build_in_progress"}
+{"status":"render_verify_deploy_poll","deployId":"dep-d6vsrp5actks73d21o90","deployStatus":"build_in_progress","elapsedMs":518}
+{"status":"render_verify_deploy_poll","deployId":"dep-d6vsrp5actks73d21o90","deployStatus":"update_in_progress","elapsedMs":11235}
+{"status":"render_verify_deploy_poll","deployId":"dep-d6vsrp5actks73d21o90","deployStatus":"live","elapsedMs":21736}
+{"status":"render_verify_step_started","step":"deploy_commit_parity","deployId":"dep-d6vsrp5actks73d21o90"}
+{"status":"render_verify_commit_parity_passed","deployId":"dep-d6vsrp5actks73d21o90","expectedCommitId":"39ea926f42d44590fcecddc6adc9c0f65cf77735","expectedCommitSource":"git","actualCommitId":"39ea926f42d44590fcecddc6adc9c0f65cf77735"}
+{"status":"render_verify_step_started","step":"smoke","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":false,"deployId":"dep-d6vsrp5actks73d21o90"}
+{"status":"smoke_passed","baseUrl":"https://auto-service-foundation.onrender.com","checks":["healthz","dashboard_api","appointments_api","search_api","dashboard_ui","booking_ui","walkin_ui"]}
+{"status":"render_verify_step_started","step":"scenario_booking_page_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":false}
+{
+  "status": "booking_page_scenario_passed",
+  "mode": "non_destructive",
+  "modeSource": "arg",
+  "modeReason": "explicit_non_destructive",
+  "baseUrl": "https://auto-service-foundation.onrender.com",
+  "writesPerformed": false,
+  "isolation": {
+    "strategy": "read_only",
+    "writesPerformed": false,
+    "cleanupStatus": "not_required"
+  },
+  "checks": [
+    "booking_page_open",
+    "booking_lookup",
+    "booking_invalid_submit",
+    "booking_conflict_submit"
+  ]
+}
+{"status":"render_verify_step_started","step":"scenario_walkin_page_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":false}
+{
+  "status": "walkin_page_scenario_passed",
+  "mode": "non_destructive",
+  "modeSource": "arg",
+  "modeReason": "explicit_non_destructive",
+  "baseUrl": "https://auto-service-foundation.onrender.com",
+  "writesPerformed": false,
+  "isolation": {
+    "strategy": "read_only",
+    "writesPerformed": false,
+    "cleanupStatus": "not_required"
+  },
+  "checks": [
+    "walkin_page_open",
+    "walkin_lookup",
+    "walkin_invalid_submit",
+    "walkin_mismatch_submit"
+  ]
+}
+{"status":"render_verify_step_started","step":"scenario_scheduling_walkin_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":false}
+{
+  "status": "scheduling_walkin_scenario_passed",
+  "mode": "non_destructive",
+  "modeSource": "arg",
+  "modeReason": "explicit_non_destructive",
+  "baseUrl": "https://auto-service-foundation.onrender.com",
+  "writesPerformed": false,
+  "isolation": {
+    "strategy": "read_only",
+    "writesPerformed": false,
+    "cleanupStatus": "not_required"
+  },
+  "checks": {
+    "appointmentsToday": 1,
+    "activeWorkOrders": 4,
+    "customers": 4,
+    "vehicles": 4,
+    "bays": 2,
+    "employees": 4
+  }
+}
+{"status":"render_verify_step_started","step":"post_deploy_log_audit","serviceId":"srv-d6vcmt7diees73d0j04g","ownerId":"tea-d65tovpr0fns73cqdmo0","deployId":"dep-d6vsrp5actks73d21o90"}
+{"status":"render_verify_log_audit_summary","serviceId":"srv-d6vcmt7diees73d0j04g","deployId":"dep-d6vsrp5actks73d21o90","summary":{"startTime":"2026-03-22T11:08:54.976Z","endTime":"2026-03-22T11:10:03.226Z","totals":{"rows":58,"bySeverity":{"info":58,"warn":0,"error":0,"fatal":0},"repoAccessWarningCount":0,"truncatedTypes":[]},"thresholds":{"maxWarnings":0,"maxErrors":0,"maxRepoWarnings":0,"failOnTruncation":true},"types":{"build":{"rows":18,"hasMore":false},"app":{"rows":40,"hasMore":false}},"severeSamples":[]}}
+{"status":"render_verify_passed","serviceId":"srv-d6vcmt7diees73d0j04g","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":false,"includeScenario":true,"includeBookingScenario":true,"includeWalkInPageScenario":true,"verifyCommitParity":true,"enableLogAudit":true,"deployId":"dep-d6vsrp5actks73d21o90","deployStatus":"live","deployCommitId":"39ea926f42d44590fcecddc6adc9c0f65cf77735"}

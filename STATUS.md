@@ -89,7 +89,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-22, commit `79cfb38`
+- last validated date or commit: 2026-03-22, commit `39ea926`
 - known caveats:
   - no auth yet; single-node SQLite file model only
   - Playwright MCP browser smoke can be blocked in this runtime by existing local Chrome profile/session lock (`Opening in existing browser session`); CLI smoke/scenario checks remain available.
@@ -101,7 +101,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-22, commit `79cfb38` (deploy `dep-d6vsoq9r0fns73ebsnlg`)
+- last validated date or commit: 2026-03-22, commit `39ea926` (deploy `dep-d6vsrp5actks73d21o90`)
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -119,6 +119,8 @@ Codex must keep this file current enough that a new Codex run can answer:
 - evidence: `evidence/verify-aut34-aut40-retry-gate.txt`
 - `RENDER_API_KEY=*** npm run verify:render` (AUT-34..40 final, booking+walk-in non-destructive scenarios + post-deploy log audit): passed on 2026-03-22.
 - evidence: `evidence/verify-render-aut34-aut40-final.txt`
+- `RENDER_API_KEY=*** npm run verify:render` (AUT-34..40 post-docs head parity): passed on 2026-03-22.
+- evidence: `evidence/verify-render-aut34-aut40-postdocs.txt`
 - `npm test` (AUT-27..33 booking flow): passed on 2026-03-22.
 - evidence: `evidence/test-aut27-aut33.txt`
 - `npm run verify` (AUT-27..33 booking flow): passed on 2026-03-22.
@@ -274,7 +276,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Operational log audit
 - Render API events and logs inspected directly on 2026-03-22.
-- build/deploy event result: latest verified deploy `dep-d6vsoq9r0fns73ebsnlg` reached `live` for commit `79cfb38dcf274b1ed718564d799a488af0e3088b`.
+- build/deploy event result: latest verified deploy `dep-d6vsrp5actks73d21o90` reached `live` for commit `39ea926f42d44590fcecddc6adc9c0f65cf77735`.
 - runtime warn/error signal: none observed in structured app logs (`json_warn_error_count = 0`).
 - deploy-gate log audit result (`AUT-25`): passed in-gate with zero warnings/errors/repo-access warnings.
 - finding status:
