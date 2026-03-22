@@ -1,5 +1,11 @@
 import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike, normalizePaginationQuery } from "./validatorUtils.js";
 import { isKnownWorkOrderStatus, WORK_ORDER_STATUS_CODES } from "../domain/workOrderLifecycle.js";
+import {
+  isKnownPartsPurchaseActionStatus,
+  isKnownPartsRequestStatus,
+  PARTS_PURCHASE_ACTION_STATUS_CODES,
+  PARTS_REQUEST_STATUS_CODES,
+} from "../domain/partsRequestLifecycle.js";
 
 function normalizeOptionalString(value, field, errors) {
   if (value === undefined) {
@@ -66,6 +72,75 @@ function normalizeNonNegativeInteger(value, field, errors) {
   }
 
   return value;
+}
+
+function normalizePositiveInteger(value, field, errors) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Number.isInteger(value)) {
+    errors.push({ field, message: `${field} must be an integer` });
+    return undefined;
+  }
+
+  if (value <= 0) {
+    errors.push({ field, message: `${field} must be > 0` });
+    return undefined;
+  }
+
+  return value;
+}
+
+function normalizeOptionalBoolean(value, field, errors) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const normalized = normalizeBooleanLike(value);
+  if (normalized === null) {
+    errors.push({ field, message: `${field} must be boolean-like (true/false/1/0)` });
+    return undefined;
+  }
+  return normalized;
+}
+
+function normalizePartsRequestStatus(value, field, errors) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    errors.push({ field, message: `${field} must be a string` });
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (!isKnownPartsRequestStatus(normalized)) {
+    errors.push({ field, message: `${field} must be one of: ${PARTS_REQUEST_STATUS_CODES.join(", ")}` });
+    return undefined;
+  }
+
+  return normalized;
+}
+
+function normalizePartsPurchaseActionStatus(value, field, errors) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    errors.push({ field, message: `${field} must be a string` });
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (!isKnownPartsPurchaseActionStatus(normalized)) {
+    errors.push({ field, message: `${field} must be one of: ${PARTS_PURCHASE_ACTION_STATUS_CODES.join(", ")}` });
+    return undefined;
+  }
+
+  return normalized;
 }
 
 function normalizeQueryString(value, field, errors) {
@@ -236,6 +311,302 @@ export function validateConvertAppointmentToWorkOrder(body) {
   }
 
   const unknownFields = collectUnknownFields(body, ["reason", "changedBy"]);
+  for (const field of unknownFields) {
+    errors.push({ field, message: "unknown field" });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, value };
+}
+
+export function validateListPartsRequestsQuery(query) {
+  const errors = [];
+  const includeResolvedRaw = normalizeBooleanLike(query.includeResolved);
+  if (query.includeResolved !== undefined && includeResolvedRaw === null) {
+    errors.push({ field: "includeResolved", message: "includeResolved must be boolean-like (true/false/1/0)" });
+  }
+
+  const unknownFields = collectUnknownFields(query, ["includeResolved"]);
+  for (const field of unknownFields) {
+    errors.push({ field, message: "unknown query parameter" });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    value: {
+      includeResolved: includeResolvedRaw === null ? true : includeResolvedRaw,
+    },
+  };
+}
+
+export function validateCreatePartsRequest(body) {
+  const errors = [];
+  const value = {};
+
+  if (!isNonEmptyString(body.partName)) {
+    errors.push({ field: "partName", message: "partName is required" });
+  } else {
+    value.partName = body.partName.trim();
+  }
+
+  const supplierName = normalizeOptionalString(body.supplierName, "supplierName", errors);
+  if (supplierName !== undefined) {
+    value.supplierName = supplierName;
+  }
+
+  const expectedArrivalDateLocal = normalizeOptionalString(body.expectedArrivalDateLocal, "expectedArrivalDateLocal", errors);
+  if (expectedArrivalDateLocal !== undefined) {
+    value.expectedArrivalDateLocal = expectedArrivalDateLocal;
+  }
+
+  const requestedQty = normalizePositiveInteger(body.requestedQty, "requestedQty", errors);
+  if (requestedQty === undefined) {
+    errors.push({ field: "requestedQty", message: "requestedQty is required and must be > 0" });
+  } else {
+    value.requestedQty = requestedQty;
+  }
+
+  const requestedUnitCostRub = normalizeNonNegativeInteger(body.requestedUnitCostRub, "requestedUnitCostRub", errors);
+  if (requestedUnitCostRub !== undefined) {
+    value.requestedUnitCostRub = requestedUnitCostRub;
+  }
+
+  const salePriceRub = normalizeNonNegativeInteger(body.salePriceRub, "salePriceRub", errors);
+  if (salePriceRub !== undefined) {
+    value.salePriceRub = salePriceRub;
+  }
+
+  const status = normalizePartsRequestStatus(body.status, "status", errors);
+  if (status !== undefined) {
+    value.status = status;
+  }
+
+  const isBlocking = normalizeOptionalBoolean(body.isBlocking, "isBlocking", errors);
+  if (isBlocking !== undefined) {
+    value.isBlocking = isBlocking;
+  }
+
+  const notes = normalizeOptionalString(body.notes, "notes", errors);
+  if (notes !== undefined) {
+    value.notes = notes;
+  }
+
+  const reason = normalizeOptionalString(body.reason, "reason", errors);
+  if (reason !== undefined) {
+    value.reason = reason;
+  }
+
+  const replacementForRequestId = normalizeOptionalString(body.replacementForRequestId, "replacementForRequestId", errors);
+  if (replacementForRequestId !== undefined) {
+    value.replacementForRequestId = replacementForRequestId;
+  }
+
+  const changedBy = normalizeOptionalString(body.changedBy, "changedBy", errors);
+  if (changedBy !== undefined) {
+    value.changedBy = changedBy;
+  }
+
+  const unknownFields = collectUnknownFields(body, [
+    "partName",
+    "supplierName",
+    "expectedArrivalDateLocal",
+    "requestedQty",
+    "requestedUnitCostRub",
+    "salePriceRub",
+    "status",
+    "isBlocking",
+    "notes",
+    "reason",
+    "replacementForRequestId",
+    "changedBy",
+  ]);
+  for (const field of unknownFields) {
+    errors.push({ field, message: "unknown field" });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, value };
+}
+
+export function validateUpdatePartsRequest(body) {
+  const errors = [];
+  const value = {};
+
+  const status = normalizePartsRequestStatus(body.status, "status", errors);
+  if (status !== undefined) {
+    value.status = status;
+  }
+
+  const supplierName = normalizeOptionalString(body.supplierName, "supplierName", errors);
+  if (supplierName !== undefined) {
+    value.supplierName = supplierName;
+  }
+
+  const expectedArrivalDateLocal = normalizeOptionalString(body.expectedArrivalDateLocal, "expectedArrivalDateLocal", errors);
+  if (expectedArrivalDateLocal !== undefined) {
+    value.expectedArrivalDateLocal = expectedArrivalDateLocal;
+  }
+
+  const requestedQty = normalizePositiveInteger(body.requestedQty, "requestedQty", errors);
+  if (requestedQty !== undefined) {
+    value.requestedQty = requestedQty;
+  }
+
+  const requestedUnitCostRub = normalizeNonNegativeInteger(body.requestedUnitCostRub, "requestedUnitCostRub", errors);
+  if (requestedUnitCostRub !== undefined) {
+    value.requestedUnitCostRub = requestedUnitCostRub;
+  }
+
+  const salePriceRub = normalizeNonNegativeInteger(body.salePriceRub, "salePriceRub", errors);
+  if (salePriceRub !== undefined) {
+    value.salePriceRub = salePriceRub;
+  }
+
+  const isBlocking = normalizeOptionalBoolean(body.isBlocking, "isBlocking", errors);
+  if (isBlocking !== undefined) {
+    value.isBlocking = isBlocking;
+  }
+
+  const notes = normalizeOptionalString(body.notes, "notes", errors);
+  if (notes !== undefined) {
+    value.notes = notes;
+  }
+
+  const reason = normalizeOptionalString(body.reason, "reason", errors);
+  if (reason !== undefined) {
+    value.reason = reason;
+  }
+
+  const replacementPartName = normalizeOptionalString(body.replacementPartName, "replacementPartName", errors);
+  if (replacementPartName !== undefined) {
+    value.replacementPartName = replacementPartName;
+  }
+
+  const replacementRequestedQty = normalizePositiveInteger(body.replacementRequestedQty, "replacementRequestedQty", errors);
+  if (replacementRequestedQty !== undefined) {
+    value.replacementRequestedQty = replacementRequestedQty;
+  }
+
+  const replacementSupplierName = normalizeOptionalString(body.replacementSupplierName, "replacementSupplierName", errors);
+  if (replacementSupplierName !== undefined) {
+    value.replacementSupplierName = replacementSupplierName;
+  }
+
+  const changedBy = normalizeOptionalString(body.changedBy, "changedBy", errors);
+  if (changedBy !== undefined) {
+    value.changedBy = changedBy;
+  }
+
+  const unknownFields = collectUnknownFields(body, [
+    "status",
+    "supplierName",
+    "expectedArrivalDateLocal",
+    "requestedQty",
+    "requestedUnitCostRub",
+    "salePriceRub",
+    "isBlocking",
+    "notes",
+    "reason",
+    "replacementPartName",
+    "replacementRequestedQty",
+    "replacementSupplierName",
+    "changedBy",
+  ]);
+  for (const field of unknownFields) {
+    errors.push({ field, message: "unknown field" });
+  }
+
+  const hasMutableField = [
+    "status",
+    "supplierName",
+    "expectedArrivalDateLocal",
+    "requestedQty",
+    "requestedUnitCostRub",
+    "salePriceRub",
+    "isBlocking",
+    "notes",
+    "replacementPartName",
+    "replacementRequestedQty",
+    "replacementSupplierName",
+  ].some((field) => Object.hasOwn(value, field));
+
+  if (!hasMutableField) {
+    errors.push({ field: "body", message: "at least one updatable field is required" });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, value };
+}
+
+export function validateCreatePartsPurchaseAction(body) {
+  const errors = [];
+  const value = {};
+
+  const supplierName = normalizeOptionalString(body.supplierName, "supplierName", errors);
+  if (supplierName !== undefined) {
+    value.supplierName = supplierName;
+  }
+
+  const supplierReference = normalizeOptionalString(body.supplierReference, "supplierReference", errors);
+  if (supplierReference !== undefined) {
+    value.supplierReference = supplierReference;
+  }
+
+  const orderedQty = normalizePositiveInteger(body.orderedQty, "orderedQty", errors);
+  if (orderedQty === undefined) {
+    errors.push({ field: "orderedQty", message: "orderedQty is required and must be > 0" });
+  } else {
+    value.orderedQty = orderedQty;
+  }
+
+  const unitCostRub = normalizeNonNegativeInteger(body.unitCostRub, "unitCostRub", errors);
+  if (unitCostRub === undefined) {
+    errors.push({ field: "unitCostRub", message: "unitCostRub is required and must be >= 0" });
+  } else {
+    value.unitCostRub = unitCostRub;
+  }
+
+  const status = normalizePartsPurchaseActionStatus(body.status, "status", errors);
+  value.status = status ?? "ordered";
+
+  const notes = normalizeOptionalString(body.notes, "notes", errors);
+  if (notes !== undefined) {
+    value.notes = notes;
+  }
+
+  const reason = normalizeOptionalString(body.reason, "reason", errors);
+  if (reason !== undefined) {
+    value.reason = reason;
+  }
+
+  const changedBy = normalizeOptionalString(body.changedBy, "changedBy", errors);
+  if (changedBy !== undefined) {
+    value.changedBy = changedBy;
+  }
+
+  const unknownFields = collectUnknownFields(body, [
+    "supplierName",
+    "supplierReference",
+    "orderedQty",
+    "unitCostRub",
+    "status",
+    "notes",
+    "reason",
+    "changedBy",
+  ]);
   for (const field of unknownFields) {
     errors.push({ field, message: "unknown field" });
   }

@@ -32,11 +32,17 @@ function getSummaryCounts(database) {
     intakeEvents: getRowCount(database, "intake_events"),
     workOrders: getRowCount(database, "work_orders"),
     workOrderStatusHistory: getRowCount(database, "work_order_status_history"),
+    workOrderPartsRequests: getRowCount(database, "work_order_parts_requests"),
+    partsPurchaseActions: getRowCount(database, "parts_purchase_actions"),
+    workOrderPartsHistory: getRowCount(database, "work_order_parts_history"),
     appointmentWorkOrderLinks: getRowCount(database, "appointment_work_order_links"),
   };
 }
 
 function clearAllData(database) {
+  database.exec("DELETE FROM work_order_parts_history;");
+  database.exec("DELETE FROM parts_purchase_actions;");
+  database.exec("DELETE FROM work_order_parts_requests;");
   database.exec("DELETE FROM appointment_work_order_links;");
   database.exec("DELETE FROM work_order_status_history;");
   database.exec("DELETE FROM vehicle_ownership_history;");
@@ -222,6 +228,59 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
       source
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
+  const insertWorkOrderPartsRequest = database.prepare(
+    `INSERT INTO work_order_parts_requests(
+      id,
+      work_order_id,
+      replacement_for_request_id,
+      part_name,
+      supplier_name,
+      expected_arrival_date_local,
+      requested_qty,
+      requested_unit_cost_rub,
+      sale_price_rub,
+      status,
+      status_label_ru,
+      is_blocking,
+      notes,
+      created_at,
+      resolved_at,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const insertPartsPurchaseAction = database.prepare(
+    `INSERT INTO parts_purchase_actions(
+      id,
+      parts_request_id,
+      supplier_name,
+      supplier_reference,
+      ordered_qty,
+      unit_cost_rub,
+      status,
+      ordered_at,
+      received_at,
+      notes,
+      created_at,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const insertWorkOrderPartsHistory = database.prepare(
+    `INSERT INTO work_order_parts_history(
+      id,
+      work_order_id,
+      parts_request_id,
+      purchase_action_id,
+      from_status,
+      from_status_label_ru,
+      to_status,
+      to_status_label_ru,
+      changed_at,
+      changed_by,
+      reason,
+      source,
+      details_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
 
   try {
     database.exec("BEGIN TRANSACTION;");
@@ -348,6 +407,229 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
           nowIso,
         );
       }
+    }
+
+    const waitingPartsOrder = (fixtures.workOrders ?? []).find((order) => order.status === "waiting_parts");
+    if (waitingPartsOrder) {
+      const requestId = `wopr-${waitingPartsOrder.id}-1`;
+      const purchaseActionId = `ppa-${waitingPartsOrder.id}-1`;
+      const requestCreatedAt = waitingPartsOrder.blockedSinceIso ?? nowIso;
+      const requestedAtDate = new Date(requestCreatedAt);
+      const safeRequestedAtDate = Number.isNaN(requestedAtDate.getTime()) ? new Date(nowIso) : requestedAtDate;
+      const substitutionRequestedAt = new Date(safeRequestedAtDate.getTime() - (1000 * 60 * 60 * 24 * 2)).toISOString();
+      const substitutionResolvedAt = new Date(safeRequestedAtDate.getTime() - (1000 * 60 * 60 * 24)).toISOString();
+      const replacementReceivedAt = new Date(safeRequestedAtDate.getTime() - (1000 * 60 * 60 * 12)).toISOString();
+
+      insertWorkOrderPartsRequest.run(
+        requestId,
+        waitingPartsOrder.id,
+        null,
+        "Стойка стабилизатора передняя",
+        "АвтоПоставка",
+        "2026-03-24",
+        1,
+        3500,
+        5200,
+        "ordered",
+        "Заказана",
+        1,
+        "Деталь в заказе по поставщику",
+        requestCreatedAt,
+        null,
+        nowIso,
+      );
+
+      insertPartsPurchaseAction.run(
+        purchaseActionId,
+        requestId,
+        "АвтоПоставка",
+        `PO-${waitingPartsOrder.code}`,
+        1,
+        3500,
+        "ordered",
+        requestCreatedAt,
+        null,
+        "Ожидаем входящую поставку",
+        requestCreatedAt,
+        nowIso,
+      );
+
+      insertWorkOrderPartsHistory.run(
+        `woph-${waitingPartsOrder.id}-request-seed`,
+        waitingPartsOrder.id,
+        requestId,
+        null,
+        null,
+        null,
+        "ordered",
+        "Заказана",
+        requestCreatedAt,
+        "seed",
+        "Initial seeded parts request",
+        "seed",
+        JSON.stringify({
+          partName: "Стойка стабилизатора передняя",
+          requestedQty: 1,
+          isBlocking: true,
+        }),
+      );
+
+      insertWorkOrderPartsHistory.run(
+        `woph-${waitingPartsOrder.id}-purchase-seed`,
+        waitingPartsOrder.id,
+        requestId,
+        purchaseActionId,
+        null,
+        null,
+        "purchase_ordered",
+        "Заказ поставщику оформлен",
+        requestCreatedAt,
+        "seed",
+        "Initial seeded supplier purchase action",
+        "seed",
+        JSON.stringify({
+          supplierName: "АвтоПоставка",
+          supplierReference: `PO-${waitingPartsOrder.code}`,
+          orderedQty: 1,
+          unitCostRub: 3500,
+        }),
+      );
+
+      const substitutedRequestId = `wopr-${waitingPartsOrder.id}-substituted`;
+      const replacementRequestId = `wopr-${waitingPartsOrder.id}-replacement`;
+      const replacementPurchaseActionId = `ppa-${waitingPartsOrder.id}-replacement`;
+
+      insertWorkOrderPartsRequest.run(
+        substitutedRequestId,
+        waitingPartsOrder.id,
+        null,
+        "Опора амортизатора передняя",
+        "БыстрыйСклад",
+        "2026-03-20",
+        1,
+        2200,
+        3500,
+        "substituted",
+        "Заменена",
+        1,
+        "Исходная позиция недоступна, оформлена замена",
+        substitutionRequestedAt,
+        substitutionResolvedAt,
+        substitutionResolvedAt,
+      );
+
+      insertWorkOrderPartsRequest.run(
+        replacementRequestId,
+        waitingPartsOrder.id,
+        substitutedRequestId,
+        "Опора амортизатора передняя усиленная",
+        "БыстрыйСклад",
+        "2026-03-21",
+        1,
+        2600,
+        3900,
+        "received",
+        "Получена",
+        1,
+        "Заменяющая позиция получена и доступна",
+        substitutionResolvedAt,
+        replacementReceivedAt,
+        replacementReceivedAt,
+      );
+
+      insertPartsPurchaseAction.run(
+        replacementPurchaseActionId,
+        replacementRequestId,
+        "БыстрыйСклад",
+        `PO-${waitingPartsOrder.code}-R1`,
+        1,
+        2600,
+        "received",
+        substitutionResolvedAt,
+        replacementReceivedAt,
+        "Заменяющая позиция поставлена полностью",
+        substitutionResolvedAt,
+        replacementReceivedAt,
+      );
+
+      insertWorkOrderPartsHistory.run(
+        `woph-${waitingPartsOrder.id}-sub-requested`,
+        waitingPartsOrder.id,
+        substitutedRequestId,
+        null,
+        null,
+        null,
+        "requested",
+        "Запрошена",
+        substitutionRequestedAt,
+        "seed",
+        "Initial seeded request before substitution",
+        "seed",
+        JSON.stringify({
+          partName: "Опора амортизатора передняя",
+          requestedQty: 1,
+          isBlocking: true,
+        }),
+      );
+
+      insertWorkOrderPartsHistory.run(
+        `woph-${waitingPartsOrder.id}-sub-substituted`,
+        waitingPartsOrder.id,
+        substitutedRequestId,
+        null,
+        "requested",
+        "Запрошена",
+        "substituted",
+        "Заменена",
+        substitutionResolvedAt,
+        "seed",
+        "Seed substitution example",
+        "seed",
+        JSON.stringify({
+          replacementPartName: "Опора амортизатора передняя усиленная",
+        }),
+      );
+
+      insertWorkOrderPartsHistory.run(
+        `woph-${waitingPartsOrder.id}-replacement-request`,
+        waitingPartsOrder.id,
+        replacementRequestId,
+        null,
+        null,
+        null,
+        "received",
+        "Получена",
+        replacementReceivedAt,
+        "seed",
+        "Replacement request resolved",
+        "seed",
+        JSON.stringify({
+          replacementForRequestId: substitutedRequestId,
+          partName: "Опора амортизатора передняя усиленная",
+          requestedQty: 1,
+        }),
+      );
+
+      insertWorkOrderPartsHistory.run(
+        `woph-${waitingPartsOrder.id}-replacement-purchase`,
+        waitingPartsOrder.id,
+        replacementRequestId,
+        replacementPurchaseActionId,
+        null,
+        null,
+        "purchase_received",
+        "Поставка получена",
+        replacementReceivedAt,
+        "seed",
+        "Replacement purchase received",
+        "seed",
+        JSON.stringify({
+          supplierName: "БыстрыйСклад",
+          supplierReference: `PO-${waitingPartsOrder.code}-R1`,
+          orderedQty: 1,
+          unitCostRub: 2600,
+        }),
+      );
     }
 
     syncCodeSequences(database);

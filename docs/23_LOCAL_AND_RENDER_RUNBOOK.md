@@ -33,9 +33,14 @@ Service defaults:
 - Appointment conversion API: `POST /api/v1/appointments/:id/convert-to-work-order`
 - Walk-in intake API: `POST /api/v1/intake/walk-ins`
 - Work-order lifecycle API: `GET /api/v1/work-orders`, `GET|PATCH /api/v1/work-orders/:id`
+- Work-order parts API:
+  - `GET /api/v1/work-orders/:id/parts-requests`
+  - `POST /api/v1/work-orders/:id/parts-requests`
+  - `PATCH /api/v1/work-orders/:id/parts-requests/:requestId`
+  - `POST /api/v1/work-orders/:id/parts-requests/:requestId/purchase-actions`
 - Unified lookup API: `GET /api/v1/search?q=<term>` (customer/phone/plate/VIN/model)
 - Russian dashboard UI: `GET /`
-- Work-order lifecycle UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`
+- Work-order lifecycle/parts UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`, plus parts forms under `/work-orders/:id/parts-requests*`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
 - SQLite runtime pragmas: `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=1000ms` (override timeout via `SQLITE_BUSY_TIMEOUT_MS`)
 - API auth baseline for mutating `/api/v1/**` requests:
@@ -72,13 +77,14 @@ Harness outputs written to stdout/stderr/files are redacted before persistence t
 `npm run verify` is self-contained:
 - does not require a pre-started local server,
 - starts a temporary isolated app instance and DB,
-- runs test + smoke + booking-page + walk-in-page + scheduling/walk-in scenario checks,
+- runs test + smoke + booking-page + walk-in-page + scheduling/walk-in + parts-flow scenario checks,
 - and shuts down automatically.
 
 Optional toggles:
 - `VERIFY_INCLUDE_BOOKING_SCENARIO=0 npm run verify` (skip booking-page scenario check)
 - `VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=0 npm run verify` (skip walk-in-page scenario check)
 - `VERIFY_INCLUDE_SCENARIO=0 npm run verify` (skip scenario check)
+- `VERIFY_INCLUDE_PARTS_SCENARIO=0 npm run verify` (skip parts-flow scenario check)
 - `npm run scenario:booking-page` defaults to read-only mode on non-local URLs and write mode on local URLs.
 - `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:booking-page` or `npm run scenario:booking-page -- --non-destructive` (force read-only mode)
 - `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:booking-page` or `npm run scenario:booking-page -- --destructive` (force write mode)
@@ -88,6 +94,9 @@ Optional toggles:
 - `npm run scenario:scheduling-walkin` defaults to read-only mode on non-local URLs and write mode on local URLs.
 - `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:scheduling-walkin` or `npm run scenario:scheduling-walkin -- --non-destructive` (force read-only mode)
 - `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:scheduling-walkin` or `npm run scenario:scheduling-walkin -- --destructive` (force write mode)
+- `npm run scenario:parts-flow` defaults to read-only mode on non-local URLs and write mode on local URLs.
+- `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:parts-flow` or `npm run scenario:parts-flow -- --non-destructive` (force read-only mode)
+- `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:parts-flow` or `npm run scenario:parts-flow -- --destructive` (force write mode)
 
 Two-stage gate policy:
 - day-to-day change gate: `npm run verify` (local, fast, deterministic)
@@ -106,6 +115,7 @@ Scenario fixture assumptions (current):
 - Walk-in-page scenario validates `/intake/walk-in` read/write behavior locally and non-destructive behavior remotely.
 - Scheduling/walk-in scenario resolves customers/vehicles/bays/employees dynamically from live API data.
 - Scheduling/walk-in scenario also validates appointment -> work-order conversion idempotency and lifecycle transitions (`scheduled -> in_progress -> ready_pickup`).
+- Parts-flow scenario validates blocking parts request lifecycle (`requested -> received/substituted`), work-order gating, and replacement request creation.
 - In write mode, if no customer/vehicle exists, the scenario provisions the minimum required records before creating appointment/walk-in entries.
 - Bays/employees are optional in scenario payloads; they are used only when available.
 - Smoke/scenario failure output is structured JSON and includes step, method/path, URL, response status, and parsed payload when available.
@@ -161,6 +171,7 @@ Behavior:
 - runs `npm run scenario:booking-page -- --non-destructive` against deployed URL
 - runs `npm run scenario:walkin-page -- --non-destructive` against deployed URL
 - runs `npm run scenario:scheduling-walkin -- --non-destructive` against deployed URL
+- runs `npm run scenario:parts-flow -- --non-destructive` against deployed URL
 - audits Render build/app logs for warn/error/repo-access signals in the deploy window
 - deploy-triggering mode requires `RENDER_API_KEY`
 
@@ -174,6 +185,7 @@ Useful toggles:
 - `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=0` → skip deployed non-destructive booking scenario check
 - `RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=0` → skip deployed non-destructive walk-in scenario check
 - `RENDER_VERIFY_INCLUDE_SCENARIO=0` → skip deployed non-destructive scenario check
+- `RENDER_VERIFY_INCLUDE_PARTS_SCENARIO=0` → skip deployed non-destructive parts-flow scenario check
 - `RENDER_SMOKE_MAX_ATTEMPTS=<n>` and `RENDER_SMOKE_RETRY_DELAY_MS=<ms>` → retry deployed smoke checks after promotion (defaults `3` and `10000`)
 - `RENDER_VERIFY_LOG_AUDIT=0` → skip post-deploy log audit
 - `RENDER_LOG_AUDIT_LIMIT=<n>` → per-type (`build`/`app`) log row cap (default `1000`)
@@ -230,6 +242,12 @@ If lifecycle logic regresses after deployment:
 1. Roll back to the previous healthy deployment revision.
 2. Re-run `npm run verify:render` to confirm recovery.
 3. Re-apply critical status corrections through `PATCH /api/v1/work-orders/:id` with explicit `reason` values so audit history remains intact.
+
+If parts-flow data is entered incorrectly:
+1. Stop further edits on the affected work-order until current state is confirmed.
+2. Use `PATCH /api/v1/work-orders/:id/parts-requests/:requestId` with explicit `reason` for status correction.
+3. If substitution chain was incorrect, mark bad request as `cancelled` and create a new replacement request via `POST /api/v1/work-orders/:id/parts-requests`.
+4. Re-run `npm run scenario:parts-flow -- --non-destructive` (or full `npm run verify:render`) against target environment.
 
 ## Known current limits
 

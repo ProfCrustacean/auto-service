@@ -146,3 +146,88 @@ test("appointment to work-order conversion is idempotent and enforces appointmen
     cleanup();
   }
 });
+
+test("work-order parts APIs enforce blocking lifecycle rules and supplier action sync", async () => {
+  const tempDb = createTempDatabase("auto-service-work-order-parts-api");
+  const { databasePath, cleanup } = tempDb;
+  const { server, database } = makeServer({ databasePath });
+
+  await waitForServer(server);
+
+  try {
+    const address = server.address();
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    const createRequest = await requestJson("POST", `${baseUrl}/api/v1/work-orders/wo-1004/parts-requests`, {
+      partName: "Катушка зажигания",
+      requestedQty: 1,
+      requestedUnitCostRub: 1900,
+      salePriceRub: 2900,
+      status: "requested",
+      isBlocking: true,
+      reason: "Деталь отсутствует на складе",
+    });
+    assert.equal(createRequest.status, 201);
+    assert.equal(createRequest.json.item.status, "requested");
+    assert.equal(createRequest.json.workOrder.status, "waiting_parts");
+    assert.ok(createRequest.json.workOrder.parts.openBlockingRequestsCount >= 1);
+    const createdRequestId = createRequest.json.item.id;
+
+    const blockedStatusChange = await requestJson("PATCH", `${baseUrl}/api/v1/work-orders/wo-1004`, {
+      status: "in_progress",
+      reason: "Пробуем продолжить без запчастей",
+    });
+    assert.equal(blockedStatusChange.status, 409);
+    assert.equal(blockedStatusChange.json.error.code, "conflict");
+
+    const receivePurchase = await requestJson("POST", `${baseUrl}/api/v1/work-orders/wo-1004/parts-requests/${createdRequestId}/purchase-actions`, {
+      supplierName: "АвтоПоставка",
+      supplierReference: "PO-test-1002",
+      orderedQty: 1,
+      unitCostRub: 1900,
+      status: "received",
+      reason: "Поставка принята на склад",
+    });
+    assert.equal(receivePurchase.status, 201);
+    assert.equal(receivePurchase.json.request.status, "received");
+    assert.equal(receivePurchase.json.workOrder.status, "scheduled");
+
+    const terminalLock = await requestJson("PATCH", `${baseUrl}/api/v1/work-orders/wo-1004/parts-requests/${createdRequestId}`, {
+      requestedQty: 2,
+      reason: "Недопустимое исправление закрытой позиции",
+    });
+    assert.equal(terminalLock.status, 409);
+    assert.equal(terminalLock.json.error.code, "conflict");
+
+    const createSubstitute = await requestJson("POST", `${baseUrl}/api/v1/work-orders/wo-1004/parts-requests`, {
+      partName: "Свеча зажигания",
+      requestedQty: 4,
+      requestedUnitCostRub: 500,
+      salePriceRub: 800,
+      status: "requested",
+      isBlocking: true,
+    });
+    assert.equal(createSubstitute.status, 201);
+    const substituteSourceRequestId = createSubstitute.json.item.id;
+
+    const substituteUpdate = await requestJson("PATCH", `${baseUrl}/api/v1/work-orders/wo-1004/parts-requests/${substituteSourceRequestId}`, {
+      status: "substituted",
+      replacementPartName: "Свеча зажигания иридиевая",
+      replacementRequestedQty: 4,
+      replacementSupplierName: "Деталь-Плюс",
+      reason: "Базовая позиция снята с поставки",
+    });
+    assert.equal(substituteUpdate.status, 200);
+    const replacementRequest = substituteUpdate.json.workOrder.partsRequests.find((item) => item.replacementForRequestId === substituteSourceRequestId);
+    assert.ok(replacementRequest);
+    assert.equal(replacementRequest.partName, "Свеча зажигания иридиевая");
+
+    const completedOrderPartsList = await requestJson("GET", `${baseUrl}/api/v1/work-orders/wo-0091/parts-requests`);
+    assert.equal(completedOrderPartsList.status, 200);
+    assert.equal(Array.isArray(completedOrderPartsList.json.items), true);
+  } finally {
+    await closeServer(server);
+    database.close();
+    cleanup();
+  }
+});

@@ -327,6 +327,12 @@ export function renderFormPageDocument({
       border-radius: 14px;
       padding: 14px;
     }
+    .subpanel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fbfcfa;
+    }
     h1, h2, h3 {
       margin: 0;
     }
@@ -432,6 +438,14 @@ export function renderFormPageDocument({
       border: 1px solid var(--line);
       border-radius: 10px;
     }
+    .json-cell {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-width: 420px;
+    }
     table {
       width: 100%;
       min-width: 520px;
@@ -481,13 +495,15 @@ export function renderFormPageDocument({
   ${body}
   <script>
     (() => {
-      const form = document.querySelector(${JSON.stringify(formSelector)});
-      if (!form) return;
-      form.addEventListener('submit', () => {
-        const submitButton = form.querySelector('[data-submit]');
-        if (!submitButton || submitButton.disabled) return;
-        submitButton.disabled = true;
-        submitButton.textContent = ${JSON.stringify(submitBusyText)};
+      const forms = document.querySelectorAll(${JSON.stringify(formSelector)});
+      if (!forms || forms.length === 0) return;
+      forms.forEach((form) => {
+        form.addEventListener('submit', () => {
+          const submitButton = form.querySelector('[data-submit]');
+          if (!submitButton || submitButton.disabled) return;
+          submitButton.disabled = true;
+          submitButton.textContent = ${JSON.stringify(submitBusyText)};
+        });
       });
     })();
   </script>

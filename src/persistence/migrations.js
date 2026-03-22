@@ -331,4 +331,90 @@ export const MIGRATIONS = [
       DROP TABLE IF EXISTS work_order_status_history;
     `,
   },
+  {
+    version: "008",
+    name: "add_work_order_parts_flow_tables",
+    up: `
+      CREATE TABLE IF NOT EXISTS work_order_parts_requests (
+        id TEXT PRIMARY KEY,
+        work_order_id TEXT NOT NULL REFERENCES work_orders(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        replacement_for_request_id TEXT REFERENCES work_order_parts_requests(id) ON UPDATE CASCADE ON DELETE SET NULL,
+        part_name TEXT NOT NULL,
+        supplier_name TEXT,
+        expected_arrival_date_local TEXT,
+        requested_qty INTEGER NOT NULL CHECK (requested_qty > 0),
+        requested_unit_cost_rub INTEGER NOT NULL DEFAULT 0 CHECK (requested_unit_cost_rub >= 0),
+        sale_price_rub INTEGER NOT NULL DEFAULT 0 CHECK (sale_price_rub >= 0),
+        status TEXT NOT NULL,
+        status_label_ru TEXT NOT NULL,
+        is_blocking INTEGER NOT NULL DEFAULT 1 CHECK (is_blocking IN (0, 1)),
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        resolved_at TEXT,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_work_order_parts_requests_order_status
+      ON work_order_parts_requests(work_order_id, status, created_at DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_work_order_parts_requests_blocking
+      ON work_order_parts_requests(work_order_id, is_blocking, status, created_at DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_work_order_parts_requests_replacement
+      ON work_order_parts_requests(replacement_for_request_id);
+
+      CREATE TABLE IF NOT EXISTS parts_purchase_actions (
+        id TEXT PRIMARY KEY,
+        parts_request_id TEXT NOT NULL REFERENCES work_order_parts_requests(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        supplier_name TEXT,
+        supplier_reference TEXT,
+        ordered_qty INTEGER NOT NULL CHECK (ordered_qty > 0),
+        unit_cost_rub INTEGER NOT NULL DEFAULT 0 CHECK (unit_cost_rub >= 0),
+        status TEXT NOT NULL,
+        ordered_at TEXT NOT NULL,
+        received_at TEXT,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_parts_purchase_actions_request_created
+      ON parts_purchase_actions(parts_request_id, created_at DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_parts_purchase_actions_request_status
+      ON parts_purchase_actions(parts_request_id, status, created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS work_order_parts_history (
+        id TEXT PRIMARY KEY,
+        work_order_id TEXT NOT NULL REFERENCES work_orders(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        parts_request_id TEXT REFERENCES work_order_parts_requests(id) ON UPDATE CASCADE ON DELETE SET NULL,
+        purchase_action_id TEXT REFERENCES parts_purchase_actions(id) ON UPDATE CASCADE ON DELETE SET NULL,
+        from_status TEXT,
+        from_status_label_ru TEXT,
+        to_status TEXT,
+        to_status_label_ru TEXT,
+        changed_at TEXT NOT NULL,
+        changed_by TEXT,
+        reason TEXT,
+        source TEXT NOT NULL,
+        details_json TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_work_order_parts_history_order_changed
+      ON work_order_parts_history(work_order_id, changed_at DESC);
+    `,
+    down: `
+      DROP INDEX IF EXISTS idx_work_order_parts_history_order_changed;
+      DROP TABLE IF EXISTS work_order_parts_history;
+
+      DROP INDEX IF EXISTS idx_parts_purchase_actions_request_status;
+      DROP INDEX IF EXISTS idx_parts_purchase_actions_request_created;
+      DROP TABLE IF EXISTS parts_purchase_actions;
+
+      DROP INDEX IF EXISTS idx_work_order_parts_requests_replacement;
+      DROP INDEX IF EXISTS idx_work_order_parts_requests_blocking;
+      DROP INDEX IF EXISTS idx_work_order_parts_requests_order_status;
+      DROP TABLE IF EXISTS work_order_parts_requests;
+    `,
+  },
 ];

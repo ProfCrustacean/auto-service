@@ -55,6 +55,7 @@ The product should begin with realistic sample data so the owner can review real
 - diagnosis complete
 - one suspension part requested
 - supplier-side purchase action created
+- one substitution example is present (original position replaced by received alternative)
 - status: waiting for parts
 
 ### Scenario 4 — In progress

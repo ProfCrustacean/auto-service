@@ -162,6 +162,7 @@ async function main() {
   const includeScenario = process.env.VERIFY_INCLUDE_SCENARIO !== "0";
   const includeBookingScenario = process.env.VERIFY_INCLUDE_BOOKING_SCENARIO !== "0";
   const includeWalkInPageScenario = process.env.VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO !== "0";
+  const includePartsScenario = process.env.VERIFY_INCLUDE_PARTS_SCENARIO !== "0";
   const includeRender = process.env.VERIFY_RENDER === "1";
   const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "auto-service-verify-"));
   const dbPath = path.join(tmpRoot, "verify.sqlite");
@@ -254,6 +255,17 @@ async function main() {
       });
     }
 
+    if (includePartsScenario) {
+      logJson({ status: "verify_step_started", step: "scenario_parts_flow", baseUrl });
+      await runProcess(process.execPath, ["scripts/parts-flow-scenario.js"], {
+        env: {
+          ...process.env,
+          APP_BASE_URL: baseUrl,
+        },
+        label: "scenario:parts-flow",
+      });
+    }
+
     if (includeRender) {
       logJson({ status: "verify_step_started", step: "render_verify" });
       await runProcess(process.execPath, ["scripts/verify-render.js"], {
@@ -268,6 +280,7 @@ async function main() {
       includeBookingScenario,
       includeWalkInPageScenario,
       includeScenario,
+      includePartsScenario,
       includeRender,
       serverLogPath,
       dbPath,
@@ -280,6 +293,7 @@ async function main() {
       includeBookingScenario,
       includeWalkInPageScenario,
       includeScenario,
+      includePartsScenario,
       includeRender,
       serverLogPath,
     });

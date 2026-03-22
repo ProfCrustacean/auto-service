@@ -791,6 +791,11 @@ async function main() {
     "RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO",
     true,
   );
+  const includePartsScenario = normalizeFlag(
+    process.env.RENDER_VERIFY_INCLUDE_PARTS_SCENARIO,
+    "RENDER_VERIFY_INCLUDE_PARTS_SCENARIO",
+    true,
+  );
   const verifyCommitParity = normalizeFlag(process.env.RENDER_VERIFY_COMMIT_PARITY, "RENDER_VERIFY_COMMIT_PARITY", true);
   const enableLogAudit = normalizeFlag(process.env.RENDER_VERIFY_LOG_AUDIT, "RENDER_VERIFY_LOG_AUDIT", true);
   const writeRawAuditLogs = normalizeFlag(
@@ -866,6 +871,7 @@ async function main() {
     includeScenario,
     includeBookingScenario,
     includeWalkInPageScenario,
+    includePartsScenario,
     verifyCommitParity,
     enableLogAudit,
     writeRawAuditLogs,
@@ -1061,6 +1067,24 @@ async function main() {
     });
   }
 
+  if (includePartsScenario) {
+    logJson({
+      status: "render_verify_step_started",
+      step: "scenario_parts_flow_non_destructive",
+      baseUrl,
+      skipDeploy,
+    });
+
+    await runProcess(process.execPath, ["scripts/parts-flow-scenario.js", "--non-destructive"], {
+      env: {
+        ...process.env,
+        APP_BASE_URL: baseUrl,
+        SCENARIO_NON_DESTRUCTIVE: "1",
+      },
+      label: "render scenario:parts-flow",
+    });
+  }
+
   if (!skipDeploy && enableLogAudit) {
     const ownerId = servicePayload?.ownerId;
     if (typeof ownerId !== "string" || ownerId.trim().length === 0) {
@@ -1109,6 +1133,7 @@ async function main() {
     includeScenario,
     includeBookingScenario,
     includeWalkInPageScenario,
+    includePartsScenario,
     verifyCommitParity,
     enableLogAudit,
     deployId: deployPayload?.id ?? null,

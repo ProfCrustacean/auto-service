@@ -45,7 +45,9 @@ test("DashboardService returns expected queue counts from fixtures", () => {
     assert.equal(Array.isArray(payload.queues.waitingDiagnosis), true);
     assert.equal(Array.isArray(payload.queues.waitingApproval), true);
     assert.equal(Array.isArray(payload.queues.paused), true);
-    assert.equal(payload.queues.waitingParts[0].nextActionLabel, "Уточнить поставку");
+    assert.equal(payload.queues.waitingParts[0].pendingPartsCount, 1);
+    assert.notEqual(payload.queues.waitingParts[0].oldestPendingPartsAgeLabel, "н/д");
+    assert.equal(payload.queues.waitingParts[0].nextActionLabel, "Контроль поставки (1)");
     assert.equal(payload.week.days.length, 7);
     assert.ok(Array.isArray(payload.week.byBay));
     assert.ok(Array.isArray(payload.week.byAssignee));

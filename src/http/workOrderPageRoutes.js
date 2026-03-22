@@ -3,7 +3,12 @@ import {
   renderActiveWorkOrderQueuePage,
   renderWorkOrderLifecyclePage,
 } from "../ui/workOrderLifecyclePage.js";
-import { validateWorkOrderUpdate } from "./workOrderValidators.js";
+import {
+  validateCreatePartsPurchaseAction,
+  validateCreatePartsRequest,
+  validateUpdatePartsRequest,
+  validateWorkOrderUpdate,
+} from "./workOrderValidators.js";
 
 function normalizeFormValue(value) {
   if (value === undefined || value === null) {
@@ -12,10 +17,10 @@ function normalizeFormValue(value) {
   return String(value).trim();
 }
 
-function parseBalanceDueRub(value) {
+function parseIntegerOrRaw(value) {
   const normalized = normalizeFormValue(value);
   if (normalized.length === 0) {
-    return 0;
+    return undefined;
   }
 
   if (!/^\d+$/u.test(normalized)) {
@@ -23,6 +28,36 @@ function parseBalanceDueRub(value) {
   }
 
   return Number.parseInt(normalized, 10);
+}
+
+function parseBalanceDueRub(value) {
+  const parsed = parseIntegerOrRaw(value);
+  if (parsed === undefined) {
+    return 0;
+  }
+  return parsed;
+}
+
+function parseBooleanOrRaw(value, defaultValue) {
+  const normalized = normalizeFormValue(value).toLowerCase();
+  if (normalized.length === 0) {
+    return defaultValue;
+  }
+
+  if (normalized === "1" || normalized === "true") {
+    return true;
+  }
+
+  if (normalized === "0" || normalized === "false") {
+    return false;
+  }
+
+  return normalized;
+}
+
+function normalizeOptionalValue(value) {
+  const normalized = normalizeFormValue(value);
+  return normalized.length > 0 ? normalized : undefined;
 }
 
 function buildWorkOrderFormValues(body = {}, item = null) {
@@ -51,7 +86,7 @@ function buildWorkOrderFormValues(body = {}, item = null) {
   };
 }
 
-function normalizeFormPayload(values) {
+function normalizeWorkOrderFormPayload(values) {
   return {
     status: values.status,
     bayId: values.bayId.length > 0 ? values.bayId : null,
@@ -62,6 +97,168 @@ function normalizeFormPayload(values) {
     customerNotes: values.customerNotes.length > 0 ? values.customerNotes : null,
     balanceDueRub: values.balanceDueRub,
     reason: values.reason.length > 0 ? values.reason : null,
+  };
+}
+
+function buildPartsCreateFormValues(body = {}) {
+  return {
+    partName: normalizeFormValue(body.partName),
+    supplierName: normalizeFormValue(body.supplierName),
+    expectedArrivalDateLocal: normalizeFormValue(body.expectedArrivalDateLocal),
+    requestedQty: normalizeFormValue(body.requestedQty) || "1",
+    requestedUnitCostRub: normalizeFormValue(body.requestedUnitCostRub) || "0",
+    salePriceRub: normalizeFormValue(body.salePriceRub) || "0",
+    status: normalizeFormValue(body.status) || "requested",
+    isBlocking: normalizeFormValue(body.isBlocking) || "true",
+    notes: normalizeFormValue(body.notes),
+    reason: normalizeFormValue(body.reason),
+    replacementForRequestId: normalizeFormValue(body.replacementForRequestId),
+  };
+}
+
+function normalizePartsCreatePayload(values) {
+  const payload = {
+    partName: values.partName,
+    requestedQty: parseIntegerOrRaw(values.requestedQty),
+    requestedUnitCostRub: parseIntegerOrRaw(values.requestedUnitCostRub),
+    salePriceRub: parseIntegerOrRaw(values.salePriceRub),
+    status: values.status,
+    isBlocking: parseBooleanOrRaw(values.isBlocking, true),
+  };
+
+  const supplierName = normalizeOptionalValue(values.supplierName);
+  if (supplierName !== undefined) {
+    payload.supplierName = supplierName;
+  }
+
+  const expectedArrivalDateLocal = normalizeOptionalValue(values.expectedArrivalDateLocal);
+  if (expectedArrivalDateLocal !== undefined) {
+    payload.expectedArrivalDateLocal = expectedArrivalDateLocal;
+  }
+
+  const notes = normalizeOptionalValue(values.notes);
+  if (notes !== undefined) {
+    payload.notes = notes;
+  }
+
+  const reason = normalizeOptionalValue(values.reason);
+  if (reason !== undefined) {
+    payload.reason = reason;
+  }
+
+  const replacementForRequestId = normalizeOptionalValue(values.replacementForRequestId);
+  if (replacementForRequestId !== undefined) {
+    payload.replacementForRequestId = replacementForRequestId;
+  }
+
+  return payload;
+}
+
+function buildPartsUpdateFormValues(body = {}, request = null) {
+  return {
+    status: normalizeFormValue(body.status) || request?.status || "",
+    notes: normalizeFormValue(body.notes),
+    reason: normalizeFormValue(body.reason),
+    replacementPartName: normalizeFormValue(body.replacementPartName),
+    replacementRequestedQty: normalizeFormValue(body.replacementRequestedQty),
+    replacementSupplierName: normalizeFormValue(body.replacementSupplierName),
+  };
+}
+
+function normalizePartsUpdatePayload(values) {
+  const payload = {
+    status: values.status,
+  };
+
+  const notes = normalizeOptionalValue(values.notes);
+  if (notes !== undefined) {
+    payload.notes = notes;
+  }
+
+  const reason = normalizeOptionalValue(values.reason);
+  if (reason !== undefined) {
+    payload.reason = reason;
+  }
+
+  const replacementPartName = normalizeOptionalValue(values.replacementPartName);
+  if (replacementPartName !== undefined) {
+    payload.replacementPartName = replacementPartName;
+  }
+
+  const replacementRequestedQty = parseIntegerOrRaw(values.replacementRequestedQty);
+  if (replacementRequestedQty !== undefined) {
+    payload.replacementRequestedQty = replacementRequestedQty;
+  }
+
+  const replacementSupplierName = normalizeOptionalValue(values.replacementSupplierName);
+  if (replacementSupplierName !== undefined) {
+    payload.replacementSupplierName = replacementSupplierName;
+  }
+
+  return payload;
+}
+
+function buildPurchaseActionFormValues(body = {}, request = null) {
+  return {
+    supplierName: normalizeFormValue(body.supplierName) || request?.supplierName || "",
+    supplierReference: normalizeFormValue(body.supplierReference),
+    orderedQty: normalizeFormValue(body.orderedQty) || String(request?.requestedQty ?? 1),
+    unitCostRub: normalizeFormValue(body.unitCostRub) || String(request?.requestedUnitCostRub ?? 0),
+    status: normalizeFormValue(body.status) || "ordered",
+    notes: normalizeFormValue(body.notes),
+    reason: normalizeFormValue(body.reason),
+  };
+}
+
+function normalizePurchaseActionPayload(values) {
+  const payload = {
+    orderedQty: parseIntegerOrRaw(values.orderedQty),
+    unitCostRub: parseIntegerOrRaw(values.unitCostRub),
+    status: values.status,
+  };
+
+  const supplierName = normalizeOptionalValue(values.supplierName);
+  if (supplierName !== undefined) {
+    payload.supplierName = supplierName;
+  }
+
+  const supplierReference = normalizeOptionalValue(values.supplierReference);
+  if (supplierReference !== undefined) {
+    payload.supplierReference = supplierReference;
+  }
+
+  const notes = normalizeOptionalValue(values.notes);
+  if (notes !== undefined) {
+    payload.notes = notes;
+  }
+
+  const reason = normalizeOptionalValue(values.reason);
+  if (reason !== undefined) {
+    payload.reason = reason;
+  }
+
+  return payload;
+}
+
+function buildDefaultPartsUi() {
+  return {
+    errors: [],
+    activeForm: null,
+    createValues: {
+      partName: "",
+      supplierName: "",
+      expectedArrivalDateLocal: "",
+      requestedQty: "1",
+      requestedUnitCostRub: "0",
+      salePriceRub: "0",
+      status: "requested",
+      isBlocking: "true",
+      notes: "",
+      reason: "",
+      replacementForRequestId: "",
+    },
+    updateValuesByRequestId: {},
+    purchaseValuesByRequestId: {},
   };
 }
 
@@ -76,7 +273,7 @@ function buildPageOptions(referenceDataService) {
   };
 }
 
-function mapDomainError(error) {
+function mapLifecycleDomainError(error) {
   if (error.code === "bay_not_found") {
     return {
       statusCode: 404,
@@ -98,6 +295,87 @@ function mapDomainError(error) {
     };
   }
 
+  if (error.code === "work_order_parts_blocking_conflict") {
+    return {
+      statusCode: 409,
+      errors: [{ field: "status", message: "Сначала закройте блокирующие запросы запчастей" }],
+    };
+  }
+
+  return null;
+}
+
+function mapPartsDomainError(error) {
+  if (error.code === "work_order_terminal") {
+    return {
+      statusCode: 409,
+      errors: [{ field: "form", message: "Для завершенного/отмененного заказ-наряда операции по запчастям недоступны" }],
+    };
+  }
+
+  if (error.code === "parts_request_not_found") {
+    return {
+      statusCode: 404,
+      errors: [{ field: "form", message: "Запрос запчасти не найден" }],
+    };
+  }
+
+  if (error.code === "parts_request_replacement_target_not_found") {
+    return {
+      statusCode: 404,
+      errors: [{ field: "replacementForRequestId", message: "Запрос-источник для замены не найден" }],
+    };
+  }
+
+  if (error.code === "parts_request_status_transition_invalid") {
+    return {
+      statusCode: 409,
+      errors: [{ field: "status", message: "Переход статуса запроса запчасти недопустим" }],
+    };
+  }
+
+  if (error.code === "parts_request_terminal_locked") {
+    return {
+      statusCode: 409,
+      errors: [{ field: "status", message: "Терминальный запрос заблокирован для изменения количества/стоимости/поставщика" }],
+    };
+  }
+
+  if (error.code === "parts_request_requested_qty_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "requestedQty", message: "Количество должно быть целым числом больше 0" }],
+    };
+  }
+
+  if (error.code === "parts_request_requested_unit_cost_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "requestedUnitCostRub", message: "Закупочная цена должна быть целым числом >= 0" }],
+    };
+  }
+
+  if (error.code === "parts_request_sale_price_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "salePriceRub", message: "Цена для клиента должна быть целым числом >= 0" }],
+    };
+  }
+
+  if (error.code === "parts_purchase_action_ordered_qty_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "orderedQty", message: "Количество в поставке должно быть целым числом > 0" }],
+    };
+  }
+
+  if (error.code === "parts_purchase_action_unit_cost_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "unitCostRub", message: "Цена закупки должна быть целым числом >= 0" }],
+    };
+  }
+
   return null;
 }
 
@@ -115,7 +393,46 @@ function collectMessages(query) {
   if (String(query.existing ?? "") === "1") {
     messages.push("Для этой записи заказ-наряд уже существовал. Открыт текущий экземпляр.");
   }
+  if (String(query.partsCreated ?? "") === "1") {
+    messages.push("Запрос запчасти создан.");
+  }
+  if (String(query.partsUpdated ?? "") === "1") {
+    messages.push("Запрос запчасти обновлен.");
+  }
+  if (String(query.partsPurchase ?? "") === "1") {
+    messages.push("Событие поставки запчасти добавлено.");
+  }
   return messages;
+}
+
+function renderNotFoundWorkOrder(res, id) {
+  res.status(404).send(
+    renderSimpleDetailPage({
+      title: "Заказ-наряд не найден",
+      backHref: "/",
+      fields: [{ label: "Идентификатор", value: id }],
+    }),
+  );
+}
+
+function renderWorkOrderPage(res, {
+  referenceDataService,
+  item,
+  statusCode = 200,
+  errors = [],
+  messages = [],
+  values = null,
+  partsUi = null,
+}) {
+  const page = renderWorkOrderLifecyclePage({
+    item,
+    options: buildPageOptions(referenceDataService),
+    errors,
+    messages,
+    values,
+    partsUi: partsUi ?? buildDefaultPartsUi(),
+  });
+  res.status(statusCode).send(page);
 }
 
 export function registerWorkOrderPageRoutes(app, {
@@ -145,22 +462,15 @@ export function registerWorkOrderPageRoutes(app, {
     try {
       const item = workOrderService.getWorkOrderById(req.params.id);
       if (!item) {
-        res.status(404).send(
-          renderSimpleDetailPage({
-            title: "Заказ-наряд не найден",
-            backHref: "/",
-            fields: [{ label: "Идентификатор", value: req.params.id }],
-          }),
-        );
+        renderNotFoundWorkOrder(res, req.params.id);
         return;
       }
 
-      const page = renderWorkOrderLifecyclePage({
+      renderWorkOrderPage(res, {
+        referenceDataService,
         item,
-        options: buildPageOptions(referenceDataService),
         messages: collectMessages(req.query),
       });
-      res.status(200).send(page);
     } catch (error) {
       logger.error("work_order_page_load_failed", {
         id: req.params.id,
@@ -179,27 +489,21 @@ export function registerWorkOrderPageRoutes(app, {
   app.post("/work-orders/:id", (req, res) => {
     const item = workOrderService.getWorkOrderById(req.params.id);
     if (!item) {
-      res.status(404).send(
-        renderSimpleDetailPage({
-          title: "Заказ-наряд не найден",
-          backHref: "/",
-          fields: [{ label: "Идентификатор", value: req.params.id }],
-        }),
-      );
+      renderNotFoundWorkOrder(res, req.params.id);
       return;
     }
 
     const values = buildWorkOrderFormValues(req.body ?? {}, item);
-    const normalizedPayload = normalizeFormPayload(values);
+    const normalizedPayload = normalizeWorkOrderFormPayload(values);
     const validation = validateWorkOrderUpdate(normalizedPayload);
     if (!validation.ok) {
-      const page = renderWorkOrderLifecyclePage({
+      renderWorkOrderPage(res, {
+        referenceDataService,
         item,
-        options: buildPageOptions(referenceDataService),
+        statusCode: 400,
         errors: validation.errors,
         values,
       });
-      res.status(400).send(page);
       return;
     }
 
@@ -209,28 +513,22 @@ export function registerWorkOrderPageRoutes(app, {
         source: "ui_work_order_page",
       });
       if (!updated) {
-        res.status(404).send(
-          renderSimpleDetailPage({
-            title: "Заказ-наряд не найден",
-            backHref: "/",
-            fields: [{ label: "Идентификатор", value: req.params.id }],
-          }),
-        );
+        renderNotFoundWorkOrder(res, req.params.id);
         return;
       }
 
       res.redirect(303, `/work-orders/${encodeURIComponent(req.params.id)}?updated=1`);
     } catch (error) {
-      const mapped = mapDomainError(error);
+      const mapped = mapLifecycleDomainError(error);
       if (mapped) {
         const freshItem = workOrderService.getWorkOrderById(req.params.id) ?? item;
-        const page = renderWorkOrderLifecyclePage({
+        renderWorkOrderPage(res, {
+          referenceDataService,
           item: freshItem,
-          options: buildPageOptions(referenceDataService),
+          statusCode: mapped.statusCode,
           errors: mapped.errors,
           values,
         });
-        res.status(mapped.statusCode).send(page);
         return;
       }
 
@@ -238,13 +536,221 @@ export function registerWorkOrderPageRoutes(app, {
         id: req.params.id,
         message: error.message,
       });
-      const page = renderWorkOrderLifecyclePage({
+      renderWorkOrderPage(res, {
+        referenceDataService,
         item,
-        options: buildPageOptions(referenceDataService),
+        statusCode: 500,
         errors: [{ field: "form", message: "Не удалось сохранить изменения. Повторите попытку." }],
         values,
       });
-      res.status(500).send(page);
+    }
+  });
+
+  app.post("/work-orders/:id/parts-requests", (req, res) => {
+    const item = workOrderService.getWorkOrderById(req.params.id);
+    if (!item) {
+      renderNotFoundWorkOrder(res, req.params.id);
+      return;
+    }
+
+    const createValues = buildPartsCreateFormValues(req.body ?? {});
+    const normalizedPayload = normalizePartsCreatePayload(createValues);
+    const validation = validateCreatePartsRequest(normalizedPayload);
+    const partsUi = buildDefaultPartsUi();
+    partsUi.activeForm = "create";
+    partsUi.createValues = createValues;
+
+    if (!validation.ok) {
+      partsUi.errors = validation.errors;
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 400,
+        partsUi,
+      });
+      return;
+    }
+
+    try {
+      const result = workOrderService.createWorkOrderPartsRequest(req.params.id, validation.value, {
+        changedBy: "front_desk_ui",
+        source: "ui_work_order_parts_create",
+      });
+      if (!result) {
+        renderNotFoundWorkOrder(res, req.params.id);
+        return;
+      }
+
+      res.redirect(303, `/work-orders/${encodeURIComponent(req.params.id)}?partsCreated=1`);
+    } catch (error) {
+      const mapped = mapPartsDomainError(error);
+      if (mapped) {
+        const freshItem = workOrderService.getWorkOrderById(req.params.id) ?? item;
+        partsUi.errors = mapped.errors;
+        renderWorkOrderPage(res, {
+          referenceDataService,
+          item: freshItem,
+          statusCode: mapped.statusCode,
+          partsUi,
+        });
+        return;
+      }
+
+      logger.error("work_order_parts_request_create_page_failed", {
+        id: req.params.id,
+        message: error.message,
+      });
+      partsUi.errors = [{ field: "form", message: "Не удалось создать запрос запчасти. Повторите попытку." }];
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 500,
+        partsUi,
+      });
+    }
+  });
+
+  app.post("/work-orders/:id/parts-requests/:requestId", (req, res) => {
+    const item = workOrderService.getWorkOrderById(req.params.id);
+    if (!item) {
+      renderNotFoundWorkOrder(res, req.params.id);
+      return;
+    }
+
+    const request = item.partsRequests.find((candidate) => candidate.id === req.params.requestId) ?? null;
+    const updateValues = buildPartsUpdateFormValues(req.body ?? {}, request);
+    const normalizedPayload = normalizePartsUpdatePayload(updateValues);
+    const validation = validateUpdatePartsRequest(normalizedPayload);
+    const partsUi = buildDefaultPartsUi();
+    partsUi.activeForm = `update:${req.params.requestId}`;
+    partsUi.updateValuesByRequestId[req.params.requestId] = updateValues;
+
+    if (!validation.ok) {
+      partsUi.errors = validation.errors;
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 400,
+        partsUi,
+      });
+      return;
+    }
+
+    try {
+      const result = workOrderService.updateWorkOrderPartsRequest(
+        req.params.id,
+        req.params.requestId,
+        validation.value,
+        {
+          changedBy: "front_desk_ui",
+          source: "ui_work_order_parts_update",
+        },
+      );
+
+      if (!result) {
+        renderNotFoundWorkOrder(res, req.params.id);
+        return;
+      }
+
+      res.redirect(303, `/work-orders/${encodeURIComponent(req.params.id)}?partsUpdated=1`);
+    } catch (error) {
+      const mapped = mapPartsDomainError(error);
+      if (mapped) {
+        const freshItem = workOrderService.getWorkOrderById(req.params.id) ?? item;
+        partsUi.errors = mapped.errors;
+        renderWorkOrderPage(res, {
+          referenceDataService,
+          item: freshItem,
+          statusCode: mapped.statusCode,
+          partsUi,
+        });
+        return;
+      }
+
+      logger.error("work_order_parts_request_update_page_failed", {
+        id: req.params.id,
+        requestId: req.params.requestId,
+        message: error.message,
+      });
+      partsUi.errors = [{ field: "form", message: "Не удалось обновить запрос запчасти. Повторите попытку." }];
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 500,
+        partsUi,
+      });
+    }
+  });
+
+  app.post("/work-orders/:id/parts-requests/:requestId/purchase-actions", (req, res) => {
+    const item = workOrderService.getWorkOrderById(req.params.id);
+    if (!item) {
+      renderNotFoundWorkOrder(res, req.params.id);
+      return;
+    }
+
+    const request = item.partsRequests.find((candidate) => candidate.id === req.params.requestId) ?? null;
+    const purchaseValues = buildPurchaseActionFormValues(req.body ?? {}, request);
+    const normalizedPayload = normalizePurchaseActionPayload(purchaseValues);
+    const validation = validateCreatePartsPurchaseAction(normalizedPayload);
+    const partsUi = buildDefaultPartsUi();
+    partsUi.activeForm = `purchase:${req.params.requestId}`;
+    partsUi.purchaseValuesByRequestId[req.params.requestId] = purchaseValues;
+
+    if (!validation.ok) {
+      partsUi.errors = validation.errors;
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 400,
+        partsUi,
+      });
+      return;
+    }
+
+    try {
+      const result = workOrderService.createWorkOrderPartsPurchaseAction(
+        req.params.id,
+        req.params.requestId,
+        validation.value,
+        {
+          changedBy: "front_desk_ui",
+          source: "ui_work_order_parts_purchase_action",
+        },
+      );
+
+      if (!result) {
+        renderNotFoundWorkOrder(res, req.params.id);
+        return;
+      }
+
+      res.redirect(303, `/work-orders/${encodeURIComponent(req.params.id)}?partsPurchase=1`);
+    } catch (error) {
+      const mapped = mapPartsDomainError(error);
+      if (mapped) {
+        const freshItem = workOrderService.getWorkOrderById(req.params.id) ?? item;
+        partsUi.errors = mapped.errors;
+        renderWorkOrderPage(res, {
+          referenceDataService,
+          item: freshItem,
+          statusCode: mapped.statusCode,
+          partsUi,
+        });
+        return;
+      }
+
+      logger.error("work_order_parts_purchase_action_page_failed", {
+        id: req.params.id,
+        requestId: req.params.requestId,
+        message: error.message,
+      });
+      partsUi.errors = [{ field: "form", message: "Не удалось записать событие поставки. Повторите попытку." }];
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 500,
+        partsUi,
+      });
     }
   });
 }

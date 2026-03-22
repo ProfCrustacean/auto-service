@@ -1,0 +1,98 @@
+{
+  "teamKey": "AUT",
+  "stateName": "Backlog",
+  "defaultLabels": [
+    "phase-3",
+    "parts",
+    "autonomous-ready"
+  ],
+  "issues": [
+    {
+      "title": "Epic: Phase 3 — Parts requests and waiting-for-parts operational flow",
+      "priority": 1,
+      "labels": [
+        "Epic",
+        "WorkOrders"
+      ],
+      "description": "## Outcome\nDeliver the next feature block after lifecycle core: full parts request flow under work orders so blocked jobs are explicit, actionable, and auditable.\n\n## Why now\nCurrent system has lifecycle control but no dedicated parts-request model. This creates a blind spot for the highest-friction real-world state: jobs paused pending parts.\n\n## Scope of this epic\n- parts request domain model and transition rules,\n- persistence tables + audit trail,\n- APIs for create/update/receive/substitute/cancel/return,\n- work-order UI for parts operations,\n- dashboard waiting-for-parts queue expansion,\n- automated verification scenarios,\n- runbook/docs/rollback guidance.\n\n## Epic-level acceptance\n- [ ] A user can create parts requests directly under a work order.\n- [ ] A user can mark receipt/substitution/return/cancel with visible history.\n- [ ] Waiting-for-parts jobs are visible with aging signal and next action.\n- [ ] `npm run verify` and `npm run verify:render` remain green after rollout.\n\n## Suggested execution order\n1. PRT-1 -> PRT-2 -> PRT-3\n2. PRT-4 -> PRT-5 -> PRT-6\n3. PRT-7 -> PRT-8"
+    },
+    {
+      "title": "PRT-1 Domain: parts request state machine and invariants",
+      "priority": 2,
+      "labels": [
+        "Domain",
+        "WorkOrders"
+      ],
+      "description": "## Context\nThe domain packet requires explicit parts states and traceable transitions. We need deterministic business rules before storage/API/UI.\n\n## Scope\n1. Add domain module for parts request statuses and transition map (e.g. `requested`, `ordered`, `received`, `substituted`, `cancelled`, `returned`).\n2. Define guarded transitions and invalid-transition errors.\n3. Encode invariants: non-negative qty/cost, immutable key facts after terminal states unless correction path used.\n4. Provide Russian status labels and next-action hints.\n\n## Acceptance Criteria\n- [ ] Domain module exposes canonical statuses and allowed transitions.\n- [ ] Invalid transitions fail with explicit machine-parseable error codes/messages.\n- [ ] Status labels are Russian and stable.\n\n## Verification\n- `npm test` with new domain-focused tests for happy-path and invalid transitions."
+    },
+    {
+      "title": "PRT-2 Persistence: parts request tables, purchase actions, and history audit",
+      "priority": 2,
+      "labels": [
+        "Database",
+        "Migration",
+        "Audit"
+      ],
+      "description": "## Context\nPhase 3 requires persistent linkage between work orders and parts requests, plus supplier-side purchase actions and history.\n\n## Scope\n1. Add migration(s) for:\n   - `work_order_parts_requests`,\n   - `parts_purchase_actions` (supplier-side),\n   - `work_order_parts_history` (status and key field changes).\n2. Add indexes for active queue and work-order detail lookups.\n3. Extend seed data with at least one waiting-for-parts and one substitution example.\n4. Keep migration/idempotency guarantees and rollback notes.\n\n## Acceptance Criteria\n- [ ] New tables exist with referential integrity to work orders.\n- [ ] History captures each meaningful parts state change.\n- [ ] Seed fixtures include realistic parts states.\n\n## Verification\n- `npm test` (persistence + migration tests)\n- `npm run verify`"
+    },
+    {
+      "title": "PRT-3 API: work-order parts request endpoints with strict validation",
+      "priority": 2,
+      "labels": [
+        "API",
+        "Validation"
+      ],
+      "description": "## Context\nOperators need direct API contracts for parts requests and supplier actions to support UI and external automation.\n\n## Scope\n1. Add endpoints under work-order context, for example:\n   - `GET /api/v1/work-orders/:id/parts-requests`\n   - `POST /api/v1/work-orders/:id/parts-requests`\n   - `PATCH /api/v1/work-orders/:id/parts-requests/:requestId`\n   - `POST /api/v1/work-orders/:id/parts-requests/:requestId/purchase-actions`\n2. Add deterministic input validation and normalized error payloads.\n3. Enforce role policy for mutating endpoints.\n4. Keep authz coverage aligned with existing token-role baseline.\n\n## Acceptance Criteria\n- [ ] API covers create/update/receive/substitute/cancel/return flows.\n- [ ] Validation rejects malformed or unsafe payloads with stable contracts.\n- [ ] Unauthorized mutations return 403 with standard response shape.\n\n## Verification\n- `npm test` with new API tests\n- `npm run verify`"
+    },
+    {
+      "title": "PRT-4 Service flow: lifecycle gating between waiting_parts and resumable work",
+      "priority": 2,
+      "labels": [
+        "Domain",
+        "Lifecycle",
+        "WorkOrders"
+      ],
+      "description": "## Context\nParts availability should drive work-order readiness. Today status changes are manual and can drift from actual parts state.\n\n## Scope\n1. Add service-level orchestration that derives/guards work-order status transitions based on unresolved parts requests.\n2. Define deterministic rule: unresolved blocking parts force `waiting_parts` (or block conflicting transitions); resolving required parts allows continuation.\n3. Write lifecycle + parts history entries in one transaction boundary.\n4. Keep explicit correction path with reason capture when overriding.\n\n## Acceptance Criteria\n- [ ] Work order cannot be incorrectly advanced while required parts remain unresolved.\n- [ ] Resolving required parts enables progression without manual data repair.\n- [ ] Every automatic or guarded transition is auditable.\n\n## Verification\n- `npm test` with service integration tests\n- `npm run verify`"
+    },
+    {
+      "title": "PRT-5 UI: parts management section in /work-orders/:id",
+      "priority": 2,
+      "labels": [
+        "UI",
+        "WorkOrders",
+        "Russian"
+      ],
+      "description": "## Context\nOperators currently cannot manage parts flow from the work-order workspace.\n\n## Scope\n1. Add Russian parts-management panel to `/work-orders/:id`:\n   - create parts request,\n   - set supplier/order metadata,\n   - mark received/substituted/cancelled/returned,\n   - capture reason/comment.\n2. Show current parts state summary and next action.\n3. Keep error messages actionable and field-specific.\n4. Preserve existing lifecycle section behavior.\n\n## Acceptance Criteria\n- [ ] Parts actions are operable from the same work-order page.\n- [ ] UI reflects current parts state and history without API-only workarounds.\n- [ ] No regression in existing lifecycle controls.\n\n## Verification\n- `npm test` with page-flow tests\n- `npm run verify`"
+    },
+    {
+      "title": "PRT-6 Dashboard: waiting-for-parts queue with aging and next action",
+      "priority": 2,
+      "labels": [
+        "Dashboard",
+        "Reporting",
+        "UI"
+      ],
+      "description": "## Context\nThe dashboard has queue counts but lacks full parts-driven operational visibility (aging + actionable detail) for blocked jobs.\n\n## Scope\n1. Expand dashboard payload and UI with waiting-for-parts detail rows:\n   - work-order code,\n   - pending parts count,\n   - oldest pending age,\n   - next action hint.\n2. Add deterministic sorting by urgency/age.\n3. Keep existing summary invariants (summary count equals queue length).\n4. Ensure mobile layout remains overflow-safe.\n\n## Acceptance Criteria\n- [ ] Waiting-for-parts queue is operationally actionable, not count-only.\n- [ ] Aging signal and ordering make blocked jobs obvious.\n- [ ] Mobile and desktop render without horizontal overflow regressions.\n\n## Verification\n- `npm test`\n- `npm run smoke`\n- targeted Playwright viewport checks at 390px and desktop."
+    },
+    {
+      "title": "PRT-7 Verification: end-to-end parts scenario and non-destructive deploy checks",
+      "priority": 2,
+      "labels": [
+        "Harness",
+        "E2E",
+        "Quality Gate"
+      ],
+      "description": "## Context\nPhase 3 needs first-class verification paths equivalent to booking/walk-in/lifecycle to remain agent-operable and regression-resistant.\n\n## Scope\n1. Add deterministic parts scenario script covering:\n   - request creation,\n   - waiting-for-parts block,\n   - receipt/substitution,\n   - resumed lifecycle progression.\n2. Add non-destructive remote mode behavior for deployed URL.\n3. Integrate scenario into `verify` and `verify:render` gates with structured JSON output.\n4. Add focused tests for scenario helpers and failure diagnostics.\n\n## Acceptance Criteria\n- [ ] Local gate validates parts flow end-to-end automatically.\n- [ ] Deploy gate validates read-only parts expectations on production URL.\n- [ ] Failures are machine-parseable and actionable.\n\n## Verification\n- `npm test`\n- `npm run verify`\n- `npm run verify:render`"
+    },
+    {
+      "title": "PRT-8 Docs/Ops: parts flow runbook, acceptance mapping, rollback path",
+      "priority": 3,
+      "labels": [
+        "Docs",
+        "Ops",
+        "Runbook"
+      ],
+      "description": "## Context\nNew feature behavior must be discoverable and recoverable without hidden knowledge.\n\n## Scope\n1. Update packet docs and runbook with parts domain rules, APIs, UI routes, and scenario commands.\n2. Add acceptance mapping from docs to implemented tests/scenarios.\n3. Document rollback and data-repair procedure for incorrect parts status or supplier event entry.\n4. Update `STATUS.md` and `PLANS.md` to reflect the new active/completed plan.\n\n## Acceptance Criteria\n- [ ] Operator and agent can run and verify parts flow from docs only.\n- [ ] Rollback/recovery instructions are explicit and tested at least once.\n- [ ] Status/plans remain compact and current.\n\n## Verification\n- `npm run verify`\n- `npm run verify:render`\n- doc references resolve and commands execute as written."
+    }
+  ]
+}

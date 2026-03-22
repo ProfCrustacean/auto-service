@@ -93,6 +93,30 @@ test("mutating API endpoints require auth and enforce role policies", async () =
     assert.equal(technicianUpdateWorkOrder.status, 200);
     assert.equal(technicianUpdateWorkOrder.payload.item.findings, "Проверка права техника на тех. обновление");
 
+    const frontDeskCreatePartsRequest = await postJson(`${baseUrl}/api/v1/work-orders/wo-1002/parts-requests`, {
+      partName: "Датчик ABS",
+      requestedQty: 1,
+      requestedUnitCostRub: 1700,
+      salePriceRub: 2500,
+      status: "requested",
+      isBlocking: true,
+    }, "frontdesk-dev-token");
+    assert.equal(frontDeskCreatePartsRequest.status, 201);
+    const createdPartsRequestId = frontDeskCreatePartsRequest.payload.item.id;
+
+    const technicianCreatePurchaseAction = await postJson(
+      `${baseUrl}/api/v1/work-orders/wo-1002/parts-requests/${createdPartsRequestId}/purchase-actions`,
+      {
+        supplierName: "Склад-13",
+        orderedQty: 1,
+        unitCostRub: 1700,
+        status: "ordered",
+      },
+      "technician-dev-token",
+    );
+    assert.equal(technicianCreatePurchaseAction.status, 201);
+    assert.equal(technicianCreatePurchaseAction.payload.item.status, "ordered");
+
     const createAppointment = await postJson(`${baseUrl}/api/v1/appointments`, {
       plannedStartLocal: "2026-03-28 14:10",
       customerId: "cust-2",

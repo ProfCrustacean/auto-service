@@ -114,3 +114,81 @@ test("work-order workspace updates lifecycle state and keeps validation feedback
     cleanup();
   }
 });
+
+test("work-order workspace allows parts request and purchase actions from the same page", async () => {
+  const tempDb = createTempDatabase("auto-service-work-order-page-parts");
+  const { databasePath, cleanup } = tempDb;
+  const { server, database } = makeServer({ databasePath });
+
+  await waitForServer(server);
+
+  try {
+    const address = server.address();
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    const createRequest = await submitWorkOrderForm(
+      `${baseUrl}/work-orders/wo-1002/parts-requests`,
+      {
+        partName: "Катушка зажигания тест",
+        supplierName: "Склад-Тест",
+        requestedQty: 1,
+        requestedUnitCostRub: 1800,
+        salePriceRub: 2800,
+        status: "requested",
+        isBlocking: "true",
+        reason: "Добавляем позицию в работе диспетчера",
+      },
+      { redirect: "manual" },
+    );
+    assert.equal(createRequest.status, 303);
+    assert.equal(createRequest.location, "/work-orders/wo-1002?partsCreated=1");
+
+    const afterCreatePage = await fetch(`${baseUrl}${createRequest.location}`);
+    assert.equal(afterCreatePage.status, 200);
+    const afterCreateHtml = await afterCreatePage.text();
+    assert.match(afterCreateHtml, /Запрос запчасти создан/u);
+    assert.match(afterCreateHtml, /Катушка зажигания тест/u);
+
+    const detailRes = await fetch(`${baseUrl}/api/v1/work-orders/wo-1002`);
+    assert.equal(detailRes.status, 200);
+    const detailPayload = await detailRes.json();
+    const createdRequest = detailPayload.item.partsRequests.find((item) => item.partName === "Катушка зажигания тест");
+    assert.ok(createdRequest);
+
+    const updateRequest = await submitWorkOrderForm(
+      `${baseUrl}/work-orders/wo-1002/parts-requests/${createdRequest.id}`,
+      {
+        status: "ordered",
+        reason: "Передано поставщику",
+      },
+      { redirect: "manual" },
+    );
+    assert.equal(updateRequest.status, 303);
+    assert.equal(updateRequest.location, "/work-orders/wo-1002?partsUpdated=1");
+
+    const createPurchaseAction = await submitWorkOrderForm(
+      `${baseUrl}/work-orders/wo-1002/parts-requests/${createdRequest.id}/purchase-actions`,
+      {
+        supplierName: "Склад-Тест",
+        supplierReference: "PO-TEST-1",
+        orderedQty: 1,
+        unitCostRub: 1800,
+        status: "ordered",
+        reason: "Фиксируем заказ поставщику",
+      },
+      { redirect: "manual" },
+    );
+    assert.equal(createPurchaseAction.status, 303);
+    assert.equal(createPurchaseAction.location, "/work-orders/wo-1002?partsPurchase=1");
+
+    const afterPurchasePage = await fetch(`${baseUrl}${createPurchaseAction.location}`);
+    assert.equal(afterPurchasePage.status, 200);
+    const afterPurchaseHtml = await afterPurchasePage.text();
+    assert.match(afterPurchaseHtml, /Событие поставки запчасти добавлено/u);
+    assert.match(afterPurchaseHtml, /PO-TEST-1/u);
+  } finally {
+    await closeServer(server);
+    database.close();
+    cleanup();
+  }
+});

@@ -162,9 +162,13 @@ Phase 1 reference-data APIs:
 - `POST /api/v1/intake/walk-ins`
 - `GET /api/v1/work-orders`
 - `GET|PATCH /api/v1/work-orders/:id`
+- `GET /api/v1/work-orders/:id/parts-requests`
+- `POST /api/v1/work-orders/:id/parts-requests`
+- `PATCH /api/v1/work-orders/:id/parts-requests/:requestId`
+- `POST /api/v1/work-orders/:id/parts-requests/:requestId/purchase-actions`
 - `GET /api/v1/search?q=<term>` (быстрый поиск по клиенту/телефону/номеру/VIN/модели)
 
-Phase 2 lifecycle UI:
+Phase 2/3 work-order UI:
 - `GET /work-orders/active`
 - `GET|POST /work-orders/:id`
 
@@ -202,7 +206,7 @@ CI quality gate:
 `npm run verify` is self-contained:
 - runs tests,
 - boots an isolated app instance with a temporary SQLite database,
-- runs smoke checks plus booking-page, walk-in-page, and scheduling/walk-in scenarios,
+- runs smoke checks plus booking-page, walk-in-page, scheduling/walk-in, and parts-flow scenarios,
 - then stops the app automatically.
 
 Render stage commands:
@@ -214,6 +218,7 @@ Render stage commands:
   - runs non-destructive booking-page scenario against deployed URL,
   - runs non-destructive walk-in-page scenario against deployed URL,
   - runs non-destructive scheduling+walk-in scenario against deployed URL,
+  - runs non-destructive parts-flow scenario against deployed URL,
   - and runs a post-deploy Render build/runtime log audit.
 - `npm run verify:full`:
   - runs local `verify`,
@@ -233,6 +238,7 @@ Render env defaults:
 - `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=1` by default (runs deployed read-only booking-page scenario gate)
 - `RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=1` by default (runs deployed read-only walk-in-page scenario gate)
 - `RENDER_VERIFY_INCLUDE_SCENARIO=1` by default (runs deployed read-only scenario gate)
+- `RENDER_VERIFY_INCLUDE_PARTS_SCENARIO=1` by default (runs deployed read-only parts-flow scenario gate)
 - `RENDER_SMOKE_MAX_ATTEMPTS=3` and `RENDER_SMOKE_RETRY_DELAY_MS=10000` by default (retry smoke after deploy to absorb rollout lag)
 - `RENDER_VERIFY_LOG_AUDIT=1` by default (runs post-deploy log audit)
 - `RENDER_LOG_AUDIT_LIMIT=1000` per log type (`build` + `app`)
@@ -246,7 +252,7 @@ Render env defaults:
 Scenario mode defaults:
 - local base URL (`127.0.0.1`/`localhost`) => write mode
 - non-local base URL => non-destructive read-only mode
-- override with `SCENARIO_NON_DESTRUCTIVE=1|0` or `--non-destructive|--destructive` for `scenario:booking-page`, `scenario:walkin-page`, and `scenario:scheduling-walkin`
+- override with `SCENARIO_NON_DESTRUCTIVE=1|0` or `--non-destructive|--destructive` for `scenario:booking-page`, `scenario:walkin-page`, `scenario:scheduling-walkin`, and `scenario:parts-flow`
 
 Smoke/scenario failures are emitted as machine-parseable JSON with step and request diagnostics.
 

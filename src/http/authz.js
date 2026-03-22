@@ -32,7 +32,7 @@ const WRITE_POLICIES = [
     allowedRoles: new Set(["owner", "front_desk"]),
   },
   {
-    pattern: /^\/api\/v1\/work-orders(?:\/[^/]+)?$/u,
+    pattern: /^\/api\/v1\/work-orders(?:\/.*)?$/u,
     allowedRoles: new Set(["owner", "front_desk", "technician"]),
   },
 ];

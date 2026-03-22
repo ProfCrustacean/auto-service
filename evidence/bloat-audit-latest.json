@@ -1,15 +1,15 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-22T18:42:43.382Z",
+  "generatedAt": "2026-03-22T22:41:39.450Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
   "thresholds": {
-    "maxTrackedBytes": 1090000,
+    "maxTrackedBytes": 1220000,
     "maxTrackedBytesByArea": {
-      "src": 320000,
-      "tests": 130000,
-      "scripts": 165000,
+      "src": 430000,
+      "tests": 135000,
+      "scripts": 170000,
       "docs": 85000,
       "evidence": 220000
     },
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1058398,
+      "totalBytes": 1185896,
       "byArea": {
-        "src": 306965,
-        "tests": 121714,
-        "scripts": 163201,
-        "docs": 71639,
-        "evidence": 189450,
-        "other": 205429
+        "src": 411128,
+        "tests": 130437,
+        "scripts": 164340,
+        "docs": 73386,
+        "evidence": 196901,
+        "other": 209704
       }
     },
     "topTrackedFiles": [
@@ -40,7 +40,7 @@
       },
       {
         "path": "src/repositories/sqliteRepository.js",
-        "bytes": 52507
+        "bytes": 69135
       },
       {
         "path": "evidence/render-log-audit-latest-deploy-window.json",
@@ -51,28 +51,48 @@
         "bytes": 33641
       },
       {
+        "path": "src/ui/workOrderLifecyclePage.js",
+        "bytes": 32959
+      },
+      {
         "path": "scripts/verify-render.js",
-        "bytes": 30562
+        "bytes": 31224
       },
       {
         "path": "package-lock.json",
         "bytes": 29371
       },
       {
+        "path": "src/ui/dashboardPage.js",
+        "bytes": 26043
+      },
+      {
         "path": "scripts/linear-harness.js",
         "bytes": 25720
       },
       {
-        "path": "src/ui/dashboardPage.js",
-        "bytes": 24894
+        "path": "src/http/workOrderPageRoutes.js",
+        "bytes": 23706
+      },
+      {
+        "path": "src/services/workOrderService.js",
+        "bytes": 23328
       },
       {
         "path": "src/services/dashboardService.js",
-        "bytes": 19814
+        "bytes": 21610
+      },
+      {
+        "path": "src/persistence/seedDatabase.js",
+        "bytes": 18671
       },
       {
         "path": "scripts/scheduling-walkin-scenario.js",
         "bytes": 17871
+      },
+      {
+        "path": "src/http/workOrderValidators.js",
+        "bytes": 17328
       },
       {
         "path": "data/linear/technical-audit-2026-03-22.json",
@@ -80,7 +100,11 @@
       },
       {
         "path": "src/ui/pageFormShared.js",
-        "bytes": 16100
+        "bytes": 16583
+      },
+      {
+        "path": "src/persistence/migrations.js",
+        "bytes": 15957
       },
       {
         "path": "evidence/render-aut16-log-window.json",
@@ -89,35 +113,11 @@
       {
         "path": "scripts/booking-page-scenario.js",
         "bytes": 14710
-      },
-      {
-        "path": "src/http/appointmentPageRoutes.js",
-        "bytes": 13175
-      },
-      {
-        "path": "evidence/render-log-audit-events.json",
-        "bytes": 12966
-      },
-      {
-        "path": "src/persistence/migrations.js",
-        "bytes": 12186
-      },
-      {
-        "path": "README.md",
-        "bytes": 12044
-      },
-      {
-        "path": "scripts/smoke.js",
-        "bytes": 11932
-      },
-      {
-        "path": "docs/23_LOCAL_AND_RENDER_RUNBOOK.md",
-        "bytes": 11778
       }
     ],
     "evidence": {
-      "trackedFileCount": 73,
-      "totalBytes": 189450,
+      "trackedFileCount": 75,
+      "totalBytes": 196901,
       "largestFile": {
         "path": "evidence/render-log-audit-latest-deploy-window.json",
         "bytes": 46295
@@ -126,18 +126,18 @@
     },
     "docs": {
       "lineCounts": {
-        "README": 305,
+        "README": 311,
         "STATUS": 107,
         "PLANS": 113
       }
     },
     "duplication": {
-      "percentage": 10.51,
-      "duplicatedLines": 1693,
-      "clones": 117,
-      "sources": 88,
-      "lines": 16106,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-bazwzu/report/jscpd-report.json"
+      "percentage": 10.66,
+      "duplicatedLines": 2059,
+      "clones": 143,
+      "sources": 91,
+      "lines": 19309,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-dJaBSi/report/jscpd-report.json"
     }
   },
   "violations": []

@@ -165,6 +165,85 @@ function mapWorkOrderStatusHistoryRecord(row) {
   };
 }
 
+function mapWorkOrderPartsRequestRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    workOrderId: row.workOrderId,
+    replacementForRequestId: row.replacementForRequestId ?? null,
+    partName: row.partName,
+    supplierName: row.supplierName ?? null,
+    expectedArrivalDateLocal: row.expectedArrivalDateLocal ?? null,
+    requestedQty: row.requestedQty,
+    requestedUnitCostRub: row.requestedUnitCostRub,
+    salePriceRub: row.salePriceRub,
+    status: row.status,
+    statusLabelRu: row.statusLabelRu,
+    isBlocking: asBoolean(row.isBlocking),
+    notes: row.notes ?? null,
+    createdAt: row.createdAt,
+    resolvedAt: row.resolvedAt ?? null,
+    updatedAt: row.updatedAt,
+    purchaseActionCount: row.purchaseActionCount ?? 0,
+    openPurchaseActionCount: row.openPurchaseActionCount ?? 0,
+  };
+}
+
+function mapPartsPurchaseActionRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    partsRequestId: row.partsRequestId,
+    supplierName: row.supplierName ?? null,
+    supplierReference: row.supplierReference ?? null,
+    orderedQty: row.orderedQty,
+    unitCostRub: row.unitCostRub,
+    status: row.status,
+    orderedAt: row.orderedAt,
+    receivedAt: row.receivedAt ?? null,
+    notes: row.notes ?? null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+function mapWorkOrderPartsHistoryRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  let details = null;
+  if (typeof row.detailsJson === "string" && row.detailsJson.length > 0) {
+    try {
+      details = JSON.parse(row.detailsJson);
+    } catch {
+      details = null;
+    }
+  }
+
+  return {
+    id: row.id,
+    workOrderId: row.workOrderId,
+    partsRequestId: row.partsRequestId ?? null,
+    purchaseActionId: row.purchaseActionId ?? null,
+    fromStatus: row.fromStatus ?? null,
+    fromStatusLabelRu: row.fromStatusLabelRu ?? null,
+    toStatus: row.toStatus ?? null,
+    toStatusLabelRu: row.toStatusLabelRu ?? null,
+    changedAt: row.changedAt,
+    changedBy: row.changedBy ?? null,
+    reason: row.reason ?? null,
+    source: row.source,
+    details,
+  };
+}
+
 export class SqliteRepository {
   constructor(database) {
     this.database = database;
@@ -847,6 +926,518 @@ export class SqliteRepository {
       )
       .all(workOrderId)
       .map(mapWorkOrderStatusHistoryRecord);
+  }
+
+  listWorkOrderPartsRequests(workOrderId, { includeResolved = true } = {}) {
+    const conditions = ["r.work_order_id = ?"];
+    const values = [workOrderId];
+
+    if (!includeResolved) {
+      conditions.push("r.status IN ('requested', 'ordered')");
+    }
+
+    return this.database
+      .prepare(
+        `SELECT
+          r.id,
+          r.work_order_id AS workOrderId,
+          r.replacement_for_request_id AS replacementForRequestId,
+          r.part_name AS partName,
+          r.supplier_name AS supplierName,
+          r.expected_arrival_date_local AS expectedArrivalDateLocal,
+          r.requested_qty AS requestedQty,
+          r.requested_unit_cost_rub AS requestedUnitCostRub,
+          r.sale_price_rub AS salePriceRub,
+          r.status,
+          r.status_label_ru AS statusLabelRu,
+          r.is_blocking AS isBlocking,
+          r.notes,
+          r.created_at AS createdAt,
+          r.resolved_at AS resolvedAt,
+          r.updated_at AS updatedAt,
+          (
+            SELECT COUNT(1)
+            FROM parts_purchase_actions p
+            WHERE p.parts_request_id = r.id
+          ) AS purchaseActionCount,
+          (
+            SELECT COUNT(1)
+            FROM parts_purchase_actions p
+            WHERE p.parts_request_id = r.id
+              AND p.status = 'ordered'
+          ) AS openPurchaseActionCount
+         FROM work_order_parts_requests r
+         WHERE ${conditions.join(" AND ")}
+         ORDER BY r.created_at DESC, r.id DESC`,
+      )
+      .all(...values)
+      .map(mapWorkOrderPartsRequestRecord);
+  }
+
+  getWorkOrderPartsRequestById(workOrderId, requestId) {
+    const row = this.database
+      .prepare(
+        `SELECT
+          r.id,
+          r.work_order_id AS workOrderId,
+          r.replacement_for_request_id AS replacementForRequestId,
+          r.part_name AS partName,
+          r.supplier_name AS supplierName,
+          r.expected_arrival_date_local AS expectedArrivalDateLocal,
+          r.requested_qty AS requestedQty,
+          r.requested_unit_cost_rub AS requestedUnitCostRub,
+          r.sale_price_rub AS salePriceRub,
+          r.status,
+          r.status_label_ru AS statusLabelRu,
+          r.is_blocking AS isBlocking,
+          r.notes,
+          r.created_at AS createdAt,
+          r.resolved_at AS resolvedAt,
+          r.updated_at AS updatedAt,
+          (
+            SELECT COUNT(1)
+            FROM parts_purchase_actions p
+            WHERE p.parts_request_id = r.id
+          ) AS purchaseActionCount,
+          (
+            SELECT COUNT(1)
+            FROM parts_purchase_actions p
+            WHERE p.parts_request_id = r.id
+              AND p.status = 'ordered'
+          ) AS openPurchaseActionCount
+         FROM work_order_parts_requests r
+         WHERE r.work_order_id = ?
+           AND r.id = ?`,
+      )
+      .get(workOrderId, requestId);
+
+    return mapWorkOrderPartsRequestRecord(row);
+  }
+
+  listPartsPurchaseActions(partsRequestId) {
+    return this.database
+      .prepare(
+        `SELECT
+          id,
+          parts_request_id AS partsRequestId,
+          supplier_name AS supplierName,
+          supplier_reference AS supplierReference,
+          ordered_qty AS orderedQty,
+          unit_cost_rub AS unitCostRub,
+          status,
+          ordered_at AS orderedAt,
+          received_at AS receivedAt,
+          notes,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+         FROM parts_purchase_actions
+         WHERE parts_request_id = ?
+         ORDER BY created_at DESC, id DESC`,
+      )
+      .all(partsRequestId)
+      .map(mapPartsPurchaseActionRecord);
+  }
+
+  listWorkOrderPartsHistory(workOrderId) {
+    return this.database
+      .prepare(
+        `SELECT
+          id,
+          work_order_id AS workOrderId,
+          parts_request_id AS partsRequestId,
+          purchase_action_id AS purchaseActionId,
+          from_status AS fromStatus,
+          from_status_label_ru AS fromStatusLabelRu,
+          to_status AS toStatus,
+          to_status_label_ru AS toStatusLabelRu,
+          changed_at AS changedAt,
+          changed_by AS changedBy,
+          reason,
+          source,
+          details_json AS detailsJson
+         FROM work_order_parts_history
+         WHERE work_order_id = ?
+         ORDER BY changed_at DESC, id DESC`,
+      )
+      .all(workOrderId)
+      .map(mapWorkOrderPartsHistoryRecord);
+  }
+
+  createWorkOrderPartsHistoryEntry({
+    id,
+    workOrderId,
+    partsRequestId = null,
+    purchaseActionId = null,
+    fromStatus = null,
+    fromStatusLabelRu = null,
+    toStatus = null,
+    toStatusLabelRu = null,
+    changedAt,
+    changedBy = null,
+    reason = null,
+    source,
+    details = null,
+  }) {
+    this.database
+      .prepare(
+        `INSERT INTO work_order_parts_history(
+          id,
+          work_order_id,
+          parts_request_id,
+          purchase_action_id,
+          from_status,
+          from_status_label_ru,
+          to_status,
+          to_status_label_ru,
+          changed_at,
+          changed_by,
+          reason,
+          source,
+          details_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        workOrderId,
+        partsRequestId,
+        purchaseActionId,
+        fromStatus,
+        fromStatusLabelRu,
+        toStatus,
+        toStatusLabelRu,
+        changedAt,
+        changedBy,
+        reason,
+        source,
+        details ? JSON.stringify(details) : null,
+      );
+  }
+
+  hasOpenBlockingPartsRequests(workOrderId) {
+    const row = this.database
+      .prepare(
+        `SELECT COUNT(1) AS count
+         FROM work_order_parts_requests
+         WHERE work_order_id = ?
+           AND is_blocking = 1
+           AND status IN ('requested', 'ordered')`,
+      )
+      .get(workOrderId);
+    return (row?.count ?? 0) > 0;
+  }
+
+  listBlockingPartsRequestAgingByWorkOrderIds(workOrderIds) {
+    if (!Array.isArray(workOrderIds) || workOrderIds.length === 0) {
+      return new Map();
+    }
+
+    const placeholders = workOrderIds.map(() => "?").join(", ");
+    const rows = this.database
+      .prepare(
+        `SELECT
+          work_order_id AS workOrderId,
+          COUNT(1) AS pendingCount,
+          MIN(created_at) AS oldestRequestedAt
+         FROM work_order_parts_requests
+         WHERE work_order_id IN (${placeholders})
+           AND is_blocking = 1
+           AND status IN ('requested', 'ordered')
+         GROUP BY work_order_id`,
+      )
+      .all(...workOrderIds);
+
+    const result = new Map();
+    for (const row of rows) {
+      result.set(row.workOrderId, {
+        pendingCount: row.pendingCount ?? 0,
+        oldestRequestedAt: row.oldestRequestedAt ?? null,
+      });
+    }
+    return result;
+  }
+
+  createWorkOrderPartsRequest({
+    id,
+    workOrderId,
+    replacementForRequestId = null,
+    partName,
+    supplierName = null,
+    expectedArrivalDateLocal = null,
+    requestedQty,
+    requestedUnitCostRub = 0,
+    salePriceRub = 0,
+    status,
+    statusLabelRu,
+    isBlocking = true,
+    notes = null,
+    changedBy = null,
+    reason = null,
+    source = "parts_request_create",
+  }) {
+    const nowIso = new Date().toISOString();
+    const resolvedAt = status === "requested" || status === "ordered" ? null : nowIso;
+
+    this.runInTransaction(() => {
+      this.database
+        .prepare(
+          `INSERT INTO work_order_parts_requests(
+            id,
+            work_order_id,
+            replacement_for_request_id,
+            part_name,
+            supplier_name,
+            expected_arrival_date_local,
+            requested_qty,
+            requested_unit_cost_rub,
+            sale_price_rub,
+            status,
+            status_label_ru,
+            is_blocking,
+            notes,
+            created_at,
+            resolved_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          id,
+          workOrderId,
+          replacementForRequestId,
+          partName,
+          supplierName,
+          expectedArrivalDateLocal,
+          requestedQty,
+          requestedUnitCostRub,
+          salePriceRub,
+          status,
+          statusLabelRu,
+          isBlocking ? 1 : 0,
+          notes,
+          nowIso,
+          resolvedAt,
+          nowIso,
+        );
+
+      this.createWorkOrderPartsHistoryEntry({
+        id: `woph-${randomUUID().split("-")[0]}`,
+        workOrderId,
+        partsRequestId: id,
+        fromStatus: null,
+        fromStatusLabelRu: null,
+        toStatus: status,
+        toStatusLabelRu: statusLabelRu,
+        changedAt: nowIso,
+        changedBy,
+        reason,
+        source,
+        details: {
+          partName,
+          requestedQty,
+          requestedUnitCostRub,
+          salePriceRub,
+          isBlocking: Boolean(isBlocking),
+        },
+      });
+    });
+
+    return this.getWorkOrderPartsRequestById(workOrderId, id);
+  }
+
+  updateWorkOrderPartsRequest({ workOrderId, requestId, updates, historyEntry = null }) {
+    const existing = this.getWorkOrderPartsRequestById(workOrderId, requestId);
+    if (!existing) {
+      return null;
+    }
+
+    const nowIso = new Date().toISOString();
+    const assignments = [];
+    const values = [];
+
+    if (updates.partName !== undefined) {
+      assignments.push("part_name = ?");
+      values.push(updates.partName);
+    }
+
+    if (updates.supplierName !== undefined) {
+      assignments.push("supplier_name = ?");
+      values.push(updates.supplierName);
+    }
+
+    if (updates.expectedArrivalDateLocal !== undefined) {
+      assignments.push("expected_arrival_date_local = ?");
+      values.push(updates.expectedArrivalDateLocal);
+    }
+
+    if (updates.requestedQty !== undefined) {
+      assignments.push("requested_qty = ?");
+      values.push(updates.requestedQty);
+    }
+
+    if (updates.requestedUnitCostRub !== undefined) {
+      assignments.push("requested_unit_cost_rub = ?");
+      values.push(updates.requestedUnitCostRub);
+    }
+
+    if (updates.salePriceRub !== undefined) {
+      assignments.push("sale_price_rub = ?");
+      values.push(updates.salePriceRub);
+    }
+
+    if (updates.status !== undefined) {
+      assignments.push("status = ?");
+      values.push(updates.status);
+    }
+
+    if (updates.statusLabelRu !== undefined) {
+      assignments.push("status_label_ru = ?");
+      values.push(updates.statusLabelRu);
+    }
+
+    if (updates.isBlocking !== undefined) {
+      assignments.push("is_blocking = ?");
+      values.push(updates.isBlocking ? 1 : 0);
+    }
+
+    if (updates.notes !== undefined) {
+      assignments.push("notes = ?");
+      values.push(updates.notes);
+    }
+
+    if (updates.resolvedAt !== undefined) {
+      assignments.push("resolved_at = ?");
+      values.push(updates.resolvedAt);
+    }
+
+    if (assignments.length > 0) {
+      assignments.push("updated_at = ?");
+      values.push(nowIso);
+      values.push(requestId, workOrderId);
+    }
+
+    this.runInTransaction(() => {
+      if (assignments.length > 0) {
+        this.database
+          .prepare(
+            `UPDATE work_order_parts_requests
+             SET ${assignments.join(", ")}
+             WHERE id = ?
+               AND work_order_id = ?`,
+          )
+          .run(...values);
+      }
+
+      if (historyEntry) {
+        this.createWorkOrderPartsHistoryEntry({
+          id: `woph-${randomUUID().split("-")[0]}`,
+          workOrderId,
+          partsRequestId: requestId,
+          fromStatus: historyEntry.fromStatus ?? null,
+          fromStatusLabelRu: historyEntry.fromStatusLabelRu ?? null,
+          toStatus: historyEntry.toStatus ?? null,
+          toStatusLabelRu: historyEntry.toStatusLabelRu ?? null,
+          changedAt: nowIso,
+          changedBy: historyEntry.changedBy ?? null,
+          reason: historyEntry.reason ?? null,
+          source: historyEntry.source ?? "parts_request_update",
+          details: historyEntry.details ?? null,
+        });
+      }
+    });
+
+    return this.getWorkOrderPartsRequestById(workOrderId, requestId);
+  }
+
+  createPartsPurchaseAction({
+    id,
+    workOrderId,
+    partsRequestId,
+    supplierName = null,
+    supplierReference = null,
+    orderedQty,
+    unitCostRub,
+    status,
+    orderedAt = null,
+    receivedAt = null,
+    notes = null,
+    historyEntry = null,
+  }) {
+    const nowIso = new Date().toISOString();
+    const effectiveOrderedAt = orderedAt ?? nowIso;
+    const effectiveReceivedAt = receivedAt ?? null;
+
+    this.runInTransaction(() => {
+      this.database
+        .prepare(
+          `INSERT INTO parts_purchase_actions(
+            id,
+            parts_request_id,
+            supplier_name,
+            supplier_reference,
+            ordered_qty,
+            unit_cost_rub,
+            status,
+            ordered_at,
+            received_at,
+            notes,
+            created_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          id,
+          partsRequestId,
+          supplierName,
+          supplierReference,
+          orderedQty,
+          unitCostRub,
+          status,
+          effectiveOrderedAt,
+          effectiveReceivedAt,
+          notes,
+          nowIso,
+          nowIso,
+        );
+
+      if (historyEntry) {
+        this.createWorkOrderPartsHistoryEntry({
+          id: `woph-${randomUUID().split("-")[0]}`,
+          workOrderId,
+          partsRequestId,
+          purchaseActionId: id,
+          fromStatus: historyEntry.fromStatus ?? null,
+          fromStatusLabelRu: historyEntry.fromStatusLabelRu ?? null,
+          toStatus: historyEntry.toStatus ?? null,
+          toStatusLabelRu: historyEntry.toStatusLabelRu ?? null,
+          changedAt: nowIso,
+          changedBy: historyEntry.changedBy ?? null,
+          reason: historyEntry.reason ?? null,
+          source: historyEntry.source ?? "parts_purchase_action_create",
+          details: historyEntry.details ?? null,
+        });
+      }
+    });
+
+    const purchaseAction = this.database
+      .prepare(
+        `SELECT
+          id,
+          parts_request_id AS partsRequestId,
+          supplier_name AS supplierName,
+          supplier_reference AS supplierReference,
+          ordered_qty AS orderedQty,
+          unit_cost_rub AS unitCostRub,
+          status,
+          ordered_at AS orderedAt,
+          received_at AS receivedAt,
+          notes,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+         FROM parts_purchase_actions
+         WHERE id = ?`,
+      )
+      .get(id);
+
+    return mapPartsPurchaseActionRecord(purchaseAction);
   }
 
   createWorkOrderStatusHistoryEntry({

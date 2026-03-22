@@ -86,6 +86,34 @@ function renderQueueRows(rows) {
     .join("\n");
 }
 
+function renderWaitingPartsQueueRows(rows) {
+  if (rows.length === 0) {
+    return '<tr><td colspan="10">Нет записей</td></tr>';
+  }
+
+  return rows
+    .map(
+      (row) => `
+      <tr>
+        <td><a href="${escapeHtml(row.detailHref)}">${escapeHtml(row.code)}</a></td>
+        <td>
+          <strong>${escapeHtml(row.customerName)}</strong>
+          <div class="muted small">${escapeHtml(row.customerPhone)}</div>
+        </td>
+        <td>${escapeHtml(row.vehicleLabel)}</td>
+        <td>${escapeHtml(row.bayName)}</td>
+        <td>${escapeHtml(row.statusLabelRu)}</td>
+        <td>${escapeHtml(String(row.pendingPartsCount ?? 0))}</td>
+        <td>${escapeHtml(row.oldestPendingPartsAgeLabel ?? "н/д")}</td>
+        <td>${escapeHtml(row.blockedDurationLabel)}</td>
+        <td class="money">${escapeHtml(row.balanceDueLabel)}</td>
+        <td>${escapeHtml(row.nextActionLabel)}</td>
+      </tr>
+    `,
+    )
+    .join("\n");
+}
+
 function renderWeekHeaderCells(days) {
   return days
     .map(
@@ -848,13 +876,15 @@ export function renderDashboardPage(model) {
               <th>Авто</th>
               <th>Пост</th>
               <th>Статус</th>
+              <th>Позиции</th>
+              <th>Возраст запроса</th>
               <th>Блокировка</th>
               <th>Долг</th>
               <th>Следующий шаг</th>
             </tr>
           </thead>
           <tbody>
-            ${renderQueueRows(queues.waitingParts)}
+            ${renderWaitingPartsQueueRows(queues.waitingParts)}
           </tbody>
         </table>
       </div>

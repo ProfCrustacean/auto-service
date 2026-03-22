@@ -48,13 +48,56 @@ function formatBlockedDuration(blockedSinceIso, now) {
   return `${hours} ч`;
 }
 
-function toQueueItem(order, customerPhone, now) {
+function formatAgeSince(isoValue, now) {
+  if (!isoValue) {
+    return "н/д";
+  }
+
+  const startedAt = new Date(isoValue);
+  if (Number.isNaN(startedAt.getTime())) {
+    return "н/д";
+  }
+
+  const ms = now.getTime() - startedAt.getTime();
+  if (ms <= 0) {
+    return "0 ч";
+  }
+
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+  if (days > 0) {
+    return `${days} дн`;
+  }
+  return `${hours} ч`;
+}
+
+function ageHoursSince(isoValue, now) {
+  if (!isoValue) {
+    return null;
+  }
+  const startedAt = new Date(isoValue);
+  if (Number.isNaN(startedAt.getTime())) {
+    return null;
+  }
+  const ms = now.getTime() - startedAt.getTime();
+  if (ms <= 0) {
+    return 0;
+  }
+  return Math.floor(ms / (1000 * 60 * 60));
+}
+
+function toQueueItem(order, customerPhone, now, partsMetrics = null) {
   const balanceDueRub = order.balanceDueRub ?? 0;
   const blockedDurationLabel = formatBlockedDuration(order.blockedSinceIso, now);
+  const pendingPartsCount = partsMetrics?.pendingCount ?? 0;
+  const oldestPendingPartsAgeLabel = formatAgeSince(partsMetrics?.oldestRequestedAt ?? null, now);
+  const oldestPendingPartsAgeHours = ageHoursSince(partsMetrics?.oldestRequestedAt ?? null, now);
 
   let nextActionLabel = "Обновить задачу";
   if (order.status === "waiting_parts") {
-    nextActionLabel = "Уточнить поставку";
+    nextActionLabel = pendingPartsCount > 0
+      ? `Контроль поставки (${pendingPartsCount})`
+      : "Проверить запросы запчастей";
   } else if (order.status === "ready_pickup" && balanceDueRub > 0) {
     nextActionLabel = "Позвонить клиенту и закрыть оплату";
   } else if (order.status === "ready_pickup") {
@@ -75,6 +118,9 @@ function toQueueItem(order, customerPhone, now) {
     balanceDueRub,
     balanceDueLabel: balanceDueRub > 0 ? formatRub(balanceDueRub) : "0 руб.",
     blockedDurationLabel,
+    pendingPartsCount,
+    oldestPendingPartsAgeLabel,
+    oldestPendingPartsAgeHours,
     nextActionLabel,
   };
 }
@@ -514,21 +560,34 @@ export class DashboardService {
     });
 
     const activeWorkOrders = workOrders.filter((order) => ACTIVE_STATUSES.has(order.status));
+    const partsAgingMap = this.repository.listBlockingPartsRequestAgingByWorkOrderIds(
+      activeWorkOrders.map((order) => order.id),
+    );
     const waitingDiagnosis = activeWorkOrders
       .filter((order) => order.status === "waiting_diagnosis")
-      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
+      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now, null));
     const waitingApproval = activeWorkOrders
       .filter((order) => order.status === "waiting_approval")
-      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
+      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now, null));
     const waitingParts = activeWorkOrders
       .filter((order) => order.status === "waiting_parts")
-      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
+      .map((order) => toQueueItem(
+        order,
+        customerPhoneById.get(order.customerId) ?? "нет телефона",
+        now,
+        partsAgingMap.get(order.id) ?? null,
+      ))
+      .sort((left, right) => {
+        const leftAge = left.oldestPendingPartsAgeHours ?? -1;
+        const rightAge = right.oldestPendingPartsAgeHours ?? -1;
+        return rightAge - leftAge || right.pendingPartsCount - left.pendingPartsCount || left.code.localeCompare(right.code, "ru-RU");
+      });
     const paused = activeWorkOrders
       .filter((order) => order.status === "paused")
-      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
+      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now, null));
     const readyPickup = activeWorkOrders
       .filter((order) => order.status === "ready_pickup")
-      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now));
+      .map((order) => toQueueItem(order, customerPhoneById.get(order.customerId) ?? "нет телефона", now, null));
 
     const unpaidReadyForPickup = readyPickup.filter((order) => order.balanceDueRub > 0);
     const unpaidReadyForPickupAmountRub = unpaidReadyForPickup.reduce((acc, order) => acc + order.balanceDueRub, 0);
