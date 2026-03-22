@@ -82,7 +82,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-22, commit `54acfc4`
+- last validated date or commit: 2026-03-22, commit `dd36f33`
 - known caveats:
   - no auth yet; single-node SQLite file model only
   - Playwright MCP browser smoke can be blocked in this runtime by existing local Chrome profile/session lock (`Opening in existing browser session`); CLI smoke/scenario checks remain available.
@@ -94,7 +94,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-22, commit `54acfc4` (deploy `dep-d6vldcbuibrs73adis10`)
+- last validated date or commit: 2026-03-22, commit `dd36f33` (deploy `dep-d6vlgvlactks73d05dsg`)
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -108,6 +108,8 @@ Codex must keep this file current enough that a new Codex run can answer:
 - evidence: `evidence/verify-aut27-aut33.txt`
 - `RENDER_API_KEY=*** npm run verify:render` (AUT-27..33 booking flow, post-push): passed on 2026-03-22.
 - evidence: `evidence/verify-render-aut27-aut33.txt`
+- `RENDER_API_KEY=*** npm run verify:render` (post-docs head parity): passed on 2026-03-22.
+- evidence: `evidence/verify-render-aut27-aut33-postdocs.txt`
 - `npm test` (AUT-24/25/26 regression): passed on 2026-03-22.
 - evidence: `evidence/test-after-aut24-aut26-v2.txt`
 - `npm run verify` (AUT-24/25/26 regression): passed on 2026-03-22.
@@ -149,8 +151,8 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### End-to-end checks
 - deploy-aware Render gate for booking-flow changes (`RENDER_API_KEY=*** npm run verify:render`) passed on 2026-03-22 after push:
-  - live deploy: `dep-d6vldcbuibrs73adis10`
-  - commit parity: expected `54acfc4` == actual `54acfc4`
+  - live deploy: `dep-d6vlgvlactks73d05dsg`
+  - commit parity: expected `dd36f33` == actual `dd36f33`
   - smoke: passed (includes `/appointments/new`)
   - non-destructive booking scenario: passed
   - non-destructive scheduling/walk-in scenario: passed
@@ -255,7 +257,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Operational log audit
 - Render API events and logs inspected directly on 2026-03-22.
-- build/deploy event result: latest verified deploy `dep-d6vldcbuibrs73adis10` reached `live` for commit `54acfc41c72b89dfd2cf628035c2c2a824ca24cf`.
+- build/deploy event result: latest verified deploy `dep-d6vlgvlactks73d05dsg` reached `live` for commit `dd36f33f0b0e96e52869dc0418b53ad4446924e8`.
 - runtime warn/error signal: none observed in structured app logs (`json_warn_error_count = 0`).
 - deploy-gate log audit result (`AUT-25`): passed in-gate with zero warnings/errors/repo-access warnings.
 - finding status:

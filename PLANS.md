@@ -153,6 +153,8 @@ Epic was prepared in Linear but runtime still served placeholder booking page an
 - 2026-03-22: Committed and pushed revision `54acfc4` to `main`.
 - 2026-03-22: Post-push `npm run verify:render` passed for deploy `dep-d6vldcbuibrs73adis10` (parity + smoke + booking scenario + scheduling scenario + log audit).
 - 2026-03-22: Synced Linear AUT-27..33 to Done via Playwright transport with closure comments (`evidence/linear-aut27-33-done-sync.json`).
+- 2026-03-22: Committed and pushed docs/state sync revision `dd36f33` to `main`.
+- 2026-03-22: Final `npm run verify:render` passed for latest head on deploy `dep-d6vlgvlactks73d05dsg` (parity + smoke + booking scenario + scheduling scenario + log audit).
 
 ### Completion checkpoint
 
