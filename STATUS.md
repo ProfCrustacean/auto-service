@@ -14,7 +14,7 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Phase 2 lifecycle core is delivered and stable; next priority is the next feature block (parts flow under work orders).
+Phase 3 parts-flow block is delivered and verified; next priority is Phase 4 (payments and reporting closure).
 
 ## Current state (2026-03-22)
 
@@ -24,17 +24,25 @@ Phase 2 lifecycle core is delivered and stable; next priority is the next featur
   - appointment lifecycle with deterministic capacity checks,
   - walk-in intake API + production pages,
   - dashboard day/week planning + unified lookup.
-- Phase 2 lifecycle core is now implemented:
+- Phase 2 lifecycle core remains implemented:
   - work-order lifecycle domain status map and transition invariants,
   - idempotent appointment -> work-order conversion flow,
   - lifecycle API (`/api/v1/work-orders*`, conversion endpoint),
   - persistent work-order status history and appointment/work-order linkage,
   - Russian lifecycle workspace (`/work-orders/:id`) + active queue page,
   - dashboard lifecycle queue expansion (diagnosis/approval/parts/paused/ready pickup).
+- Phase 3 parts-flow block is now implemented:
+  - parts request domain lifecycle (`requested/ordered/received/substituted/cancelled/returned`) + purchase-action status catalog,
+  - persistence tables and indexes: `work_order_parts_requests`, `parts_purchase_actions`, `work_order_parts_history`,
+  - seed fixtures now include waiting-parts + substitution examples,
+  - parts APIs under work-order context (list/create/update/purchase action),
+  - lifecycle gating against unresolved blocking parts,
+  - enriched work-order page with Russian parts management and parts history,
+  - dashboard waiting-parts queue with pending-count/aging signals.
 
 ### Harness/operations
-- Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling scenarios).
-- Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios, log audit).
+- Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
+- Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios including parts-flow, log audit).
 - Linear harness supports probe/create/sync via Playwright fallback:
   - `npm run linear:probe`
   - `npm run linear:create`
@@ -44,6 +52,7 @@ Phase 2 lifecycle core is delivered and stable; next priority is the next featur
 
 - 2026-03-22: Phase 2 lifecycle core epic completed (`AUT-61..AUT-69`) and synced to Done.
 - 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented and synced to Done.
+- 2026-03-22: Phase 3 parts-flow epic implemented and deployed (`AUT-73..AUT-81`), verification gates green.
 
 ## Verification snapshot
 
@@ -54,16 +63,16 @@ Most recent local gate results:
 
 Most recent deploy-aware gate result:
 - `npm run verify:render`: passed
-  - deploy id: `dep-d703dqk50q8c73fhb08g`
-  - commit parity: passed (`b404dccd7a81279dd8f917040f4724b0486d03f6`)
+  - deploy id: `dep-d7071q1r0fns73cm2o70`
+  - commit parity: passed (`be422e1752d37e9ad190fce47bd9bc99100e4401`)
   - deployed smoke: passed
-  - deployed non-destructive scenarios: passed
+  - deployed non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
 Primary evidence pointers:
 - `evidence/render-log-audit-summary.json`
-- `evidence/linear-aut61-69-done-sync.json`
 - `evidence/bloat-audit-latest.json`
+- `evidence/linear-aut61-69-done-sync.json`
 - `evidence/verify-server.log`
 
 ## Environments
@@ -87,9 +96,10 @@ Primary evidence pointers:
 
 ## Active work focus
 
-1. Plan and execute the next Phase 2 block: parts requests and waiting-for-parts operational control.
+1. Plan and execute Phase 4 payment flow and reporting closure.
 2. Keep baseline gates green (`npm test`, `npm run verify`, `npm run audit:bloat`).
-3. Keep Linear states and repository status/plans synchronized per completed slice.
+3. Keep Render deploy verification green (`npm run verify:render`) for milestone commits.
+4. Keep Linear states and repository status/plans synchronized per completed slice.
 
 ## Archive pointers
 

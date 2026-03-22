@@ -1,0 +1,93 @@
+{
+  "status": "linear_sync_complete",
+  "transport": "playwright",
+  "dryRun": false,
+  "specPath": "/Users/ian/auto-service/data/linear/phase3-parts-flow-epic-2026-03-22.json",
+  "viewer": {
+    "id": "f471ad68-04a0-4a37-8678-55e27bf536d0",
+    "name": "Artem Z.",
+    "email": "zyryanov.arty@gmail.com"
+  },
+  "team": {
+    "id": "68622025-2ea4-49d2-9247-ffe8e60122a1",
+    "key": "AUT",
+    "name": "Automaton-paradise"
+  },
+  "targetState": {
+    "id": "b38573cf-e4a9-419e-a802-76cd0c555d1c",
+    "name": "Done",
+    "type": "completed"
+  },
+  "summary": {
+    "requested": 9,
+    "transitioned": 0,
+    "wouldTransition": 0,
+    "alreadyInState": 9,
+    "notFound": 0
+  },
+  "issues": [
+    {
+      "title": "Epic: Phase 3 — Parts requests and waiting-for-parts operational flow",
+      "action": "already_in_state",
+      "identifier": "AUT-73",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-73/epic-phase-3-parts-requests-and-waiting-for-parts-operational-flow",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-1 Domain: parts request state machine and invariants",
+      "action": "already_in_state",
+      "identifier": "AUT-74",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-74/prt-1-domain-parts-request-state-machine-and-invariants",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-2 Persistence: parts request tables, purchase actions, and history audit",
+      "action": "already_in_state",
+      "identifier": "AUT-75",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-75/prt-2-persistence-parts-request-tables-purchase-actions-and-history",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-3 API: work-order parts request endpoints with strict validation",
+      "action": "already_in_state",
+      "identifier": "AUT-76",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-76/prt-3-api-work-order-parts-request-endpoints-with-strict-validation",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-4 Service flow: lifecycle gating between waiting_parts and resumable work",
+      "action": "already_in_state",
+      "identifier": "AUT-77",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-77/prt-4-service-flow-lifecycle-gating-between-waiting-parts-and",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-5 UI: parts management section in /work-orders/:id",
+      "action": "already_in_state",
+      "identifier": "AUT-78",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-78/prt-5-ui-parts-management-section-in-work-ordersid",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-6 Dashboard: waiting-for-parts queue with aging and next action",
+      "action": "already_in_state",
+      "identifier": "AUT-79",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-79/prt-6-dashboard-waiting-for-parts-queue-with-aging-and-next-action",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-7 Verification: end-to-end parts scenario and non-destructive deploy checks",
+      "action": "already_in_state",
+      "identifier": "AUT-80",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-80/prt-7-verification-end-to-end-parts-scenario-and-non-destructive",
+      "state": "Done"
+    },
+    {
+      "title": "PRT-8 Docs/Ops: parts flow runbook, acceptance mapping, rollback path",
+      "action": "already_in_state",
+      "identifier": "AUT-81",
+      "url": "https://linear.app/automaton-paradise/issue/AUT-81/prt-8-docsops-parts-flow-runbook-acceptance-mapping-rollback-path",
+      "state": "Done"
+    }
+  ]
+}

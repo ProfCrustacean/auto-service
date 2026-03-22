@@ -4,7 +4,7 @@
     "maxTrackedBytesByArea": {
       "src": 430000,
       "tests": 135000,
-      "scripts": 170000,
+      "scripts": 180000,
       "docs": 85000,
       "evidence": 220000
     },

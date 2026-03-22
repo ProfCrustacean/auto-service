@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-22T22:41:39.450Z",
+  "generatedAt": "2026-03-22T22:52:34.670Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -9,7 +9,7 @@
     "maxTrackedBytesByArea": {
       "src": 430000,
       "tests": 135000,
-      "scripts": 170000,
+      "scripts": 180000,
       "docs": 85000,
       "evidence": 220000
     },
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1185896,
+      "totalBytes": 1217833,
       "byArea": {
-        "src": 411128,
-        "tests": 130437,
-        "scripts": 164340,
+        "src": 414505,
+        "tests": 132398,
+        "scripts": 177353,
         "docs": 73386,
-        "evidence": 196901,
-        "other": 209704
+        "evidence": 196419,
+        "other": 223772
       }
     },
     "topTrackedFiles": [
@@ -56,7 +56,7 @@
       },
       {
         "path": "scripts/verify-render.js",
-        "bytes": 31224
+        "bytes": 31894
       },
       {
         "path": "package-lock.json",
@@ -117,7 +117,7 @@
     ],
     "evidence": {
       "trackedFileCount": 75,
-      "totalBytes": 196901,
+      "totalBytes": 196419,
       "largestFile": {
         "path": "evidence/render-log-audit-latest-deploy-window.json",
         "bytes": 46295
@@ -127,8 +127,8 @@
     "docs": {
       "lineCounts": {
         "README": 311,
-        "STATUS": 107,
-        "PLANS": 113
+        "STATUS": 117,
+        "PLANS": 174
       }
     },
     "duplication": {
@@ -137,7 +137,7 @@
       "clones": 143,
       "sources": 91,
       "lines": 19309,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-dJaBSi/report/jscpd-report.json"
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-XTo1gN/report/jscpd-report.json"
     }
   },
   "violations": []

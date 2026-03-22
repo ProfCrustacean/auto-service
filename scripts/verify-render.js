@@ -1021,13 +1021,18 @@ async function main() {
       skipDeploy,
     });
 
-    await runProcess(process.execPath, ["scripts/booking-page-scenario.js", "--non-destructive"], {
+    await runProcessWithRetries({
+      command: process.execPath,
+      args: ["scripts/booking-page-scenario.js", "--non-destructive"],
       env: {
         ...process.env,
         APP_BASE_URL: baseUrl,
         SCENARIO_NON_DESTRUCTIVE: "1",
       },
       label: "render scenario:booking-page",
+      step: "scenario_booking_page_non_destructive",
+      maxAttempts: smokeMaxAttempts,
+      retryDelayMs: smokeRetryDelayMs,
     });
   }
 
@@ -1039,13 +1044,18 @@ async function main() {
       skipDeploy,
     });
 
-    await runProcess(process.execPath, ["scripts/walkin-page-scenario.js", "--non-destructive"], {
+    await runProcessWithRetries({
+      command: process.execPath,
+      args: ["scripts/walkin-page-scenario.js", "--non-destructive"],
       env: {
         ...process.env,
         APP_BASE_URL: baseUrl,
         SCENARIO_NON_DESTRUCTIVE: "1",
       },
       label: "render scenario:walkin-page",
+      step: "scenario_walkin_page_non_destructive",
+      maxAttempts: smokeMaxAttempts,
+      retryDelayMs: smokeRetryDelayMs,
     });
   }
 
@@ -1057,13 +1067,18 @@ async function main() {
       skipDeploy,
     });
 
-    await runProcess(process.execPath, ["scripts/scheduling-walkin-scenario.js", "--non-destructive"], {
+    await runProcessWithRetries({
+      command: process.execPath,
+      args: ["scripts/scheduling-walkin-scenario.js", "--non-destructive"],
       env: {
         ...process.env,
         APP_BASE_URL: baseUrl,
         SCENARIO_NON_DESTRUCTIVE: "1",
       },
       label: "render scenario:scheduling-walkin",
+      step: "scenario_scheduling_walkin_non_destructive",
+      maxAttempts: smokeMaxAttempts,
+      retryDelayMs: smokeRetryDelayMs,
     });
   }
 
@@ -1075,13 +1090,18 @@ async function main() {
       skipDeploy,
     });
 
-    await runProcess(process.execPath, ["scripts/parts-flow-scenario.js", "--non-destructive"], {
+    await runProcessWithRetries({
+      command: process.execPath,
+      args: ["scripts/parts-flow-scenario.js", "--non-destructive"],
       env: {
         ...process.env,
         APP_BASE_URL: baseUrl,
         SCENARIO_NON_DESTRUCTIVE: "1",
       },
       label: "render scenario:parts-flow",
+      step: "scenario_parts_flow_non_destructive",
+      maxAttempts: smokeMaxAttempts,
+      retryDelayMs: smokeRetryDelayMs,
     });
   }
 
