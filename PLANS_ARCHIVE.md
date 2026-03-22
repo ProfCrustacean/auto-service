@@ -1614,3 +1614,104 @@ Completed on 2026-03-22:
 - `AUT-21/22/23` acceptance criteria are implemented and verified.
 - Linear issues `AUT-21`, `AUT-22`, and `AUT-23` are now in `Done` with completion comments.
 
+## Archive Batch — 2026-03-22
+
+### Moved from PLANS.md
+
+- Completed Plan — AUT-18 recheck and self-contained verification gate hardening (2026-03-22)
+
+## Completed Plan — AUT-18 recheck and self-contained verification gate hardening (2026-03-22)
+
+### Objective
+
+Re-check Render repo-access warning status and harden the local harness so verification is self-contained and includes scheduling/walk-in scenario coverage by default.
+
+### Why now
+
+The project sequence required first validating whether `AUT-18` could be closed, then continuing harness reliability work without waiting on external blockers.
+
+### Scope
+
+- Trigger a fresh Render deploy and audit build logs for repo-access warning persistence.
+- Capture post-deploy smoke proof.
+- Replace `npm run verify` with a self-contained runner that starts/stops its own app instance.
+- Include scheduling/walk-in scenario check in default verify gate.
+- Keep verification non-destructive to local working DB by using a temporary isolated DB.
+
+### Out of scope
+
+- Render dashboard credential reconnect action itself.
+- Broader product-scope feature work (planning board/search UX).
+- Full implementation of all remaining harness follow-ups (`AUT-21` to `AUT-23`).
+
+### Current-state validation
+
+- `AUT-18` warning was previously observed in focused build logs.
+- `npm run verify` previously required a separately running app and did not include scheduling/walk-in scenario by default.
+
+### Relevant packet rules and defaults
+
+- Favor deterministic one-command workflows and explicit health checks.
+- Capture evidence for deploy/runtime claims.
+- Improve harness when friction repeats.
+
+### Target outcome
+
+- Fresh proof of whether `AUT-18` is resolved or still externally blocked.
+- `npm run verify` runs tests + smoke + scheduling/walk-in scenario without manual server startup.
+- Verification flow does not mutate the default local DB.
+
+### Ordered execution slices
+
+1. Trigger Render deploy and poll completion.
+2. Pull build logs for deploy window and summarize repo-access warning signal.
+3. Run post-deploy smoke against Render URL.
+4. Implement self-contained verify runner script with isolated temp DB.
+5. Update scripts/docs and run verify loop evidence.
+
+### Verification and evidence plan
+
+- Render:
+  - `evidence/render-aut18-recheck-deploy-response.json`
+  - `evidence/render-aut18-recheck-deploy-poll.txt`
+  - `evidence/render-aut18-recheck-deploy-final.json`
+  - `evidence/render-aut18-recheck-log-window-build.json`
+  - `evidence/render-aut18-recheck-warning-summary.json`
+  - `evidence/render-aut18-recheck-postdeploy-smoke.txt`
+- Local harness:
+  - `npm run verify`
+  - `VERIFY_INCLUDE_SCENARIO=0 npm run verify`
+  - `evidence/verify-self-contained-output.txt`
+  - `evidence/verify-self-contained-no-scenario-output.txt`
+  - `evidence/verify-server.log`
+
+### Deployment / update plan
+
+- No code deployment required for verify harness changes.
+- Render deploy triggered only for `AUT-18` audit evidence.
+
+### Risks and fallback plan
+
+- Risk: verify runner leaves orphan server process on failure.
+  - Mitigation: explicit SIGTERM with timeout + SIGKILL fallback.
+- Risk: verify mutates local development DB.
+  - Mitigation: isolated temporary DB path per run.
+- Risk: Render warning still external.
+  - Mitigation: keep `AUT-18` open and continue internal hardening work in parallel until reconnect can be validated.
+
+### Progress log
+
+- 2026-03-22: Triggered Render deploy `dep-d6vi9un5gffc73dbjat0`; deploy reached `live`.
+- 2026-03-22: Build log audit shows repo-access warning still present (`warningCount = 1`) in deploy window.
+- 2026-03-22: Post-deploy smoke passed on Render URL.
+- 2026-03-22: Added `scripts/verify.js` and switched `npm run verify` to self-contained runner.
+- 2026-03-22: Verify runner now executes tests + smoke + scheduling/walk-in scenario with temporary DB and automatic shutdown.
+- 2026-03-22: Updated README and runbook docs for the new verify behavior.
+- 2026-03-22 (follow-up): Triggered second recheck deploy `dep-d6vih4nafjfc73d29b7g`; build warning count is now `0` after reconnect and post-deploy smoke passed.
+
+### Completion checkpoint
+
+Completed on 2026-03-22:
+- local verification gate is now self-contained and scenario-inclusive by default,
+- and `AUT-18` is resolved based on follow-up recheck evidence (`warningCount = 0`).
+

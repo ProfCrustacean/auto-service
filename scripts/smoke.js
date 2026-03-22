@@ -201,11 +201,39 @@ async function main() {
     },
   );
 
+  const bookingUi = await requestText(baseUrl, {
+    step: "booking_ui",
+    path: "/appointments/new",
+  });
+  if (bookingUi.status !== 200) {
+    failHarness("unexpected response status for GET /appointments/new", {
+      step: "booking_ui",
+      method: "GET",
+      path: "/appointments/new",
+      url: bookingUi.url,
+      responseStatus: bookingUi.status,
+      responseBodySnippet: bookingUi.text?.slice(0, 400),
+    });
+  }
+  assertHarness(
+    bookingUi.text.includes("Новая запись") &&
+      bookingUi.text.includes("Форма записи"),
+    "booking UI content missing",
+    {
+      step: "booking_ui",
+      method: "GET",
+      path: "/appointments/new",
+      url: bookingUi.url,
+      responseStatus: bookingUi.status,
+      responseBodySnippet: bookingUi.text.slice(0, 400),
+    },
+  );
+
   process.stdout.write(
     `${JSON.stringify({
       status: "smoke_passed",
       baseUrl,
-      checks: ["healthz", "dashboard_api", "appointments_api", "search_api", "dashboard_ui"],
+      checks: ["healthz", "dashboard_api", "appointments_api", "search_api", "dashboard_ui", "booking_ui"],
     })}\n`,
   );
 }

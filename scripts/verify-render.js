@@ -680,6 +680,11 @@ async function main() {
   const resolveIp = process.env.RENDER_RESOLVE_IP ?? DEFAULT_RENDER_RESOLVE_IP;
   const skipDeploy = process.env.RENDER_SKIP_DEPLOY === "1";
   const includeScenario = normalizeFlag(process.env.RENDER_VERIFY_INCLUDE_SCENARIO, "RENDER_VERIFY_INCLUDE_SCENARIO", true);
+  const includeBookingScenario = normalizeFlag(
+    process.env.RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO,
+    "RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO",
+    true,
+  );
   const verifyCommitParity = normalizeFlag(process.env.RENDER_VERIFY_COMMIT_PARITY, "RENDER_VERIFY_COMMIT_PARITY", true);
   const enableLogAudit = normalizeFlag(process.env.RENDER_VERIFY_LOG_AUDIT, "RENDER_VERIFY_LOG_AUDIT", true);
   const failOnLogTruncation = normalizeFlag(
@@ -727,6 +732,7 @@ async function main() {
     apiBaseUrl,
     skipDeploy,
     includeScenario,
+    includeBookingScenario,
     verifyCommitParity,
     enableLogAudit,
     logAuditLimit: logLimit,
@@ -857,6 +863,24 @@ async function main() {
     label: "render smoke",
   });
 
+  if (includeBookingScenario) {
+    logJson({
+      status: "render_verify_step_started",
+      step: "scenario_booking_page_non_destructive",
+      baseUrl,
+      skipDeploy,
+    });
+
+    await runProcess(process.execPath, ["scripts/booking-page-scenario.js", "--non-destructive"], {
+      env: {
+        ...process.env,
+        APP_BASE_URL: baseUrl,
+        SCENARIO_NON_DESTRUCTIVE: "1",
+      },
+      label: "render scenario:booking-page",
+    });
+  }
+
   if (includeScenario) {
     logJson({
       status: "render_verify_step_started",
@@ -917,6 +941,7 @@ async function main() {
     baseUrl,
     skipDeploy,
     includeScenario,
+    includeBookingScenario,
     verifyCommitParity,
     enableLogAudit,
     deployId: deployPayload?.id ?? null,

@@ -15,6 +15,7 @@
     "dev": "node --watch src/server.js",
     "test": "node --test",
     "smoke": "node scripts/smoke.js",
+    "scenario:booking-page": "node scripts/booking-page-scenario.js",
     "scenario:scheduling-walkin": "node scripts/scheduling-walkin-scenario.js",
     "linear:probe": "node scripts/linear-harness.js probe",
     "linear:create": "node scripts/linear-harness.js create",

@@ -24,7 +24,16 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Phase 1 customer and vehicle CRUD APIs implemented with ownership-history tracking and search-ready query filters.
 - Phase 1 appointment lifecycle APIs implemented with explicit status transitions and deterministic bay/person capacity conflict checks.
 - Phase 1 walk-in intake API implemented with active queue/day board insertion behavior.
+- Phase 1 `/appointments/new` production booking page implemented with:
+  - customer/vehicle lookup,
+  - inline customer/vehicle creation,
+  - deterministic conflict preview + submit-time conflict handling,
+  - success redirect to appointment detail.
 - Phase 1 scheduling + walk-in acceptance verification harness implemented (domain/API scenario tests, reusable scenario runner, local/deployed browser evidence).
+- Verification harness now includes dedicated booking-flow coverage:
+  - smoke contract check for `/appointments/new`,
+  - booking page scenario (`scripts/booking-page-scenario.js`) in `npm run verify`,
+  - deployed non-destructive booking scenario stage in `npm run verify:render`.
 - Render build/runtime log audit completed with evidence-backed follow-up triage.
 - Phase 1 health-check log noise reduction implemented (successful `/healthz` request logs suppressed, business-path request logs preserved).
 - Node runtime policy pinned to 22 LTS for deterministic Render deploy/runtime behavior.
@@ -50,10 +59,10 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Render deployment path is implemented and validated in a live environment.
 
 ### Last accepted milestone
-- 2026-03-22: AUT-24/25/26 completed (Render deploy gate hardening: commit parity + post-deploy log audit + deployed non-destructive scenario).
+- 2026-03-22: AUT-27..33 implementation completed locally (booking flow + tests + harness); post-push Render validation pending.
 
 ### Current active objective
-- Maintain Phase 1 closeout quality bar by keeping deploy-aware verification as the release gate and syncing Linear issue state with latest evidence.
+- Push Epic 1 booking-flow revision, re-run deploy-aware Render gate against the new commit, and sync AUT-27..33 issue state in Linear.
 
 ## Confirmed decisions (human input)
 
@@ -93,6 +102,10 @@ Codex must keep this file current enough that a new Codex run can answer:
 ## Verification status
 
 ### Automated checks
+- `npm test` (AUT-27..33 booking flow): passed on 2026-03-22.
+- evidence: `evidence/test-aut27-aut33.txt`
+- `npm run verify` (AUT-27..33 booking flow): passed on 2026-03-22.
+- evidence: `evidence/verify-aut27-aut33.txt`
 - `npm test` (AUT-24/25/26 regression): passed on 2026-03-22.
 - evidence: `evidence/test-after-aut24-aut26-v2.txt`
 - `npm run verify` (AUT-24/25/26 regression): passed on 2026-03-22.
@@ -133,6 +146,7 @@ Codex must keep this file current enough that a new Codex run can answer:
   - `evidence/test-after-aut18-recheck.txt`
 
 ### End-to-end checks
+- pre-push deploy-aware Render gate for booking-flow changes (`RENDER_API_KEY=*** npm run verify:render`) reached live deploy `dep-d6vlauuuk2gs738r5k60` on 2026-03-22 but failed smoke at `/appointments/new` because live commit parity target remained old revision `1d0788a` (booking page not yet deployed).
 - deploy-aware Render gate (`npm run verify:render`) passed on 2026-03-22 for deploy `dep-d6vke77kijhs73ctdecg`:
   - deploy reached `live`,
   - commit parity check passed (`expected == actual`),

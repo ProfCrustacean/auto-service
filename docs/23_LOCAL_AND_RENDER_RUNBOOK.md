@@ -58,11 +58,15 @@ npm run verify
 `npm run verify` is self-contained:
 - does not require a pre-started local server,
 - starts a temporary isolated app instance and DB,
-- runs test + smoke + scheduling/walk-in scenario checks,
+- runs test + smoke + booking-page + scheduling/walk-in scenario checks,
 - and shuts down automatically.
 
 Optional toggles:
+- `VERIFY_INCLUDE_BOOKING_SCENARIO=0 npm run verify` (skip booking-page scenario check)
 - `VERIFY_INCLUDE_SCENARIO=0 npm run verify` (skip scenario check)
+- `npm run scenario:booking-page` defaults to read-only mode on non-local URLs and write mode on local URLs.
+- `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:booking-page` or `npm run scenario:booking-page -- --non-destructive` (force read-only mode)
+- `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:booking-page` or `npm run scenario:booking-page -- --destructive` (force write mode)
 - `npm run scenario:scheduling-walkin` defaults to read-only mode on non-local URLs and write mode on local URLs.
 - `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:scheduling-walkin` or `npm run scenario:scheduling-walkin -- --non-destructive` (force read-only mode)
 - `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:scheduling-walkin` or `npm run scenario:scheduling-walkin -- --destructive` (force write mode)
@@ -74,6 +78,7 @@ Two-stage gate policy:
 
 Scenario fixture assumptions (current):
 - Smoke checks validate API/UI contracts (including unified lookup) and summary-to-array consistency instead of fixed seeded counts.
+- Booking-page scenario validates `/appointments/new` read/write behavior locally and non-destructive behavior remotely.
 - Scheduling/walk-in scenario resolves customers/vehicles/bays/employees dynamically from live API data.
 - In write mode, if no customer/vehicle exists, the scenario provisions the minimum required records before creating appointment/walk-in entries.
 - Bays/employees are optional in scenario payloads; they are used only when available.
@@ -124,6 +129,7 @@ Behavior:
 - polls deploy until `live` (configurable timeout/interval)
 - asserts deploy commit parity against expected commit (`git HEAD` by default)
 - runs `npm run smoke` against `APP_BASE_URL` (default service URL)
+- runs `npm run scenario:booking-page -- --non-destructive` against deployed URL
 - runs `npm run scenario:scheduling-walkin -- --non-destructive` against deployed URL
 - audits Render build/app logs for warn/error/repo-access signals in the deploy window
 - deploy-triggering mode requires `RENDER_API_KEY`
@@ -135,6 +141,7 @@ Useful toggles:
 - `RENDER_DEPLOY_TIMEOUT_MS=<ms>` and `RENDER_DEPLOY_POLL_INTERVAL_MS=<ms>` → tune polling
 - `RENDER_VERIFY_COMMIT_PARITY=0` → disable deploy commit parity check (default enabled)
 - `RENDER_EXPECT_COMMIT=<sha>` → override expected commit for parity check
+- `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=0` → skip deployed non-destructive booking scenario check
 - `RENDER_VERIFY_INCLUDE_SCENARIO=0` → skip deployed non-destructive scenario check
 - `RENDER_VERIFY_LOG_AUDIT=0` → skip post-deploy log audit
 - `RENDER_LOG_AUDIT_LIMIT=<n>` → per-type (`build`/`app`) log row cap (default `1000`)

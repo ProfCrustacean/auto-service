@@ -61,6 +61,12 @@ test("health and dashboard endpoints return successful responses", async () => {
     const woHtml = await woRes.text();
     assert.match(woHtml, /Заказ-наряд WO-1005/);
 
+    const bookingRes = await fetch(`${baseUrl}/appointments/new`);
+    assert.equal(bookingRes.status, 200);
+    const bookingHtml = await bookingRes.text();
+    assert.match(bookingHtml, /Новая запись/);
+    assert.match(bookingHtml, /Форма записи/);
+
     const intakeRes = await fetch(`${baseUrl}/intake/walk-in`);
     assert.equal(intakeRes.status, 200);
     const intakeHtml = await intakeRes.text();

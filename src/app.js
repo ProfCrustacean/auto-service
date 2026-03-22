@@ -5,6 +5,7 @@ import { registerReferenceRoutes } from "./http/referenceRoutes.js";
 import { registerCustomerVehicleRoutes } from "./http/customerVehicleRoutes.js";
 import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
 import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
+import { registerAppointmentPageRoutes } from "./http/appointmentPageRoutes.js";
 import { sendApiError, validationError } from "./http/apiErrors.js";
 
 function shouldSkipHttpRequestLog(path, statusCode) {
@@ -60,6 +61,7 @@ export function createApp({
   const app = express();
 
   app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
   app.use((req, res, next) => {
     const startedAt = Date.now();
     res.on("finish", () => {
@@ -121,22 +123,18 @@ export function createApp({
   registerCustomerVehicleRoutes(app, { logger, customerVehicleService });
   registerAppointmentRoutes(app, { logger, appointmentService });
   registerWalkInIntakeRoutes(app, { logger, walkInIntakeService });
+  registerAppointmentPageRoutes(app, {
+    logger,
+    appointmentService,
+    customerVehicleService,
+    referenceDataService,
+  });
 
   app.get("/", (req, res) => {
     const model = dashboardService.getTodayDashboard({
       searchQuery: readDashboardSearchQuery(req.query),
     });
     res.status(200).send(renderDashboardPage(model));
-  });
-
-  app.get("/appointments/new", (_req, res) => {
-    res.status(200).send(
-      renderSimpleDetailPage({
-        title: "Создание записи",
-        backHref: "/",
-        fields: [{ label: "Статус", value: "Экран будет реализован в рамках Phase 1" }],
-      }),
-    );
   });
 
   app.get("/intake/walk-in", (_req, res) => {
