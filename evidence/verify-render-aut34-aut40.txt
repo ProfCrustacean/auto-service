@@ -1,0 +1,18 @@
+
+> auto-service@0.1.0 verify:render
+> node scripts/verify-render.js
+
+{"status":"render_verify_started","serviceId":"srv-d6vcmt7diees73d0j04g","apiBaseUrl":"https://api.render.com/v1","skipDeploy":false,"includeScenario":true,"includeBookingScenario":true,"includeWalkInPageScenario":true,"verifyCommitParity":true,"enableLogAudit":true,"logAuditLimit":1000,"maxWarnings":0,"maxErrors":0,"maxRepoWarnings":0,"failOnLogTruncation":true,"expectedCommitSource":"git","useResolve":true,"resolveIp":"216.24.57.7"}
+{"status":"render_verify_step_started","step":"service_lookup","serviceId":"srv-d6vcmt7diees73d0j04g"}
+{"status":"render_verify_step_started","step":"deploy_trigger","serviceId":"srv-d6vcmt7diees73d0j04g","serviceUrl":"https://auto-service-foundation.onrender.com"}
+{"status":"render_verify_deploy_id_fallback","reason":"trigger_response_missing_id"}
+{"status":"render_verify_step_started","step":"deploy_wait_live","serviceId":"srv-d6vcmt7diees73d0j04g","deployId":"dep-d6vsmrbuibrs73afdsa0","initialStatus":"build_in_progress"}
+{"status":"render_verify_deploy_poll","deployId":"dep-d6vsmrbuibrs73afdsa0","deployStatus":"build_in_progress","elapsedMs":1471}
+{"status":"render_verify_deploy_poll","deployId":"dep-d6vsmrbuibrs73afdsa0","deployStatus":"build_in_progress","elapsedMs":12332}
+{"status":"render_verify_deploy_poll","deployId":"dep-d6vsmrbuibrs73afdsa0","deployStatus":"update_in_progress","elapsedMs":23133}
+{"status":"render_verify_deploy_poll","deployId":"dep-d6vsmrbuibrs73afdsa0","deployStatus":"live","elapsedMs":34060}
+{"status":"render_verify_step_started","step":"deploy_commit_parity","deployId":"dep-d6vsmrbuibrs73afdsa0"}
+{"status":"render_verify_commit_parity_passed","deployId":"dep-d6vsmrbuibrs73afdsa0","expectedCommitId":"4245010069268abb772bdaa2289cad96a1e6ea16","expectedCommitSource":"git","actualCommitId":"4245010069268abb772bdaa2289cad96a1e6ea16"}
+{"status":"render_verify_step_started","step":"smoke","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":false,"deployId":"dep-d6vsmrbuibrs73afdsa0"}
+{"status":"smoke_failed","errorType":"HarnessFailure","message":"walk-in UI content missing","step":"walkin_ui","method":"GET","path":"/intake/walk-in","url":"https://auto-service-foundation.onrender.com/intake/walk-in","responseStatus":200,"responseBodySnippet":"<!doctype html>\n<html lang=\"ru\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Прием walk-in</title>\n  <style>\n    body {\n      margin: 0;\n      font-family: \"Manrope\", \"Segoe UI\", sans-serif;\n      background: #f5f7f4;\n      color: #1f2b20;\n    }\n    main {\n      max-width: 760px;\n      margin: 24px auto;\n      padding: 16px;\n ","stack":"HarnessFailure: walk-in UI content missing\n    at failHarness (file:///Users/ian/auto-service/scripts/harness-diagnostics.js:24:9)\n    at assertHarness (file:///Users/ian/auto-service/scripts/harness-diagnostics.js:29:5)\n    at main (file:///Users/ian/auto-service/scripts/smoke.js:246:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"}
+{"status":"render_verify_failed","message":"render smoke failed with exit code 1"}

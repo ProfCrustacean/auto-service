@@ -7,6 +7,8 @@ const DEFAULT_RENDER_BASE_URL = "https://auto-service-foundation.onrender.com";
 const DEFAULT_RENDER_RESOLVE_IP = "216.24.57.7";
 const DEFAULT_POLL_TIMEOUT_MS = 15 * 60 * 1000;
 const DEFAULT_POLL_INTERVAL_MS = 10 * 1000;
+const DEFAULT_SMOKE_MAX_ATTEMPTS = 3;
+const DEFAULT_SMOKE_RETRY_DELAY_MS = 10 * 1000;
 const DEFAULT_LOG_AUDIT_LIMIT = 1000;
 const DEFAULT_LOG_AUDIT_MAX_WARNINGS = 0;
 const DEFAULT_LOG_AUDIT_MAX_ERRORS = 0;
@@ -103,6 +105,62 @@ function runProcess(command, args, { env, label }) {
       reject(new Error(`${label} failed with ${detail}`));
     });
   });
+}
+
+async function runProcessWithRetries({
+  command,
+  args,
+  env,
+  label,
+  step,
+  maxAttempts,
+  retryDelayMs,
+}) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      if (attempt > 1) {
+        logJson({
+          status: "render_verify_step_retry_started",
+          step,
+          attempt,
+          maxAttempts,
+          retryDelayMs,
+        });
+      }
+
+      await runProcess(command, args, { env, label });
+
+      if (attempt > 1) {
+        logJson({
+          status: "render_verify_step_retry_recovered",
+          step,
+          attempt,
+          maxAttempts,
+        });
+      }
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt >= maxAttempts) {
+        break;
+      }
+
+      logJson({
+        status: "render_verify_step_retry_scheduled",
+        step,
+        attempt,
+        maxAttempts,
+        retryDelayMs,
+        message: error.message,
+      });
+      await wait(retryDelayMs);
+    }
+  }
+
+  throw lastError;
 }
 
 function trimTrailingSlash(value) {
@@ -723,6 +781,14 @@ async function main() {
     process.env.RENDER_DEPLOY_TIMEOUT_MS ?? String(DEFAULT_POLL_TIMEOUT_MS),
     10,
   );
+  const smokeMaxAttempts = parsePositiveInteger(
+    process.env.RENDER_SMOKE_MAX_ATTEMPTS ?? String(DEFAULT_SMOKE_MAX_ATTEMPTS),
+    "RENDER_SMOKE_MAX_ATTEMPTS",
+  );
+  const smokeRetryDelayMs = parsePositiveInteger(
+    process.env.RENDER_SMOKE_RETRY_DELAY_MS ?? String(DEFAULT_SMOKE_RETRY_DELAY_MS),
+    "RENDER_SMOKE_RETRY_DELAY_MS",
+  );
 
   assertPositiveInteger(pollIntervalMs, "RENDER_DEPLOY_POLL_INTERVAL_MS");
   assertPositiveInteger(pollTimeoutMs, "RENDER_DEPLOY_TIMEOUT_MS");
@@ -749,6 +815,8 @@ async function main() {
     expectedCommitSource: expectedCommitOverride.length > 0 ? "env" : "git",
     useResolve,
     resolveIp: useResolve ? resolveIp : null,
+    smokeMaxAttempts,
+    smokeRetryDelayMs,
   });
 
   let servicePayload = null;
@@ -861,12 +929,17 @@ async function main() {
     deployId: deployPayload?.id ?? null,
   });
 
-  await runProcess(process.execPath, ["scripts/smoke.js"], {
+  await runProcessWithRetries({
+    command: process.execPath,
+    args: ["scripts/smoke.js"],
     env: {
       ...process.env,
       APP_BASE_URL: baseUrl,
     },
     label: "render smoke",
+    step: "smoke",
+    maxAttempts: smokeMaxAttempts,
+    retryDelayMs: smokeRetryDelayMs,
   });
 
   if (includeBookingScenario) {

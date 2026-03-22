@@ -206,6 +206,7 @@ Render env defaults:
 - `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=1` by default (runs deployed read-only booking-page scenario gate)
 - `RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=1` by default (runs deployed read-only walk-in-page scenario gate)
 - `RENDER_VERIFY_INCLUDE_SCENARIO=1` by default (runs deployed read-only scenario gate)
+- `RENDER_SMOKE_MAX_ATTEMPTS=3` and `RENDER_SMOKE_RETRY_DELAY_MS=10000` by default (retry smoke after deploy to absorb rollout lag)
 - `RENDER_VERIFY_LOG_AUDIT=1` by default (runs post-deploy log audit)
 - `RENDER_LOG_AUDIT_LIMIT=1000` per log type (`build` + `app`)
 - `RENDER_LOG_AUDIT_MAX_WARNINGS=0`, `RENDER_LOG_AUDIT_MAX_ERRORS=0`, `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=0`

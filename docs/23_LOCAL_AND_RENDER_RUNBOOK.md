@@ -150,6 +150,7 @@ Useful toggles:
 - `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=0` → skip deployed non-destructive booking scenario check
 - `RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=0` → skip deployed non-destructive walk-in scenario check
 - `RENDER_VERIFY_INCLUDE_SCENARIO=0` → skip deployed non-destructive scenario check
+- `RENDER_SMOKE_MAX_ATTEMPTS=<n>` and `RENDER_SMOKE_RETRY_DELAY_MS=<ms>` → retry deployed smoke checks after promotion (defaults `3` and `10000`)
 - `RENDER_VERIFY_LOG_AUDIT=0` → skip post-deploy log audit
 - `RENDER_LOG_AUDIT_LIMIT=<n>` → per-type (`build`/`app`) log row cap (default `1000`)
 - `RENDER_LOG_AUDIT_MAX_WARNINGS=<n>` / `RENDER_LOG_AUDIT_MAX_ERRORS=<n>` / `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=<n>` → audit thresholds (default `0`)
