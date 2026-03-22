@@ -207,7 +207,7 @@ Phase 1 closeout needed stronger deploy confidence checks and less manual post-d
 - 2026-03-22: Verification reruns passed:
   - `npm test`,
   - `npm run verify`,
-  - `npm run verify:render` (deploy `dep-d6vke77kijhs73ctdecg`, parity + smoke + scenario + log audit all passed).
+  - `npm run verify:render` (post-push deploy `dep-d6vkg34jppes738kuh2g` for commit `36295bd`, parity + smoke + scenario + log audit all passed).
 
 ### Completion checkpoint
 

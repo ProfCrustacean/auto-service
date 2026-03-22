@@ -73,7 +73,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes (local process start)
 - whether TLS is working: not configured locally (HTTP only)
 - whether end-to-end checks are working: yes (CLI smoke + browser snapshot)
-- last validated date or commit: 2026-03-21, commit `121df5f`
+- last validated date or commit: 2026-03-22, commit `36295bd`
 - known caveats:
   - no auth yet; single-node SQLite file model only
   - Playwright MCP browser smoke can be blocked in this runtime by existing local Chrome profile/session lock (`Opening in existing browser session`); CLI smoke/scenario checks remain available.
@@ -85,7 +85,7 @@ Codex must keep this file current enough that a new Codex run can answer:
 - whether deployment is working: yes
 - whether TLS is working: yes (Render-managed)
 - whether end-to-end checks are working: yes (deployed smoke + deployed browser snapshot)
-- last validated date or commit: 2026-03-21, commit `6344e9f`
+- last validated date or commit: 2026-03-22, commit `36295bd` (deploy `dep-d6vkg34jppes738kuh2g`)
 - known caveats:
   - from this local environment, direct `api.render.com` connectivity may timeout; `curl --resolve api.render.com:443:216.24.57.7` worked reliably.
   - app persistence is local SQLite file per service instance; no managed multi-node database yet.
@@ -98,7 +98,9 @@ Codex must keep this file current enough that a new Codex run can answer:
 - `npm run verify` (AUT-24/25/26 regression): passed on 2026-03-22.
 - evidence: `evidence/verify-after-aut24-aut26-v2.txt`
 - `RENDER_API_KEY=*** npm run verify:render` (deploy parity + smoke + scenario + log audit): passed on 2026-03-22.
-- evidence: `evidence/verify-render-after-aut24-aut26.txt`
+- evidence:
+  - `evidence/verify-render-after-aut24-aut26.txt`
+  - `evidence/verify-render-aut24-aut26-post-push.txt`
 - `npm test` (Node test runner): passed on 2026-03-22.
 - evidence: `evidence/test-output.txt`
 - `npm test` (Linear harness + full regression rerun): passed on 2026-03-22.
@@ -230,8 +232,9 @@ Codex must keep this file current enough that a new Codex run can answer:
 
 ### Operational log audit
 - Render API events and logs inspected directly on 2026-03-22.
-- build/deploy event result: latest verified deploy `dep-d6vih4nafjfc73d29b7g` reached `live`.
+- build/deploy event result: latest verified deploy `dep-d6vkg34jppes738kuh2g` reached `live` for commit `36295bd6d25dc2d90ed2740b7c48731878a28720`.
 - runtime warn/error signal: none observed in structured app logs (`json_warn_error_count = 0`).
+- deploy-gate log audit result (`AUT-25`): passed in-gate with zero warnings/errors/repo-access warnings.
 - finding status:
   - Node runtime drift risk: resolved in `AUT-16` (pinned to Node 22 LTS; Render now resolves `22.22.1`).
   - health-check log noise: resolved in `AUT-17` (`healthzRatio = 0.0` in stable deployed window).
@@ -242,10 +245,13 @@ Codex must keep this file current enough that a new Codex run can answer:
 - Linear status:
   - `AUT-12` done (state moved to Done; closure comment id `575d8222-4e5e-41b3-968a-f69ff727bd2b`).
   - `AUT-13` done (state moved to Done; closure comment id `b22bc233-1c2b-46ca-8411-95a84b2481c4`).
-  - `AUT-15` still `Todo`; harness deployment-gate status note added (comment id `d9452727-4eb0-474b-b09a-afec46da5bd2`).
+  - `AUT-15` done (closure comment id `b8b3e9cb-59df-42d4-b36f-9e7e0f0a31a6`).
   - `AUT-16` done
   - `AUT-17` done
   - `AUT-18` done (state moved to Done; closure comment id `78301235-d432-4163-be51-2a24052849d1` with recheck2 evidence).
+  - `AUT-24` done (closure comment id `d31cfcc3-41e8-463e-aa4a-c277d9d623f9`).
+  - `AUT-25` done (closure comment id `46bb5af3-f0cd-45a8-b951-5a5a2f9131d0`).
+  - `AUT-26` done (closure comment id `f7b4d6f3-1941-45e5-bfb1-592613f80f00`).
   - Linear issue sync workaround encoded in harness: use Playwright transport (`npm run linear:probe` / `npm run linear:create`).
 - evidence:
   - `evidence/render-log-audit-summary.json`
@@ -484,9 +490,9 @@ Most recent useful evidence:
 
 ## Next recommended milestone
 
-1. Sync Linear states/comments for `AUT-24`, `AUT-25`, and `AUT-26` to `Done` with deploy evidence links.
-2. Run `npm run verify:full` as the default pre-merge/pre-release gate for all Phase 1 closeout changes.
-3. Start Phase 2 planning slice (work-order lifecycle) with the hardened deploy gate as baseline acceptance.
+1. Keep `npm run verify:full` as the default pre-merge/pre-release gate for all Phase 1 closeout changes.
+2. Start Phase 2 planning slice (work-order lifecycle) with the hardened deploy gate as baseline acceptance.
+3. Continue hardening Linear harness ergonomics for non-create workflows (state sync/commenting) without manual UI operations.
 
 ## Update rule
 
