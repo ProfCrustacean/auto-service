@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-23T18:41:57.840Z",
+  "generatedAt": "2026-03-23T18:49:06.257Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,9 +23,9 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1036779,
+      "totalBytes": 1039199,
       "byArea": {
-        "src": 510925,
+        "src": 513345,
         "tests": 148673,
         "scripts": 206861,
         "docs": 77652,
@@ -40,7 +40,7 @@
       },
       {
         "path": "src/ui/dispatchBoardPage.js",
-        "bytes": 35868
+        "bytes": 38288
       },
       {
         "path": "src/ui/workOrderLifecyclePage.js",
@@ -137,7 +137,7 @@
       "clones": 141,
       "sources": 111,
       "lines": 22304,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-LA9eWf/report/jscpd-report.json"
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-p0IG55/report/jscpd-report.json"
     }
   },
   "violations": []

@@ -497,6 +497,8 @@ export function renderDispatchBoardPage(model) {
         let model = JSON.parse(modelElement.textContent);
         let calendar = null;
         let draggedQueuePayload = null;
+        let pointerDragState = null;
+        let recentHtmlDropAt = 0;
         let toastTimeout = null;
 
         function hideToast() {
@@ -593,6 +595,11 @@ export function renderDispatchBoardPage(model) {
             return "--:--";
           }
           return String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
+        }
+
+        function isPointInsideCalendar(clientX, clientY) {
+          const rect = calendarHost.getBoundingClientRect();
+          return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
         }
 
         function buildDropFallbackTarget(event) {
@@ -778,8 +785,67 @@ export function renderDispatchBoardPage(model) {
               draggedQueuePayload = null;
               calendarHost.classList.remove("drop-active");
             });
+
+            itemNode.addEventListener("pointerdown", (event) => {
+              if (event.button !== 0) {
+                return;
+              }
+              pointerDragState = {
+                payload: {
+                  kind: itemNode.dataset.queueKind,
+                  id: itemNode.dataset.itemId,
+                  code: itemNode.dataset.code,
+                  customerName: itemNode.dataset.customerName,
+                  vehicleLabel: itemNode.dataset.vehicleLabel,
+                  durationMin: Number.parseInt(itemNode.dataset.durationMin, 10) || 60,
+                },
+                startX: event.clientX,
+                startY: event.clientY,
+                active: false,
+              };
+            });
           });
         }
+
+        document.addEventListener("pointermove", (event) => {
+          if (!pointerDragState) {
+            return;
+          }
+          const dx = event.clientX - pointerDragState.startX;
+          const dy = event.clientY - pointerDragState.startY;
+          const distance = Math.hypot(dx, dy);
+          if (!pointerDragState.active && distance < 8) {
+            return;
+          }
+          pointerDragState.active = true;
+          if (isPointInsideCalendar(event.clientX, event.clientY)) {
+            calendarHost.classList.add("drop-active");
+          } else {
+            calendarHost.classList.remove("drop-active");
+          }
+        });
+
+        document.addEventListener("pointerup", async (event) => {
+          if (!pointerDragState) {
+            return;
+          }
+          const currentState = pointerDragState;
+          pointerDragState = null;
+          calendarHost.classList.remove("drop-active");
+
+          if (!currentState.active) {
+            return;
+          }
+          if (Date.now() - recentHtmlDropAt < 500) {
+            return;
+          }
+          if (!isPointInsideCalendar(event.clientX, event.clientY)) {
+            return;
+          }
+
+          const targetInfo = resolveDropTargetInfo(event);
+          await scheduleQueuePayload(targetInfo, currentState.payload);
+        });
 
         async function postJson(url, body) {
           const response = await fetch(url, {
@@ -1024,6 +1090,7 @@ export function renderDispatchBoardPage(model) {
           const currentPayload = draggedQueuePayload;
           const targetInfo = resolveDropTargetInfo(event);
           await scheduleQueuePayload(targetInfo, currentPayload);
+          recentHtmlDropAt = Date.now();
           draggedQueuePayload = null;
         }
 
