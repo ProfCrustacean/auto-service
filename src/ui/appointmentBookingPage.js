@@ -98,7 +98,6 @@ export function renderAppointmentBookingPage(model) {
       </div>
       <p class="muted small">${escapeHtml(subtitle)}</p>
       <div class="summary-grid">
-        ${renderSummaryCard({ title: "Режим", content: isWalkInMode ? "Принять сейчас" : "Запись по времени" })}
         ${renderSummaryCard({ title: "Текущий клиент", content: customerSummary })}
         ${renderSummaryCard({ title: "Текущее авто", content: vehicleSummary })}
       </div>

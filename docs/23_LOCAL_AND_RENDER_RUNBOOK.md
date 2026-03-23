@@ -167,9 +167,15 @@ Configuration is in `render.yaml`.
 Expected setup in Render:
 1. Create a Blueprint from the repository root.
 2. Confirm service `auto-service-foundation` and runtime `node`.
-3. Deploy and wait for health check `/healthz` to pass.
-4. Open the Render URL (temporary domain is acceptable for validation).
-5. Run smoke check against deployed URL:
+3. Ensure service deploy mode is manual-only (no automatic deploy on commit):
+
+```bash
+RENDER_API_KEY="<key>" npm run render:policy:manual-deploy
+```
+
+4. Deploy and wait for health check `/healthz` to pass.
+5. Open the Render URL (temporary domain is acceptable for validation).
+6. Run smoke check against deployed URL:
 
 ```bash
 APP_BASE_URL="https://<render-hostname>" npm run smoke
@@ -182,9 +188,17 @@ RENDER_API_KEY="<key>" npm run verify:render
 ```
 
 Behavior:
+- resolves expected deploy commit (`RENDER_EXPECT_COMMIT` or local `git HEAD`)
+- runs deploy-mode git preflight by default:
+  - clean worktree required,
+  - expected commit must match local `HEAD`,
+  - expected commit must match `origin/main` (configurable remote/branch)
+- checks Render service deploy policy and fails fast by default when:
+  - `autoDeploy` is not disabled, or
+  - `autoDeployTrigger` is not `off`
 - triggers deploy for `RENDER_SERVICE_ID` (default `srv-d6vcmt7diees73d0j04g`)
 - polls deploy until `live` (configurable timeout/interval)
-- asserts deploy commit parity against expected commit (`git HEAD` by default)
+- asserts deploy commit parity against expected commit
 - runs `npm run smoke` against `APP_BASE_URL` (default service URL)
 - runs `npm run scenario:booking-page -- --non-destructive` against deployed URL
 - runs `npm run scenario:walkin-page -- --non-destructive` against deployed URL
@@ -197,6 +211,10 @@ Useful toggles:
 - `RENDER_SKIP_DEPLOY=1` → smoke deployed URL without triggering a new deploy
 - `npm run verify:render -- --skip-deploy` → explicit CLI deploy skip override
 - `npm run verify:render -- --deploy` → explicit CLI deploy mode override
+- `RENDER_GIT_REMOTE=<name>` and `RENDER_GIT_BRANCH=<name>` → override git remote/branch used by remote sync preflight (defaults `origin`/`main`)
+- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0` → disable clean-worktree fail-fast preflight (default enabled)
+- `RENDER_VERIFY_REQUIRE_REMOTE_SYNC=0` → disable remote sync fail-fast preflight (default enabled)
+- `RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY=0` → disable strict Render manual deploy policy preflight (default enabled)
 - `RENDER_USE_RESOLVE=0` → disable `curl --resolve` workaround
 - `RENDER_RESOLVE_IP=<ip>` → override resolve IP (default `216.24.57.7`)
 - `RENDER_DEPLOY_TIMEOUT_MS=<ms>` and `RENDER_DEPLOY_POLL_INTERVAL_MS=<ms>` → tune polling
@@ -215,6 +233,13 @@ Useful toggles:
 - `RENDER_LOG_AUDIT_WRITE_RAW=1` → enable debug raw log artifact output (default disabled)
 - `RENDER_LOG_AUDIT_GZIP_RAW=0` → disable gzip for raw output when raw logging is enabled
 - `RENDER_LOG_AUDIT_RAW_PATH=<path>` → raw output base path (default `evidence/render-log-audit.raw.ndjson`)
+
+Render service deploy policy utility:
+
+```bash
+RENDER_API_KEY="<key>" npm run render:policy:status
+RENDER_API_KEY="<key>" npm run render:policy:manual-deploy
+```
 
 ### Current validated Render target (2026-03-21)
 

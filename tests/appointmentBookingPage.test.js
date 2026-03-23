@@ -17,6 +17,7 @@ test("appointments/new renders booking form and lookup", async () => {
     assert.match(html, /Форма записи/u);
     assert.match(html, /Запись по времени/u);
     assert.match(html, /Принять сейчас/u);
+    assert.doesNotMatch(html, /<strong>Режим<\/strong>/u);
     assert.doesNotMatch(html, /Экран будет реализован/u);
 
     const lookupRes = await fetch(`${baseUrl}/appointments/new?q=Kia`);
@@ -36,6 +37,7 @@ test("appointments/new supports walk-in mode UI without slot fields", async () =
     assert.match(html, /Новая запись/u);
     assert.match(html, /Форма приема/u);
     assert.match(html, /Принять без записи/u);
+    assert.doesNotMatch(html, /<strong>Режим<\/strong>/u);
     assert.doesNotMatch(html, /Плановый старт/u);
     assert.doesNotMatch(html, /Ожидаемая длительность/u);
   });

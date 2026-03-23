@@ -31,6 +31,8 @@
     "linear:sync": "node scripts/linear-harness.js sync",
     "audit:bloat": "node scripts/audit-bloat.js",
     "verify:render": "node scripts/verify-render.js",
+    "render:policy:status": "node scripts/render-service-policy.js status",
+    "render:policy:manual-deploy": "node scripts/render-service-policy.js manual-deploy",
     "verify:full": "VERIFY_RENDER=1 node scripts/verify.js",
     "verify": "node scripts/verify.js",
     "secrets:scan": "node scripts/secrets-scan.js",

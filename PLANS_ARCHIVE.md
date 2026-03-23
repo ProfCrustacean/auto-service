@@ -193,3 +193,46 @@ Deliver the next feature block after lifecycle core: explicit parts-request oper
 - `evidence/bloat-audit-latest.json`
 - `evidence/linear-aut73-81-done-sync.json`
 
+## Archive Batch — 2026-03-23
+
+### Moved from PLANS.md
+
+- Completed Plan — Dispatch board full EventCalendar cutover (2026-03-23)
+
+## Completed Plan — Dispatch board full EventCalendar cutover (2026-03-23)
+
+### Objective
+
+Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridDay`) and migrate dispatch board writes to API-only routes.
+
+### Delivered
+
+- Replaced dispatch board engine with EventCalendar standalone bundle (`@event-calendar/build@5.5.1`) in vertical `resourceTimeGridDay` mode.
+- Migrated `GET /api/v1/dispatch/board` payload to calendar-native schema:
+  - `calendar`, `resources`, `events`, `queues`, `actions`.
+- Removed legacy write routes under `/dispatch/board/*` and added API-only mutations:
+  - `POST /api/v1/dispatch/board/events/:id/preview`
+  - `POST /api/v1/dispatch/board/events/:id/commit`
+  - `POST /api/v1/dispatch/board/queue/appointments/:id/schedule`
+  - `POST /api/v1/dispatch/board/queue/walk-ins/:id/schedule`
+- Updated mutation policy for dispatch board API writes (`api.dispatch_board.write`).
+- Updated dispatch board integration tests, smoke checks, and dispatch scenario harness flow.
+- Updated runbook + UX guidelines for vertical calendar and queue drag-only control model.
+
+### Verification
+
+- `npm run lint`: passed
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:render`: passed
+  - deploy + commit parity + smoke + non-destructive scenarios + post-deploy log audit: passed
+  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- Browser smoke (Playwright) on production `/dispatch/board`:
+  - vertical resource time-grid visible,
+  - queue cards draggable,
+  - legacy manual-control blocks absent,
+  - console errors: 0.
+- `npm run audit:bloat`: failed (pre-existing budget overruns in `src/tests/scripts`; unchanged blocker category).
+

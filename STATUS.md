@@ -16,12 +16,13 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 Dispatch board full vertical-calendar migration is delivered and verified; next priority remains Phase 4 (payments and reporting closure).
 
-## Current state (2026-03-23)
+## Current state (2026-03-24)
 
 ### Product/runtime
 - Booking and walk-in UI now run on one page:
   - `/appointments/new` has mode switch (`booking` / `walkin`),
   - `mode=walkin` uses same customer/vehicle selection with intake submit (`work-order` creation, no planned slot fields),
+  - dashboard entry is unified through one CTA (`Новая запись`), without separate walk-in button,
   - legacy page route `/intake/walk-in` is explicitly deprecated (`410 Gone`) with migration hint.
 - Dashboard weekly planning UI is now owner-readable without horizontal weekly scroll:
   - `Неделя по постам` and `Неделя по сотрудникам` are stacked vertically (one above another),
@@ -58,9 +59,15 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 
 ### Harness/operations
 - Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
-- Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios including dispatch board, log audit).
+- Deploy-aware gate now enforces strict preflight before deploy trigger:
+  - clean worktree + remote sync checks (default on),
+  - manual deploy service policy check (`autoDeploy` off + `autoDeployTrigger` off, default on),
+  - fail-fast outcome before deploy API call when preconditions are not met.
 - Authorization boundary is unified across API/page write routes using `src/http/mutationPolicy.js`.
-- Render verify deploy mode is explicit and deterministic via CLI flags (`--skip-deploy` / `--deploy`) with CLI-over-env precedence.
+- Render verify deploy mode is explicit and deterministic via CLI flags (`--skip-deploy` / `--deploy`) with CLI-over-env precedence plus strict deploy-mode preflight env controls.
+- Render environment policy utility is available for deterministic service-state control:
+  - `npm run render:policy:status`
+  - `npm run render:policy:manual-deploy`
 - Harness internals now share process orchestration helpers via `scripts/harness-process.js`.
 - Static/hygiene guardrails are enforceable via:
   - `npm run lint` (route policy + syntax contract checks),
@@ -77,6 +84,11 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 
 ## Last accepted milestones
 
+- 2026-03-24: Render deploy verification hardening delivered:
+  - strict `verify:render` git+service preflight,
+  - deterministic manual deploy policy enforcement,
+  - one-command Render policy remediation utility,
+  - Render service policy remediated to `autoDeploy=no`, `autoDeployTrigger=off`.
 - 2026-03-23: Unified booking/walk-in page delivered (`/appointments/new?mode=walkin`, legacy `/intake/walk-in` now `410`) and deployed (`7b57980662a2e7a64eee5310d923717bb9dbc6a2`).
 - 2026-03-23: Dispatch board DnD/readability hardening delivered and deployed with global overlap warning policy (`f95625f49a76ab071aefb00cf4638a99f783748e`).
 - 2026-03-23: Dispatch board owner-focused simplification delivered and deployed (`ea3ca989dee8362ceadd3882a1c08bdc2da39da2`, runtime fix on top `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`).
@@ -97,12 +109,14 @@ Most recent local gate results:
 - `npm run secrets:scan`: passed
 
 Most recent deploy-aware gate results:
-- `npm run verify:render`: passed
+- `npm run verify:render`: fail-fast as expected when worktree is dirty (deploy not triggered)
+- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d70qr04r85hc73cecoo0`
-  - latest commit parity: `f4977421693895cd5aa412aba1bb64cbcecb2bb7`
+  - latest deploy id: `dep-d70r6ac9c44c73b7h07g`
+  - latest commit parity: `d73af5315c419cbcf30c474825e609b8f68d6623`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- Playwright production smoke on `/dispatch/board`: passed (page loaded, console warnings/errors: `0`)
 
 Primary evidence pointers:
 - `evidence/render-log-audit-summary.json`
@@ -121,6 +135,7 @@ Primary evidence pointers:
 - URL: `https://auto-service-foundation.onrender.com`
 - service id: `srv-d6vcmt7diees73d0j04g`
 - status: deploy + smoke + scenario + log-audit gates green on latest verified run
+- deploy policy: `autoDeploy=no`, `autoDeployTrigger=off` (manual deploy mode)
 - caveat: app-level persistence is local SQLite file per instance
 
 ## Known caveats

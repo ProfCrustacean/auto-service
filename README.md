@@ -219,28 +219,22 @@ CI quality gate:
 
 Render stage commands:
 - `npm run verify:render`:
-  - triggers Render deploy for configured service,
-  - waits for deploy to reach `live`,
-  - verifies deploy commit matches expected local commit (`git HEAD` by default),
-  - runs smoke against deployed URL,
-  - runs non-destructive booking-page scenario against deployed URL,
-  - runs non-destructive walk-in-page scenario against deployed URL,
-  - runs non-destructive scheduling+walk-in scenario against deployed URL,
-  - runs non-destructive parts-flow scenario against deployed URL,
-  - and runs a post-deploy Render build/runtime log audit.
-- `npm run verify:full`:
-  - runs local `verify`,
-  - then runs `verify:render`.
-- `npm run up:full`:
-  - installs dependencies,
-  - runs the full local + deploy-aware verification sequence.
+  - resolves expected commit (`RENDER_EXPECT_COMMIT` or local `git HEAD`), runs deploy-mode preflight (clean worktree + remote sync by default), enforces manual deploy policy by default, triggers deploy, waits `live`, verifies commit parity, runs smoke + non-destructive scenarios, and performs post-deploy log audit.
+- `npm run render:policy:status` / `npm run render:policy:manual-deploy`: inspect or enforce manual deploy policy (`autoDeploy=no`, `autoDeployTrigger=off`).
+- `npm run verify:full`: runs local `verify`, then `verify:render`.
+- `npm run up:full`: installs dependencies, then runs the full local + deploy-aware verification sequence.
 - `RENDER_API_KEY` is required for deploy-triggering mode (`RENDER_SKIP_DEPLOY=0`, default).
 
 Render defaults and toggles:
 - `RENDER_SERVICE_ID` default: `srv-d6vcmt7diees73d0j04g`
 - `APP_BASE_URL` default: `https://auto-service-foundation.onrender.com`
+- `RENDER_GIT_REMOTE` default: `origin`
+- `RENDER_GIT_BRANCH` default: `main`
 - `npm run verify:render -- --skip-deploy` explicitly skips deploy (CLI override wins over env)
 - `npm run verify:render -- --deploy` explicitly forces deploy mode
+- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0` disables dirty-worktree fail-fast preflight (default enabled)
+- `RENDER_VERIFY_REQUIRE_REMOTE_SYNC=0` disables remote branch sync fail-fast preflight (default enabled)
+- `RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY=0` disables strict manual deploy policy check (default enabled)
 - scenario and log-audit gates are enabled by default in `verify:render`
 - for full env matrix and all tuning knobs, use `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`
 

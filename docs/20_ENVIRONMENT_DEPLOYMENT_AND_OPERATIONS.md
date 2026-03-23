@@ -41,6 +41,12 @@ The repository should eventually define:
 - how a failed update is detected,
 - and how to recover to the last known acceptable state.
 
+For the current Render validation environment, deployment policy is deterministic:
+- service branch target is `main`,
+- service auto-deploy on commit is disabled,
+- deploys are triggered explicitly by repository harness (`npm run verify:render`),
+- and deploy verification must fail fast when local git state is not ready for deploy.
+
 ## Temporary validation hosts
 
 For non-production validation, temporary DNS-friendly hostnames such as nip.io-style or equivalent services are acceptable when useful.

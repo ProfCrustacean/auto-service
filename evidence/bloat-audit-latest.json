@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-23T21:17:16.956Z",
+  "generatedAt": "2026-03-23T21:54:48.185Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1040166,
+      "totalBytes": 1049924,
       "byArea": {
-        "src": 507178,
-        "tests": 154552,
-        "scripts": 207130,
-        "docs": 77705,
+        "src": 506870,
+        "tests": 154749,
+        "scripts": 209863,
+        "docs": 79221,
         "evidence": 7496,
-        "other": 86105
+        "other": 91725
       }
     },
     "topTrackedFiles": [
@@ -43,16 +43,16 @@
         "bytes": 40151
       },
       {
+        "path": "scripts/verify-render.js",
+        "bytes": 34337
+      },
+      {
         "path": "src/ui/workOrderLifecyclePage.js",
         "bytes": 32959
       },
       {
         "path": "src/services/dashboardService.js",
-        "bytes": 32773
-      },
-      {
-        "path": "scripts/verify-render.js",
-        "bytes": 31604
+        "bytes": 32717
       },
       {
         "path": "package-lock.json",
@@ -60,7 +60,7 @@
       },
       {
         "path": "src/ui/dashboardPage.js",
-        "bytes": 26620
+        "bytes": 26514
       },
       {
         "path": "scripts/linear-harness.js",
@@ -100,7 +100,7 @@
       },
       {
         "path": "docs/23_LOCAL_AND_RENDER_RUNBOOK.md",
-        "bytes": 14329
+        "bytes": 15510
       },
       {
         "path": "scripts/smoke.js",
@@ -126,18 +126,18 @@
     },
     "docs": {
       "lineCounts": {
-        "README": 320,
-        "STATUS": 152,
-        "PLANS": 191
+        "README": 314,
+        "STATUS": 167,
+        "PLANS": 230
       }
     },
     "duplication": {
-      "percentage": 6.43,
+      "percentage": 6.26,
       "duplicatedLines": 1433,
       "clones": 108,
-      "sources": 114,
-      "lines": 22276,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-UgFUjA/report/jscpd-report.json"
+      "sources": 117,
+      "lines": 22894,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-sO87sS/report/jscpd-report.json"
     }
   },
   "violations": []

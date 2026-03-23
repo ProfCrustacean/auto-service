@@ -12,6 +12,11 @@ import {
   runProcessWithRetries as runProcessWithRetriesBase,
   wait,
 } from "./harness-process.js";
+import {
+  assertManualDeployPolicy,
+  commitIdsMatch,
+  runGitPreflight,
+} from "./render-verify-preflight.js";
 import { parseRenderVerifyCliArgs, resolveSkipDeployFromInputs } from "./verify-render-cli.js";
 
 loadDotenvIntoProcessSync();
@@ -19,6 +24,8 @@ const DEFAULT_RENDER_API_BASE_URL = "https://api.render.com/v1";
 const DEFAULT_RENDER_SERVICE_ID = "srv-d6vcmt7diees73d0j04g";
 const DEFAULT_RENDER_BASE_URL = "https://auto-service-foundation.onrender.com";
 const DEFAULT_RENDER_RESOLVE_IP = "216.24.57.7";
+const DEFAULT_GIT_REMOTE = "origin";
+const DEFAULT_GIT_BRANCH = "main";
 const DEFAULT_POLL_TIMEOUT_MS = 15 * 60 * 1000;
 const DEFAULT_POLL_INTERVAL_MS = 10 * 1000;
 const DEFAULT_SMOKE_MAX_ATTEMPTS = 3;
@@ -175,10 +182,6 @@ function normalizeCommitId(value, fieldName) {
   }
 
   return normalized;
-}
-
-function commitIdsMatch(expectedCommitId, actualCommitId) {
-  return actualCommitId.startsWith(expectedCommitId) || expectedCommitId.startsWith(actualCommitId);
 }
 
 async function resolveExpectedCommitId(explicitCommitId) {
@@ -717,6 +720,23 @@ async function main() {
     envValue: process.env.RENDER_SKIP_DEPLOY,
     cliOptions,
   });
+  const requireCleanWorktree = normalizeFlag(
+    process.env.RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE,
+    "RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE",
+    true,
+  );
+  const requireRemoteSync = normalizeFlag(
+    process.env.RENDER_VERIFY_REQUIRE_REMOTE_SYNC,
+    "RENDER_VERIFY_REQUIRE_REMOTE_SYNC",
+    true,
+  );
+  const requireManualDeploy = normalizeFlag(
+    process.env.RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY,
+    "RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY",
+    true,
+  );
+  const gitRemote = process.env.RENDER_GIT_REMOTE?.trim() || DEFAULT_GIT_REMOTE;
+  const gitBranch = process.env.RENDER_GIT_BRANCH?.trim() || DEFAULT_GIT_BRANCH;
   const includeScenario = normalizeFlag(process.env.RENDER_VERIFY_INCLUDE_SCENARIO, "RENDER_VERIFY_INCLUDE_SCENARIO", true);
   const includeBookingScenario = normalizeFlag(
     process.env.RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO,
@@ -816,6 +836,11 @@ async function main() {
     includeWalkInPageScenario,
     includePartsScenario,
     includeDispatchBoardScenario,
+    requireCleanWorktree,
+    requireRemoteSync,
+    requireManualDeploy,
+    gitRemote,
+    gitBranch,
     verifyCommitParity,
     enableLogAudit,
     writeRawAuditLogs,
@@ -836,8 +861,46 @@ async function main() {
 
   let servicePayload = null;
   let deployPayload = null;
+  let expectedCommitContext = null;
 
   if (!skipDeploy) {
+    expectedCommitContext = await resolveExpectedCommitId(expectedCommitOverride);
+
+    logJson({
+      status: "render_verify_step_started",
+      step: "git_preflight",
+      expectedCommitId: expectedCommitContext.expectedCommitId,
+      expectedCommitSource: expectedCommitContext.source,
+      requireCleanWorktree,
+      requireRemoteSync,
+      gitRemote,
+      gitBranch,
+    });
+
+    try {
+      const gitPreflight = await runGitPreflight({
+        runCommandCapture,
+        env: process.env,
+        expectedCommitId: expectedCommitContext.expectedCommitId,
+        gitRemote,
+        gitBranch,
+        requireCleanWorktree,
+        requireRemoteSync,
+      });
+      logJson({
+        status: "render_verify_preflight_passed",
+        step: "git_preflight",
+        details: gitPreflight,
+      });
+    } catch (error) {
+      logJson({
+        status: "render_verify_preflight_failed",
+        step: "git_preflight",
+        message: redactSecretsInText(error.message),
+      });
+      throw error;
+    }
+
     logJson({ status: "render_verify_step_started", step: "service_lookup", serviceId });
     servicePayload = (
       await renderApiRequest({
@@ -849,6 +912,32 @@ async function main() {
         resolveIp,
       })
     ).payload;
+
+    logJson({
+      status: "render_verify_step_started",
+      step: "render_service_policy_check",
+      serviceId,
+      requireManualDeploy,
+    });
+
+    try {
+      const policyDetails = assertManualDeployPolicy({
+        servicePayload,
+        requireManualDeploy,
+      });
+      logJson({
+        status: "render_verify_preflight_passed",
+        step: "render_service_policy_check",
+        details: policyDetails,
+      });
+    } catch (error) {
+      logJson({
+        status: "render_verify_preflight_failed",
+        step: "render_service_policy_check",
+        message: redactSecretsInText(error.message),
+      });
+      throw error;
+    }
 
     logJson({
       status: "render_verify_step_started",
@@ -914,7 +1003,7 @@ async function main() {
         deployId: deployPayload?.id ?? null,
       });
 
-      const { expectedCommitId, source } = await resolveExpectedCommitId(expectedCommitOverride);
+      const { expectedCommitId, source } = expectedCommitContext;
       const actualCommitId = assertDeployCommitParity({
         expectedCommitId,
         deployPayload,
@@ -927,10 +1016,22 @@ async function main() {
         actualCommitId,
       });
     }
-  } else if (verifyCommitParity) {
+  } else {
+    if (verifyCommitParity) {
+      logJson({
+        status: "render_verify_step_skipped",
+        step: "deploy_commit_parity",
+        reason: "skip_deploy_enabled",
+      });
+    }
     logJson({
       status: "render_verify_step_skipped",
-      step: "deploy_commit_parity",
+      step: "git_preflight",
+      reason: "skip_deploy_enabled",
+    });
+    logJson({
+      status: "render_verify_step_skipped",
+      step: "render_service_policy_check",
       reason: "skip_deploy_enabled",
     });
   }

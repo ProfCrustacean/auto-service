@@ -12,6 +12,82 @@ No active multi-step implementation plan is open right now.
 
 Create a new active plan before the next non-trivial feature/refactor/deployment slice.
 
+## Archived plan skeleton
+
+Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
+
+- 2026-03-21 — Render build/runtime log investigation and follow-up triage
+- 2026-03-21 — AUT-14 verification scenarios for scheduling and walk-in
+- 2026-03-21 — AUT-10 Walk-in intake API and active queue insertion
+- 2026-03-21 — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
+- 2026-03-21 — AUT-8 Customers and Vehicles CRUD API
+- 2026-03-21 — AUT-7 Employees and Bays CRUD API
+- 2026-03-21 — AUT-6 Persistent Data Model and Migrations
+- 2026-03-21 — Phase 0 Foundation Slice
+- 2026-03-21 — Phase 1 Dashboard UX Refactor
+- 2026-03-21 — AUT-17 health-check log noise reduction
+- 2026-03-21 — AUT-16 pin Render Node runtime to LTS
+- 2026-03-21 — AUT-18 repo-access warning remediation investigation
+- 2026-03-21 — Repository spring cleaning and harness simplification
+- 2026-03-21 — PLANS archive automation and policy enforcement
+- 2026-03-21 — Linear Playwright workflow integrated into harness
+- 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
+- 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
+- 2026-03-22 — Bloat audit execution (`AUT-55..AUT-60`)
+- 2026-03-22 — Phase 2 lifecycle core (`AUT-61..AUT-69`)
+- 2026-03-22 — Spring cleanup wave (`AUT-82..AUT-88`)
+- 2026-03-22 — Phase 3 parts flow (`AUT-73..AUT-81`)
+- 2026-03-23 — Dispatch board full EventCalendar cutover
+
+## Completed Plan — Deterministic Render verify on new commit only (2026-03-24)
+
+### Objective
+
+Eliminate wasted first-pass Render verification against stale live commit by enforcing strict deploy readiness and manual deploy service policy.
+
+### Delivered
+
+- Added deploy-mode preflight module `scripts/render-verify-preflight.js` with testable checks for:
+  - clean worktree gating,
+  - expected commit parity with local `HEAD`,
+  - expected commit sync with `origin/main` (configurable remote/branch),
+  - strict Render manual deploy policy (`autoDeploy` off + `autoDeployTrigger` off).
+- Integrated preflight into `scripts/verify-render.js` before deploy trigger:
+  - new structured steps/logs: `git_preflight`, `render_service_policy_check`, `render_verify_preflight_passed`, `render_verify_preflight_failed`,
+  - deploy API trigger is skipped when preflight fails,
+  - `--skip-deploy` now emits explicit skipped-step logs for deploy-specific preflight.
+- Added Render service policy utility `scripts/render-service-policy.js` with one-command operations:
+  - `npm run render:policy:status`,
+  - `npm run render:policy:manual-deploy`.
+- Added strict preflight defaults and toggles:
+  - `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE`,
+  - `RENDER_VERIFY_REQUIRE_REMOTE_SYNC`,
+  - `RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY`,
+  - `RENDER_GIT_REMOTE`,
+  - `RENDER_GIT_BRANCH`.
+- Added infrastructure default in `render.yaml`: `autoDeployTrigger: off`.
+- Added unit tests: `tests/renderVerifyPreflight.test.js`.
+- Updated deployment documentation:
+  - `README.md`,
+  - `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
+  - `docs/20_ENVIRONMENT_DEPLOYMENT_AND_OPERATIONS.md`.
+
+### Verification
+
+- `npm test`: passed
+- `npm run lint`: passed
+- `npm run verify`: passed
+- `npm run secrets:scan`: passed
+- `npm run audit:bloat`: passed
+- `npm run render:policy:status`: passed (confirmed policy state)
+- `npm run render:policy:manual-deploy`: passed (service policy remediated to manual deploy)
+- `npm run verify:render`: failed fast as expected on dirty worktree preflight (no deploy trigger)
+- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render`: passed
+  - deploy id: `dep-d70r6ac9c44c73b7h07g`
+  - commit parity: `d73af5315c419cbcf30c474825e609b8f68d6623`
+  - smoke + non-destructive scenarios + post-deploy log audit: passed
+- Playwright production smoke on `/dispatch/board`: passed (title/content loaded, console warnings/errors: 0)
+
 ## Completed Plan — Unified `/appointments/new` with walk-in mode (2026-03-23)
 
 ### Objective
@@ -140,43 +216,6 @@ Fix dispatch board usability blockers (queue drag/drop and unreadable event card
   - queue drop into occupied slot succeeds (`201`) with warning toast
   - event drag and resize commit successfully (`200`)
   - no browser console errors/warnings
-
-## Completed Plan — Dispatch board full EventCalendar cutover (2026-03-23)
-
-### Objective
-
-Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridDay`) and migrate dispatch board writes to API-only routes.
-
-### Delivered
-
-- Replaced dispatch board engine with EventCalendar standalone bundle (`@event-calendar/build@5.5.1`) in vertical `resourceTimeGridDay` mode.
-- Migrated `GET /api/v1/dispatch/board` payload to calendar-native schema:
-  - `calendar`, `resources`, `events`, `queues`, `actions`.
-- Removed legacy write routes under `/dispatch/board/*` and added API-only mutations:
-  - `POST /api/v1/dispatch/board/events/:id/preview`
-  - `POST /api/v1/dispatch/board/events/:id/commit`
-  - `POST /api/v1/dispatch/board/queue/appointments/:id/schedule`
-  - `POST /api/v1/dispatch/board/queue/walk-ins/:id/schedule`
-- Updated mutation policy for dispatch board API writes (`api.dispatch_board.write`).
-- Updated dispatch board integration tests, smoke checks, and dispatch scenario harness flow.
-- Updated runbook + UX guidelines for vertical calendar and queue drag-only control model.
-
-### Verification
-
-- `npm run lint`: passed
-- `npm test`: passed
-- `npm run verify`: passed
-- `npm run secrets:scan`: passed
-- `npm run verify:render`: passed
-  - deploy + commit parity + smoke + non-destructive scenarios + post-deploy log audit: passed
-  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
-  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-- Browser smoke (Playwright) on production `/dispatch/board`:
-  - vertical resource time-grid visible,
-  - queue cards draggable,
-  - legacy manual-control blocks absent,
-  - console errors: 0.
-- `npm run audit:bloat`: failed (pre-existing budget overruns in `src/tests/scripts`; unchanged blocker category).
 
 ## Maintenance rule
 
