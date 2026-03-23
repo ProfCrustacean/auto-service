@@ -25,6 +25,31 @@ export function collectUnknownFields(body, knownFields) {
   return Object.keys(body).filter((field) => !fieldSet.has(field));
 }
 
+export function finalizeUnknownQueryFields(query, allowedFields, errors) {
+  const unknownFields = collectUnknownFields(query, allowedFields);
+  for (const field of unknownFields) {
+    errors.push({ field, message: "unknown query parameter" });
+  }
+}
+
+export function normalizeSearchQuery(value, field, errors, { maxLen = 120 } = {}) {
+  if (value === undefined) {
+    return "";
+  }
+
+  if (typeof value !== "string") {
+    errors.push({ field, message: `${field} must be a string` });
+    return "";
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length > maxLen) {
+    errors.push({ field, message: `${field} is too long (max ${maxLen} characters)` });
+  }
+
+  return trimmed;
+}
+
 export const MAX_PAGE_LIMIT = 100;
 const LOCAL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/u;
 

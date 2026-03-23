@@ -1,8 +1,10 @@
 import {
   collectUnknownFields,
+  finalizeUnknownQueryFields,
   isNonEmptyString,
   normalizeLocalDateQuery,
   normalizePaginationQuery,
+  normalizeSearchQuery,
 } from "./validatorUtils.js";
 import { normalizePlannedStartLocal } from "./plannedStartLocal.js";
 
@@ -89,24 +91,6 @@ function normalizeOptionalId(value, field, errors) {
   return value.trim();
 }
 
-function normalizeQueryString(value, field, errors) {
-  if (value === undefined) {
-    return "";
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string` });
-    return "";
-  }
-
-  const trimmed = value.trim();
-  if (trimmed.length > 120) {
-    errors.push({ field, message: `${field} is too long (max 120 characters)` });
-  }
-
-  return trimmed;
-}
-
 export function validateListAppointmentsQuery(query) {
   const errors = [];
   const pagination = normalizePaginationQuery(query, errors);
@@ -117,13 +101,13 @@ export function validateListAppointmentsQuery(query) {
   const bayId = normalizeOptionalId(query.bayId, "bayId", errors) ?? null;
   const dateFromLocal = normalizeLocalDateQuery(query.dateFromLocal, "dateFromLocal", errors) ?? null;
   const dateToLocal = normalizeLocalDateQuery(query.dateToLocal, "dateToLocal", errors) ?? null;
-  const search = normalizeQueryString(query.q, "q", errors);
+  const search = normalizeSearchQuery(query.q, "q", errors);
 
   if (dateFromLocal && dateToLocal && dateFromLocal > dateToLocal) {
     errors.push({ field: "dateFromLocal", message: "dateFromLocal must be <= dateToLocal" });
   }
 
-  const unknownFields = collectUnknownFields(query, [
+  finalizeUnknownQueryFields(query, [
     "status",
     "customerId",
     "vehicleId",
@@ -133,10 +117,7 @@ export function validateListAppointmentsQuery(query) {
     "q",
     "limit",
     "offset",
-  ]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown query parameter" });
-  }
+  ], errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };

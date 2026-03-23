@@ -1,4 +1,10 @@
-import { notFoundError, sendApiError, validationError } from "./apiErrors.js";
+import { mapSharedCustomerVehicleDomainApiError } from "./domainApiErrorMapper.js";
+import {
+  respondItemOrNotFound,
+  respondList,
+  respondValidationFailure,
+  withUnexpectedError,
+} from "./routePrimitives.js";
 import {
   validateCustomerCreate,
   validateCustomerUpdate,
@@ -7,207 +13,136 @@ import {
   validateVehicleCreate,
   validateVehicleUpdate,
 } from "./customerVehicleValidators.js";
-import { handleUnexpectedError } from "./routeUtils.js";
-
-function isMissingVehicleCustomer(error) {
-  return error?.code === "customer_not_found";
-}
 
 export function registerCustomerVehicleRoutes(app, { logger, customerVehicleService }) {
-  app.get("/api/v1/customers", (req, res) => {
+  app.get("/api/v1/customers", (req, res) => withUnexpectedError(logger, req, res, "customers_list_failed", () => {
     const validation = validateListCustomersQuery(req.query);
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const items = customerVehicleService.listCustomers(validation.value);
-      const payload = { items, count: items.length };
-      if (validation.value.limit !== null || validation.value.offset > 0) {
-        payload.pagination = {
-          limit: validation.value.limit,
-          offset: validation.value.offset,
-          returned: items.length,
-        };
-      }
-      res.status(200).json(payload);
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "customers_list_failed");
-    }
-  });
+    const items = customerVehicleService.listCustomers(validation.value);
+    respondList(res, {
+      items,
+      limit: validation.value.limit,
+      offset: validation.value.offset,
+    });
+  }));
 
-  app.get("/api/v1/customers/:id", (req, res) => {
-    try {
-      const item = customerVehicleService.getCustomerById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Customer"));
-        return;
-      }
+  app.get("/api/v1/customers/:id", (req, res) => withUnexpectedError(logger, req, res, "customers_get_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Customer",
+      item: customerVehicleService.getCustomerById(req.params.id),
+    });
+  }));
 
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "customers_get_failed");
-    }
-  });
-
-  app.post("/api/v1/customers", (req, res) => {
+  app.post("/api/v1/customers", (req, res) => withUnexpectedError(logger, req, res, "customers_create_failed", () => {
     const validation = validateCustomerCreate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const item = customerVehicleService.createCustomer(validation.value);
-      res.status(201).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "customers_create_failed");
-    }
-  });
+    res.status(201).json({
+      item: customerVehicleService.createCustomer(validation.value),
+    });
+  }));
 
-  app.patch("/api/v1/customers/:id", (req, res) => {
+  app.patch("/api/v1/customers/:id", (req, res) => withUnexpectedError(logger, req, res, "customers_update_failed", () => {
     const validation = validateCustomerUpdate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const item = customerVehicleService.updateCustomerById(req.params.id, validation.value);
-      if (!item) {
-        sendApiError(res, notFoundError("Customer"));
-        return;
-      }
+    respondItemOrNotFound(res, {
+      entityName: "Customer",
+      item: customerVehicleService.updateCustomerById(req.params.id, validation.value),
+    });
+  }));
 
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "customers_update_failed");
-    }
-  });
+  app.delete("/api/v1/customers/:id", (req, res) => withUnexpectedError(logger, req, res, "customers_delete_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Customer",
+      item: customerVehicleService.deactivateCustomerById(req.params.id),
+    });
+  }));
 
-  app.delete("/api/v1/customers/:id", (req, res) => {
-    try {
-      const item = customerVehicleService.deactivateCustomerById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Customer"));
-        return;
-      }
-
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "customers_delete_failed");
-    }
-  });
-
-  app.get("/api/v1/vehicles", (req, res) => {
+  app.get("/api/v1/vehicles", (req, res) => withUnexpectedError(logger, req, res, "vehicles_list_failed", () => {
     const validation = validateListVehiclesQuery(req.query);
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const items = customerVehicleService.listVehicles(validation.value);
-      const payload = { items, count: items.length };
-      if (validation.value.limit !== null || validation.value.offset > 0) {
-        payload.pagination = {
-          limit: validation.value.limit,
-          offset: validation.value.offset,
-          returned: items.length,
-        };
-      }
-      res.status(200).json(payload);
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "vehicles_list_failed");
+    const items = customerVehicleService.listVehicles(validation.value);
+    respondList(res, {
+      items,
+      limit: validation.value.limit,
+      offset: validation.value.offset,
+    });
+  }));
+
+  app.get("/api/v1/vehicles/:id", (req, res) => withUnexpectedError(logger, req, res, "vehicles_get_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Vehicle",
+      item: customerVehicleService.getVehicleById(req.params.id),
+    });
+  }));
+
+  app.get("/api/v1/vehicles/:id/ownership-history", (req, res) => withUnexpectedError(logger, req, res, "vehicles_ownership_history_failed", () => {
+    const vehicle = customerVehicleService.getVehicleById(req.params.id);
+    if (!vehicle) {
+      respondItemOrNotFound(res, { entityName: "Vehicle", item: vehicle });
+      return;
     }
-  });
 
-  app.get("/api/v1/vehicles/:id", (req, res) => {
-    try {
-      const item = customerVehicleService.getVehicleById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Vehicle"));
-        return;
-      }
+    const items = customerVehicleService.listVehicleOwnershipHistory(req.params.id);
+    res.status(200).json({ items, count: items.length });
+  }));
 
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "vehicles_get_failed");
-    }
-  });
-
-  app.get("/api/v1/vehicles/:id/ownership-history", (req, res) => {
-    try {
-      const vehicle = customerVehicleService.getVehicleById(req.params.id);
-      if (!vehicle) {
-        sendApiError(res, notFoundError("Vehicle"));
-        return;
-      }
-
-      const items = customerVehicleService.listVehicleOwnershipHistory(req.params.id);
-      res.status(200).json({ items, count: items.length });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "vehicles_ownership_history_failed");
-    }
-  });
-
-  app.post("/api/v1/vehicles", (req, res) => {
+  app.post("/api/v1/vehicles", (req, res) => withUnexpectedError(logger, req, res, "vehicles_create_failed", () => {
     const validation = validateVehicleCreate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
     try {
-      const item = customerVehicleService.createVehicle(validation.value);
-      res.status(201).json({ item });
+      res.status(201).json({
+        item: customerVehicleService.createVehicle(validation.value),
+      });
     } catch (error) {
-      if (isMissingVehicleCustomer(error)) {
-        sendApiError(res, notFoundError("Customer"));
+      if (mapSharedCustomerVehicleDomainApiError(res, error)) {
         return;
       }
-
-      handleUnexpectedError(logger, req, res, error, "vehicles_create_failed");
+      throw error;
     }
-  });
+  }));
 
-  app.patch("/api/v1/vehicles/:id", (req, res) => {
+  app.patch("/api/v1/vehicles/:id", (req, res) => withUnexpectedError(logger, req, res, "vehicles_update_failed", () => {
     const validation = validateVehicleUpdate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
     try {
       const item = customerVehicleService.updateVehicleById(req.params.id, validation.value);
-      if (!item) {
-        sendApiError(res, notFoundError("Vehicle"));
-        return;
-      }
-
-      res.status(200).json({ item });
+      respondItemOrNotFound(res, { entityName: "Vehicle", item });
     } catch (error) {
-      if (isMissingVehicleCustomer(error)) {
-        sendApiError(res, notFoundError("Customer"));
+      if (mapSharedCustomerVehicleDomainApiError(res, error)) {
         return;
       }
-
-      handleUnexpectedError(logger, req, res, error, "vehicles_update_failed");
+      throw error;
     }
-  });
+  }));
 
-  app.delete("/api/v1/vehicles/:id", (req, res) => {
-    try {
-      const item = customerVehicleService.deactivateVehicleById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Vehicle"));
-        return;
-      }
-
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "vehicles_delete_failed");
-    }
-  });
+  app.delete("/api/v1/vehicles/:id", (req, res) => withUnexpectedError(logger, req, res, "vehicles_delete_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Vehicle",
+      item: customerVehicleService.deactivateVehicleById(req.params.id),
+    });
+  }));
 }

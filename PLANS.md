@@ -12,6 +12,33 @@ No active multi-step implementation plan is open right now.
 
 Create a new active plan before the next non-trivial feature/refactor/deployment slice.
 
+## Completed Plan — Dashboard week blocks cleanup (vertical stack + Monday week start) (2026-03-23)
+
+### Objective
+
+Increase weekly planning readability on `/` by stacking weekly blocks vertically and switching week semantics to calendar week (`Пн..Вс`).
+
+### Delivered
+
+- `DashboardService` week window anchor changed from rolling `today+6` to Monday-based calendar week:
+  - new helper `startOfLocalWeekMonday(...)`,
+  - `buildWeekDays(...)` now starts from local Monday.
+- Dashboard weekly section layout changed from `split-grid` to single-column `week-stack`.
+- Weekly tables now use dedicated non-scrolling wrapper (`week-table-wrap`) and fixed table layout:
+  - removed wide `min-width` behavior for week tables,
+  - enabled wrapping for weekly cell metadata to keep columns readable.
+- Tests updated:
+  - `tests/dashboardService.test.js` now asserts Monday-first weekly header and monotonic day sequence,
+  - `tests/http.test.js` now asserts weekly stack/layout markers in rendered dashboard HTML.
+
+### Verification
+
+- `npm run lint`: passed
+- `npm test -- tests/dashboardService.test.js tests/http.test.js`: passed
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+
 ## Archived plan skeleton
 
 Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
@@ -37,6 +64,7 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-22 — Phase 2 lifecycle core (`AUT-61..AUT-69`)
 - 2026-03-22 — Spring cleanup wave (`AUT-82..AUT-88`)
 - 2026-03-22 — Phase 3 parts flow (`AUT-73..AUT-81`)
+- 2026-03-23 — Dispatch board UX simplification (calendar-only controls)
 
 ## Completed Plan — Dispatch board DnD/readability hardening + global overlap warnings (2026-03-23)
 
@@ -115,45 +143,6 @@ Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridD
   - legacy manual-control blocks absent,
   - console errors: 0.
 - `npm run audit:bloat`: failed (pre-existing budget overruns in `src/tests/scripts`; unchanged blocker category).
-
-## Completed Plan — Dispatch board UX simplification (calendar-only controls) (2026-03-23)
-
-### Objective
-
-Remove non-essential owner-facing noise on `/dispatch/board` and enforce a single interaction model where schedule changes happen only through the calendar.
-
-### Delivered
-
-- Removed top metric strips from dispatch board UI:
-  - global summary cards,
-  - per-lane metric cards.
-- Removed bottom manual controls:
-  - `Выбранный слот`,
-  - `Выбранная запись`,
-  - quick duration buttons `-15/+15`.
-- Kept and hardened calendar-native operations:
-  - existing appointment move/resize via timeline drag/resize,
-  - queue scheduling via direct drag-and-drop from queue cards to timeline.
-- Updated UI contract checks:
-  - page test now asserts removed blocks are absent and queue cards are draggable,
-  - smoke check now validates dispatch timeline marker is present.
-- Fixed production runtime regression in timeline init (`formatLaneLoad` browser-scope bug) and redeployed.
-
-### Verification
-
-- `npm test`: passed
-- `npm run lint`: passed
-- `npm run verify`: passed
-- `npm run secrets:scan`: passed
-- `npm run verify:render`: passed
-  - deploy id: `dep-d70m0a9r0fns73elbq90`
-  - commit parity: `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`
-  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-- Playwright browser smoke on deployed page:
-  - `.vis-timeline` exists,
-  - queue cards are `draggable="true"`,
-  - removed blocks absent,
-  - console errors: 0.
 
 ## Completed Plan — Foundation hardening (`AUT-89..AUT-96`) (2026-03-23)
 

@@ -1,9 +1,11 @@
+import { conflictError, sendApiError } from "./apiErrors.js";
+import { mapSharedCustomerVehicleDomainApiError } from "./domainApiErrorMapper.js";
 import {
-  conflictError,
-  notFoundError,
-  sendApiError,
-  validationError,
-} from "./apiErrors.js";
+  respondItemOrNotFound,
+  respondList,
+  respondValidationFailure,
+  withUnexpectedError,
+} from "./routePrimitives.js";
 import {
   validateBayCreate,
   validateBayUpdate,
@@ -11,146 +13,99 @@ import {
   validateEmployeeUpdate,
   validateReferenceListQuery,
 } from "./referenceValidators.js";
-import { handleUnexpectedError } from "./routeUtils.js";
 
 function isBayNameConflict(error) {
   return typeof error?.message === "string" && error.message.includes("UNIQUE constraint failed: bays.name");
 }
 
 export function registerReferenceRoutes(app, { logger, referenceDataService }) {
-  app.get("/api/v1/employees", (req, res) => {
-    const listValidation = validateReferenceListQuery(req.query);
-    if (!listValidation.ok) {
-      sendApiError(res, validationError(listValidation.errors));
+  app.get("/api/v1/employees", (req, res) => withUnexpectedError(logger, req, res, "employees_list_failed", () => {
+    const validation = validateReferenceListQuery(req.query);
+    if (!validation.ok) {
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const items = referenceDataService.listEmployees(listValidation.value);
-      const payload = { items, count: items.length };
-      if (listValidation.value.limit !== null || listValidation.value.offset > 0) {
-        payload.pagination = {
-          limit: listValidation.value.limit,
-          offset: listValidation.value.offset,
-          returned: items.length,
-        };
-      }
-      res.status(200).json(payload);
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "employees_list_failed");
-    }
-  });
+    const items = referenceDataService.listEmployees(validation.value);
+    respondList(res, {
+      items,
+      limit: validation.value.limit,
+      offset: validation.value.offset,
+    });
+  }));
 
-  app.get("/api/v1/employees/:id", (req, res) => {
-    try {
-      const item = referenceDataService.getEmployeeById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Employee"));
-        return;
-      }
+  app.get("/api/v1/employees/:id", (req, res) => withUnexpectedError(logger, req, res, "employees_get_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Employee",
+      item: referenceDataService.getEmployeeById(req.params.id),
+    });
+  }));
 
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "employees_get_failed");
-    }
-  });
-
-  app.post("/api/v1/employees", (req, res) => {
+  app.post("/api/v1/employees", (req, res) => withUnexpectedError(logger, req, res, "employees_create_failed", () => {
     const validation = validateEmployeeCreate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const item = referenceDataService.createEmployee(validation.value);
-      res.status(201).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "employees_create_failed");
-    }
-  });
+    res.status(201).json({
+      item: referenceDataService.createEmployee(validation.value),
+    });
+  }));
 
-  app.patch("/api/v1/employees/:id", (req, res) => {
+  app.patch("/api/v1/employees/:id", (req, res) => withUnexpectedError(logger, req, res, "employees_update_failed", () => {
     const validation = validateEmployeeUpdate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const item = referenceDataService.updateEmployeeById(req.params.id, validation.value);
-      if (!item) {
-        sendApiError(res, notFoundError("Employee"));
-        return;
-      }
+    respondItemOrNotFound(res, {
+      entityName: "Employee",
+      item: referenceDataService.updateEmployeeById(req.params.id, validation.value),
+    });
+  }));
 
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "employees_update_failed");
-    }
-  });
+  app.delete("/api/v1/employees/:id", (req, res) => withUnexpectedError(logger, req, res, "employees_delete_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Employee",
+      item: referenceDataService.deactivateEmployeeById(req.params.id),
+    });
+  }));
 
-  app.delete("/api/v1/employees/:id", (req, res) => {
-    try {
-      const item = referenceDataService.deactivateEmployeeById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Employee"));
-        return;
-      }
-
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "employees_delete_failed");
-    }
-  });
-
-  app.get("/api/v1/bays", (req, res) => {
-    const listValidation = validateReferenceListQuery(req.query);
-    if (!listValidation.ok) {
-      sendApiError(res, validationError(listValidation.errors));
+  app.get("/api/v1/bays", (req, res) => withUnexpectedError(logger, req, res, "bays_list_failed", () => {
+    const validation = validateReferenceListQuery(req.query);
+    if (!validation.ok) {
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
-    try {
-      const items = referenceDataService.listBays(listValidation.value);
-      const payload = { items, count: items.length };
-      if (listValidation.value.limit !== null || listValidation.value.offset > 0) {
-        payload.pagination = {
-          limit: listValidation.value.limit,
-          offset: listValidation.value.offset,
-          returned: items.length,
-        };
-      }
-      res.status(200).json(payload);
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "bays_list_failed");
-    }
-  });
+    const items = referenceDataService.listBays(validation.value);
+    respondList(res, {
+      items,
+      limit: validation.value.limit,
+      offset: validation.value.offset,
+    });
+  }));
 
-  app.get("/api/v1/bays/:id", (req, res) => {
-    try {
-      const item = referenceDataService.getBayById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Bay"));
-        return;
-      }
+  app.get("/api/v1/bays/:id", (req, res) => withUnexpectedError(logger, req, res, "bays_get_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Bay",
+      item: referenceDataService.getBayById(req.params.id),
+    });
+  }));
 
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "bays_get_failed");
-    }
-  });
-
-  app.post("/api/v1/bays", (req, res) => {
+  app.post("/api/v1/bays", (req, res) => withUnexpectedError(logger, req, res, "bays_create_failed", () => {
     const validation = validateBayCreate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
     try {
-      const item = referenceDataService.createBay(validation.value);
-      res.status(201).json({ item });
+      res.status(201).json({
+        item: referenceDataService.createBay(validation.value),
+      });
     } catch (error) {
       if (isBayNameConflict(error)) {
         sendApiError(
@@ -159,26 +114,20 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
         );
         return;
       }
-
-      handleUnexpectedError(logger, req, res, error, "bays_create_failed");
+      throw error;
     }
-  });
+  }));
 
-  app.patch("/api/v1/bays/:id", (req, res) => {
+  app.patch("/api/v1/bays/:id", (req, res) => withUnexpectedError(logger, req, res, "bays_update_failed", () => {
     const validation = validateBayUpdate(req.body ?? {});
     if (!validation.ok) {
-      sendApiError(res, validationError(validation.errors));
+      respondValidationFailure(res, validation.errors);
       return;
     }
 
     try {
       const item = referenceDataService.updateBayById(req.params.id, validation.value);
-      if (!item) {
-        sendApiError(res, notFoundError("Bay"));
-        return;
-      }
-
-      res.status(200).json({ item });
+      respondItemOrNotFound(res, { entityName: "Bay", item });
     } catch (error) {
       if (isBayNameConflict(error)) {
         sendApiError(
@@ -187,22 +136,17 @@ export function registerReferenceRoutes(app, { logger, referenceDataService }) {
         );
         return;
       }
-
-      handleUnexpectedError(logger, req, res, error, "bays_update_failed");
-    }
-  });
-
-  app.delete("/api/v1/bays/:id", (req, res) => {
-    try {
-      const item = referenceDataService.deactivateBayById(req.params.id);
-      if (!item) {
-        sendApiError(res, notFoundError("Bay"));
+      if (mapSharedCustomerVehicleDomainApiError(res, error)) {
         return;
       }
-
-      res.status(200).json({ item });
-    } catch (error) {
-      handleUnexpectedError(logger, req, res, error, "bays_delete_failed");
+      throw error;
     }
-  });
+  }));
+
+  app.delete("/api/v1/bays/:id", (req, res) => withUnexpectedError(logger, req, res, "bays_delete_failed", () => {
+    respondItemOrNotFound(res, {
+      entityName: "Bay",
+      item: referenceDataService.deactivateBayById(req.params.id),
+    });
+  }));
 }

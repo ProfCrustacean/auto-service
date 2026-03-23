@@ -1,9 +1,11 @@
 import {
   collectUnknownFields,
+  finalizeUnknownQueryFields,
   isNonEmptyString,
   normalizeBooleanLike,
   normalizeLocalDateQuery,
   normalizePaginationQuery,
+  normalizeSearchQuery,
 } from "./validatorUtils.js";
 import { isKnownWorkOrderStatus, WORK_ORDER_STATUS_CODES } from "../domain/workOrderLifecycle.js";
 import {
@@ -149,23 +151,6 @@ function normalizePartsPurchaseActionStatus(value, field, errors) {
   return normalized;
 }
 
-function normalizeQueryString(value, field, errors) {
-  if (value === undefined) {
-    return "";
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string` });
-    return "";
-  }
-
-  const trimmed = value.trim();
-  if (trimmed.length > 120) {
-    errors.push({ field, message: `${field} is too long (max 120 characters)` });
-  }
-  return trimmed;
-}
-
 export function validateListWorkOrdersQuery(query) {
   const errors = [];
   const pagination = normalizePaginationQuery(query, errors);
@@ -175,7 +160,7 @@ export function validateListWorkOrdersQuery(query) {
   const primaryAssignee = normalizeOptionalString(query.primaryAssignee, "primaryAssignee", errors) ?? null;
   const dateFromLocal = normalizeLocalDateQuery(query.dateFromLocal, "dateFromLocal", errors) ?? null;
   const dateToLocal = normalizeLocalDateQuery(query.dateToLocal, "dateToLocal", errors) ?? null;
-  const search = normalizeQueryString(query.q, "q", errors);
+  const search = normalizeSearchQuery(query.q, "q", errors);
   const includeClosedRaw = normalizeBooleanLike(query.includeClosed);
   if (query.includeClosed !== undefined && includeClosedRaw === null) {
     errors.push({ field: "includeClosed", message: "includeClosed must be boolean-like (true/false/1/0)" });
@@ -185,7 +170,7 @@ export function validateListWorkOrdersQuery(query) {
     errors.push({ field: "dateFromLocal", message: "dateFromLocal must be <= dateToLocal" });
   }
 
-  const unknownFields = collectUnknownFields(query, [
+  finalizeUnknownQueryFields(query, [
     "status",
     "bayId",
     "primaryAssignee",
@@ -195,10 +180,7 @@ export function validateListWorkOrdersQuery(query) {
     "includeClosed",
     "limit",
     "offset",
-  ]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown query parameter" });
-  }
+  ], errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -345,10 +327,7 @@ export function validateListPartsRequestsQuery(query) {
     errors.push({ field: "includeResolved", message: "includeResolved must be boolean-like (true/false/1/0)" });
   }
 
-  const unknownFields = collectUnknownFields(query, ["includeResolved"]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown query parameter" });
-  }
+  finalizeUnknownQueryFields(query, ["includeResolved"], errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };

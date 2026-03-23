@@ -1,4 +1,10 @@
-import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike, normalizePaginationQuery } from "./validatorUtils.js";
+import {
+  collectUnknownFields,
+  finalizeUnknownQueryFields,
+  isNonEmptyString,
+  normalizeBooleanLike,
+  normalizePaginationQuery,
+} from "./validatorUtils.js";
 
 function parseRoles(value) {
   if (!Array.isArray(value)) {
@@ -40,10 +46,7 @@ export function validateReferenceListQuery(query) {
   }
 
   const pagination = normalizePaginationQuery(query, errors);
-  const unknownFields = collectUnknownFields(query, ["includeInactive", "limit", "offset"]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown query parameter" });
-  }
+  finalizeUnknownQueryFields(query, ["includeInactive", "limit", "offset"], errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };

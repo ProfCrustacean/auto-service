@@ -137,7 +137,7 @@ function renderWeekRows(rows) {
           return `
             <td class="week-cell ${escapeHtml(day.status)}">
               <strong>${day.plannedCount}</strong>
-              <div class="small">${escapeHtml(day.statusLabel)}${escapeHtml(conflictLabel)}</div>
+              <div class="small week-cell-meta">${escapeHtml(day.statusLabel)}${escapeHtml(conflictLabel)}</div>
             </td>
           `;
         })
@@ -389,6 +389,12 @@ export function renderDashboardPage(model) {
       gap: 12px;
     }
 
+    .week-stack {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
     .table-wrap {
       overflow-x: auto;
       border: 1px solid var(--line);
@@ -423,28 +429,43 @@ export function renderDashboardPage(model) {
     }
 
     .week-table {
-      min-width: 780px;
+      min-width: 0;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .week-table-wrap {
+      overflow-x: clip;
+      border: 1px solid var(--line);
+      border-radius: 10px;
     }
 
     .week-day {
       text-align: center;
-      white-space: nowrap;
+      white-space: normal;
     }
 
     .week-resource {
-      min-width: 180px;
+      min-width: 160px;
+      width: 160px;
     }
 
     .week-cell {
       text-align: center;
       font-variant-numeric: tabular-nums;
       border-left: 1px solid var(--line);
+      padding: 6px 4px;
     }
 
     .week-cell strong {
       display: block;
       font-size: 1rem;
       margin-bottom: 2px;
+    }
+
+    .week-cell-meta {
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .week-cell.overbooked {
@@ -723,10 +744,10 @@ export function renderDashboardPage(model) {
       </div>
     </section>
 
-    <section class="split-grid">
+    <section class="week-stack">
       <article class="panel">
         <h2>Неделя по постам</h2>
-        <div class="table-wrap">
+        <div class="week-table-wrap">
           <table class="week-table">
             <thead>
               <tr>
@@ -743,7 +764,7 @@ export function renderDashboardPage(model) {
 
       <article class="panel">
         <h2>Неделя по сотрудникам</h2>
-        <div class="table-wrap">
+        <div class="week-table-wrap">
           <table class="week-table">
             <thead>
               <tr>

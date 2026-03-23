@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-23T19:05:50.493Z",
+  "generatedAt": "2026-03-23T20:30:00.827Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1041918,
+      "totalBytes": 1022637,
       "byArea": {
-        "src": 515795,
-        "tests": 148778,
+        "src": 495778,
+        "tests": 149500,
         "scripts": 206861,
         "docs": 77652,
-        "evidence": 7662,
-        "other": 85170
+        "evidence": 7497,
+        "other": 85349
       }
     },
     "topTrackedFiles": [
@@ -48,7 +48,7 @@
       },
       {
         "path": "src/services/dashboardService.js",
-        "bytes": 32537
+        "bytes": 32745
       },
       {
         "path": "scripts/verify-render.js",
@@ -60,7 +60,7 @@
       },
       {
         "path": "src/ui/dashboardPage.js",
-        "bytes": 26193
+        "bytes": 26620
       },
       {
         "path": "scripts/linear-harness.js",
@@ -88,15 +88,11 @@
       },
       {
         "path": "src/http/workOrderValidators.js",
-        "bytes": 17812
+        "bytes": 17243
       },
       {
         "path": "src/persistence/migrations.js",
         "bytes": 16978
-      },
-      {
-        "path": "src/http/dispatchBoardPageRoutes.js",
-        "bytes": 16319
       },
       {
         "path": "scripts/scheduling-walkin-scenario.js",
@@ -113,11 +109,15 @@
       {
         "path": "scripts/smoke.js",
         "bytes": 14037
+      },
+      {
+        "path": "scripts/booking-page-scenario.js",
+        "bytes": 12781
       }
     ],
     "evidence": {
       "trackedFileCount": 3,
-      "totalBytes": 7662,
+      "totalBytes": 7497,
       "largestFile": {
         "path": "evidence/linear-aut73-81-done-sync.json",
         "bytes": 3567
@@ -127,17 +127,17 @@
     "docs": {
       "lineCounts": {
         "README": 319,
-        "STATUS": 143,
-        "PLANS": 201
+        "STATUS": 147,
+        "PLANS": 190
       }
     },
     "duplication": {
-      "percentage": 8.16,
-      "duplicatedLines": 1820,
-      "clones": 141,
-      "sources": 111,
-      "lines": 22314,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-pu3XEt/report/jscpd-report.json"
+      "percentage": 7.04,
+      "duplicatedLines": 1592,
+      "clones": 119,
+      "sources": 116,
+      "lines": 22619,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-FEpAcR/report/jscpd-report.json"
     }
   },
   "violations": []

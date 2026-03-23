@@ -14,6 +14,11 @@ function toDateKeyWithOffset(offsetDays) {
   return `${year}-${month}-${day}`;
 }
 
+function parseDayKey(dayKey) {
+  const [year, month, day] = String(dayKey).split("-").map((value) => Number.parseInt(value, 10));
+  return new Date(year, month - 1, day);
+}
+
 test("DashboardService returns expected queue counts from fixtures", () => {
   const tempDb = createTempDatabase("auto-service-dashboard-test");
   const { databasePath, cleanup } = tempDb;
@@ -49,6 +54,13 @@ test("DashboardService returns expected queue counts from fixtures", () => {
     assert.notEqual(payload.queues.waitingParts[0].oldestPendingPartsAgeLabel, "н/д");
     assert.equal(payload.queues.waitingParts[0].nextActionLabel, "Контроль поставки (1)");
     assert.equal(payload.week.days.length, 7);
+    assert.match(payload.week.days[0].dayLabel, /^Пн\s/u);
+    for (let index = 1; index < payload.week.days.length; index += 1) {
+      const previous = parseDayKey(payload.week.days[index - 1].dayKey);
+      const current = parseDayKey(payload.week.days[index].dayKey);
+      const diffDays = Math.round((current.getTime() - previous.getTime()) / (1000 * 60 * 60 * 24));
+      assert.equal(diffDays, 1);
+    }
     assert.ok(Array.isArray(payload.week.byBay));
     assert.ok(Array.isArray(payload.week.byAssignee));
     assert.equal(typeof payload.week.summary.unscheduledAppointmentsCount, "number");

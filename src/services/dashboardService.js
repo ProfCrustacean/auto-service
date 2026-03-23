@@ -144,6 +144,13 @@ function startOfLocalDay(value) {
   return date;
 }
 
+function startOfLocalWeekMonday(value) {
+  const start = startOfLocalDay(value);
+  const jsDay = start.getDay();
+  const mondayOffset = (jsDay + 6) % 7;
+  return addLocalDays(start, -mondayOffset);
+}
+
 function addLocalDays(baseDate, days) {
   const date = new Date(baseDate);
   date.setDate(date.getDate() + days);
@@ -164,7 +171,7 @@ function formatWeekDayLabel(date) {
 }
 
 function buildWeekDays(now) {
-  const start = startOfLocalDay(now);
+  const start = startOfLocalWeekMonday(now);
   const days = [];
 
   for (let offset = 0; offset < WEEK_WINDOW_DAYS; offset += 1) {

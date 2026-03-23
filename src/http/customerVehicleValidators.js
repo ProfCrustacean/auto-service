@@ -1,5 +1,12 @@
 import { validateIncludeInactiveQuery } from "./referenceValidators.js";
-import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike, normalizePaginationQuery } from "./validatorUtils.js";
+import {
+  collectUnknownFields,
+  finalizeUnknownQueryFields,
+  isNonEmptyString,
+  normalizeBooleanLike,
+  normalizePaginationQuery,
+  normalizeSearchQuery,
+} from "./validatorUtils.js";
 
 function normalizeOptionalStringForCreate(value, field, errors) {
   if (value === undefined || value === null) {
@@ -56,24 +63,6 @@ function normalizeNullableInteger(value, { field, min, max, errors, allowNull = 
   return value;
 }
 
-function normalizeQueryString(queryValue, field, errors) {
-  if (queryValue === undefined) {
-    return "";
-  }
-
-  if (typeof queryValue !== "string") {
-    errors.push({ field, message: `${field} must be a string when provided` });
-    return "";
-  }
-
-  const trimmed = queryValue.trim();
-  if (trimmed.length > 120) {
-    errors.push({ field, message: `${field} is too long (max 120 characters)` });
-  }
-
-  return trimmed;
-}
-
 export function validateListCustomersQuery(query) {
   const errors = [];
   const pagination = normalizePaginationQuery(query, errors);
@@ -82,12 +71,9 @@ export function validateListCustomersQuery(query) {
     errors.push(...includeInactiveResult.errors);
   }
 
-  const search = normalizeQueryString(query.q, "q", errors);
+  const search = normalizeSearchQuery(query.q, "q", errors);
 
-  const unknownFields = collectUnknownFields(query, ["includeInactive", "q", "limit", "offset"]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown query parameter" });
-  }
+  finalizeUnknownQueryFields(query, ["includeInactive", "q", "limit", "offset"], errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -210,7 +196,7 @@ export function validateListVehiclesQuery(query) {
     errors.push(...includeInactiveResult.errors);
   }
 
-  const search = normalizeQueryString(query.q, "q", errors);
+  const search = normalizeSearchQuery(query.q, "q", errors);
 
   let customerId = null;
   if (query.customerId !== undefined) {
@@ -221,10 +207,7 @@ export function validateListVehiclesQuery(query) {
     }
   }
 
-  const unknownFields = collectUnknownFields(query, ["includeInactive", "q", "customerId", "limit", "offset"]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown query parameter" });
-  }
+  finalizeUnknownQueryFields(query, ["includeInactive", "q", "customerId", "limit", "offset"], errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };

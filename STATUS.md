@@ -19,6 +19,10 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 ## Current state (2026-03-23)
 
 ### Product/runtime
+- Dashboard weekly planning UI is now owner-readable without horizontal weekly scroll:
+  - `Неделя по постам` and `Неделя по сотрудникам` are stacked vertically (one above another),
+  - week window now uses calendar week semantics `Пн–Вс` (instead of rolling `today+6`),
+  - weekly table cells use fixed layout with wrapped meta text for denser, readable day columns.
 - Dispatch board is fully migrated to EventCalendar (`@event-calendar/build@5.5.1`) with owner-focused calendar-only controls:
   - vertical `resourceTimeGridDay` view (time top-to-bottom, resources as lanes),
   - removed top metric strips and removed bottom manual control panel,
