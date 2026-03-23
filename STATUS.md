@@ -99,8 +99,8 @@ Most recent local gate results:
 Most recent deploy-aware gate results:
 - `npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d70qpelm5p6s73e2tl0g`
-  - latest commit parity: `7b57980662a2e7a64eee5310d923717bb9dbc6a2`
+  - latest deploy id: `dep-d70qr04r85hc73cecoo0`
+  - latest commit parity: `f4977421693895cd5aa412aba1bb64cbcecb2bb7`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 

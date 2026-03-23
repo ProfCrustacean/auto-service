@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-23T21:14:55.148Z",
+  "generatedAt": "2026-03-23T21:17:16.956Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -137,7 +137,7 @@
       "clones": 108,
       "sources": 114,
       "lines": 22276,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-ed4kT5/report/jscpd-report.json"
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-UgFUjA/report/jscpd-report.json"
     }
   },
   "violations": []
