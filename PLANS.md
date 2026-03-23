@@ -65,12 +65,19 @@ Fix dispatch board usability blockers (queue drag/drop and unreadable event card
 ### Verification
 
 - `npm test -- tests/appointmentLifecycle.test.js tests/appointmentBookingPage.test.js tests/domainSchedulingWalkin.test.js tests/dispatchBoard.test.js`: passed
-- `npm test`: pending rerun after plans compaction and final gate sweep
+- `npm test`: passed
 - `npm run lint`: passed
-- `npm run verify`: pending
-- `npm run audit:bloat`: pending
-- `npm run secrets:scan`: pending
-- `npm run verify:render`: pending
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:render`: passed
+  - deploy id: `dep-d70obktm5p6s73a1f52g`
+  - commit parity: `f95625f49a76ab071aefb00cf4638a99f783748e`
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- Playwright production smoke on `/dispatch/board`: passed
+  - queue drop into occupied slot succeeds (`201`) with warning toast
+  - event drag and resize commit successfully (`200`)
+  - no browser console errors/warnings
 
 ## Completed Plan — Dispatch board full EventCalendar cutover (2026-03-23)
 

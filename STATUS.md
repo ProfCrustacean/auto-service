@@ -24,6 +24,8 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
   - removed top metric strips and removed bottom manual control panel,
   - queue scheduling is drag-and-drop into calendar only,
   - existing booking move/resize is calendar-native only,
+  - event cards use high-contrast two-line layout (`time+code`, `customer+vehicle`) for readability,
+  - overlap placements are allowed and surfaced as non-blocking warnings + `status-overlap` highlighting,
   - dispatch writes now use API-only routes under `/api/v1/dispatch/board/*`.
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
@@ -67,6 +69,7 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 
 ## Last accepted milestones
 
+- 2026-03-23: Dispatch board DnD/readability hardening delivered and deployed with global overlap warning policy (`f95625f49a76ab071aefb00cf4638a99f783748e`).
 - 2026-03-23: Dispatch board owner-focused simplification delivered and deployed (`ea3ca989dee8362ceadd3882a1c08bdc2da39da2`, runtime fix on top `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`).
 - 2026-03-23: Dispatch board full EventCalendar cutover delivered and deployed (vertical EventCalendar board + API-only dispatch mutations).
 - 2026-03-22: Phase 2 lifecycle core epic completed (`AUT-61..AUT-69`) and synced to Done.
@@ -87,6 +90,8 @@ Most recent local gate results:
 Most recent deploy-aware gate results:
 - `npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
+  - latest deploy id: `dep-d70obktm5p6s73a1f52g`
+  - latest commit parity: `f95625f49a76ab071aefb00cf4638a99f783748e`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 

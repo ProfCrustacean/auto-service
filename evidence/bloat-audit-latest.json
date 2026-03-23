@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-23T18:23:03.693Z",
+  "generatedAt": "2026-03-23T18:29:40.519Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1034445,
+      "totalBytes": 1036236,
       "byArea": {
         "src": 510382,
         "tests": 148673,
-        "scripts": 205904,
+        "scripts": 206861,
         "docs": 77652,
         "evidence": 7498,
-        "other": 84336
+        "other": 85170
       }
     },
     "topTrackedFiles": [
@@ -127,17 +127,17 @@
     "docs": {
       "lineCounts": {
         "README": 319,
-        "STATUS": 138,
-        "PLANS": 194
+        "STATUS": 143,
+        "PLANS": 201
       }
     },
     "duplication": {
-      "percentage": 8.17,
+      "percentage": 8.16,
       "duplicatedLines": 1820,
       "clones": 141,
       "sources": 111,
-      "lines": 22279,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-OCAFuz/report/jscpd-report.json"
+      "lines": 22304,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-IB6xea/report/jscpd-report.json"
     }
   },
   "violations": []

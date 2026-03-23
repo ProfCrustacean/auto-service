@@ -70,7 +70,7 @@ function resolveCapacityConflictPayload(appointments) {
 
   return {
     strategy: "capacity_conflict",
-    expectedMessage: "Конфликт загрузки в выбранном слоте",
+    expectedStatus: 303,
     payload: {
       plannedStartLocal: candidate.plannedStartLocal,
       customerId: candidate.customerId,
@@ -108,6 +108,7 @@ function resolveVehicleMismatchPayload(customers, vehicles) {
     if (mismatchCustomer) {
       return {
         strategy: "vehicle_mismatch_conflict",
+        expectedStatus: 409,
         expectedMessage: "Авто не принадлежит выбранному клиенту",
         payload: {
           plannedStartLocal: buildUniqueSlot(`${Date.now()}`, 13),
@@ -192,20 +193,44 @@ async function runNonDestructiveScenario(mode) {
     step: "booking_conflict_submit",
     payload: conflictProbe.payload,
   });
-  assertHarness(conflictSubmit.status === 409, "conflicting booking submit must return 409", {
-    step: "booking_conflict_submit",
-    method: conflictSubmit.method,
-    path: conflictSubmit.path,
-    url: conflictSubmit.url,
-    responseStatus: conflictSubmit.status,
-    responseBodySnippet: conflictSubmit.text.slice(0, 500),
-    conflictStrategy: conflictProbe.strategy,
-    conflictContext: conflictProbe.context,
-  });
-  expectTextIncludes(conflictSubmit, conflictProbe.expectedMessage, "booking_conflict_submit", {
-    conflictStrategy: conflictProbe.strategy,
-    conflictContext: conflictProbe.context,
-  });
+  if (conflictProbe.strategy === "capacity_conflict") {
+    assertHarness(conflictSubmit.status === 303, "capacity-overlap booking submit must redirect with 303", {
+      step: "booking_conflict_submit",
+      method: conflictSubmit.method,
+      path: conflictSubmit.path,
+      url: conflictSubmit.url,
+      responseStatus: conflictSubmit.status,
+      responseBodySnippet: conflictSubmit.text.slice(0, 500),
+      location: conflictSubmit.location,
+      conflictStrategy: conflictProbe.strategy,
+      conflictContext: conflictProbe.context,
+    });
+    assertHarness(
+      typeof conflictSubmit.location === "string" && conflictSubmit.location.startsWith("/appointments/"),
+      "capacity-overlap submit must provide appointment redirect",
+      {
+        step: "booking_conflict_submit",
+        location: conflictSubmit.location,
+        conflictStrategy: conflictProbe.strategy,
+        conflictContext: conflictProbe.context,
+      },
+    );
+  } else {
+    assertHarness(conflictSubmit.status === 409, "mismatch booking submit must return 409", {
+      step: "booking_conflict_submit",
+      method: conflictSubmit.method,
+      path: conflictSubmit.path,
+      url: conflictSubmit.url,
+      responseStatus: conflictSubmit.status,
+      responseBodySnippet: conflictSubmit.text.slice(0, 500),
+      conflictStrategy: conflictProbe.strategy,
+      conflictContext: conflictProbe.context,
+    });
+    expectTextIncludes(conflictSubmit, conflictProbe.expectedMessage, "booking_conflict_submit", {
+      conflictStrategy: conflictProbe.strategy,
+      conflictContext: conflictProbe.context,
+    });
+  }
 
   process.stdout.write(
     `${JSON.stringify({
