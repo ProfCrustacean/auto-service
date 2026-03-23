@@ -141,7 +141,7 @@ function renderSelectedCard() {
 
 export function renderDispatchBoardPage(model) {
   const laneLoadByKey = new Map(model.laneLoad.map((entry) => [entry.laneKey, entry]));
-  const pageModelJson = escapeHtml(JSON.stringify(model));
+  const pageModelJson = JSON.stringify(model).replaceAll("</script", "<\\/script");
   const timelineStartLabel = formatMinutesLabel(model.timeline.startMinute);
   const timelineEndLabel = formatMinutesLabel(model.timeline.endMinute);
 
@@ -677,8 +677,7 @@ export function renderDispatchBoardPage(model) {
 
     <div id="dispatch-toast" class="toast" role="status" aria-live="polite"></div>
     <script id="dispatch-board-model" type="application/json">${pageModelJson}</script>
-    <script src="https://cdn.jsdelivr.net/npm/vis-data@7.1.9/peer/umd/vis-data.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.4/peer/umd/vis-timeline-graph2d.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.4/standalone/umd/vis-timeline-graph2d.min.js"></script>
     <script>
       (() => {
         const model = JSON.parse(document.getElementById("dispatch-board-model").textContent);
