@@ -370,15 +370,22 @@ export function renderDispatchBoardPage(model) {
         border-style: solid;
         border-radius: 8px;
         box-shadow: 0 1px 2px rgba(15, 33, 25, 0.14);
+        min-height: 42px;
       }
 
       .ec .ec-event-body {
-        padding: 4px 6px;
+        padding: 6px 8px;
+      }
+
+      .ec .ec-event *,
+      .ec .ec-event .dispatch-event-line {
+        color: #173026 !important;
+        text-shadow: none;
       }
 
       .dispatch-event-content {
         display: grid;
-        gap: 2px;
+        gap: 3px;
       }
 
       .dispatch-event-line {
@@ -388,14 +395,15 @@ export function renderDispatchBoardPage(model) {
       }
 
       .dispatch-event-line.primary {
-        font-size: 0.74rem;
+        font-size: 0.8rem;
         font-weight: 800;
         letter-spacing: 0.01em;
+        line-height: 1.2;
       }
 
       .dispatch-event-line.secondary {
-        font-size: 0.8rem;
-        font-weight: 600;
+        font-size: 0.88rem;
+        font-weight: 700;
         line-height: 1.2;
       }
 
@@ -419,6 +427,10 @@ export function renderDispatchBoardPage(model) {
       .ec-event.status-overlap {
         border-color: #c48227;
         background: #fff4de;
+      }
+
+      .ec .ec-event.status-overlap {
+        box-shadow: inset 3px 0 0 #c48227, 0 1px 2px rgba(15, 33, 25, 0.14);
       }
 
       .ec-resource {
@@ -979,7 +991,7 @@ export function renderDispatchBoardPage(model) {
           },
         });
 
-        calendarHost.addEventListener("dragover", (event) => {
+        function handleCalendarDragOver(event) {
           if (!draggedQueuePayload) {
             const transferPayload = parseTransferPayload(event);
             if (transferPayload) {
@@ -994,13 +1006,13 @@ export function renderDispatchBoardPage(model) {
           if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
           }
-        });
+        }
 
-        calendarHost.addEventListener("dragleave", () => {
+        function handleCalendarDragLeave() {
           calendarHost.classList.remove("drop-active");
-        });
+        }
 
-        calendarHost.addEventListener("drop", async (event) => {
+        async function handleCalendarDrop(event) {
           if (!draggedQueuePayload) {
             draggedQueuePayload = parseTransferPayload(event);
           }
@@ -1013,7 +1025,13 @@ export function renderDispatchBoardPage(model) {
           const targetInfo = resolveDropTargetInfo(event);
           await scheduleQueuePayload(targetInfo, currentPayload);
           draggedQueuePayload = null;
-        });
+        }
+
+        calendarHost.addEventListener("dragover", handleCalendarDragOver, true);
+        calendarHost.addEventListener("dragleave", handleCalendarDragLeave, true);
+        calendarHost.addEventListener("drop", (event) => {
+          handleCalendarDrop(event);
+        }, true);
 
         if (toastClose) {
           toastClose.addEventListener("click", () => {
