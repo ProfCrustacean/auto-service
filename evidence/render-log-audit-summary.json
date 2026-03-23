@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-03-23T16:43:38.565Z",
-  "startTime": "2026-03-23T16:42:16.744Z",
-  "endTime": "2026-03-23T16:43:37.555Z",
-  "deployId": "dep-d70mr1juibrs73aphtq0",
+  "generatedAt": "2026-03-23T16:47:45.029Z",
+  "startTime": "2026-03-23T16:46:34.209Z",
+  "endTime": "2026-03-23T16:47:43.243Z",
+  "deployId": "dep-d70mt21r0fns73elrchg",
   "totals": {
-    "rows": 71,
+    "rows": 92,
     "bySeverity": {
-      "info": 71,
+      "info": 92,
       "warn": 0,
       "error": 0,
       "fatal": 0
@@ -22,11 +22,11 @@
   },
   "types": {
     "build": {
-      "rows": 34,
+      "rows": 33,
       "hasMore": false
     },
     "app": {
-      "rows": 37,
+      "rows": 59,
       "hasMore": false
     }
   },
