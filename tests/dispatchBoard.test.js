@@ -16,6 +16,11 @@ test("dispatch board page and api render timeline payload", async () => {
     assert.match(html, /Приемы без записи без слота/u);
     assert.match(html, /id="dispatch-timeline"/u);
     assert.match(html, /vis-timeline/u);
+    assert.match(html, /draggable="true"/u);
+    assert.doesNotMatch(html, /Выбранный слот/u);
+    assert.doesNotMatch(html, /Выбранная запись/u);
+    assert.doesNotMatch(html, /Назначить в выбранный слот/u);
+    assert.doesNotMatch(html, /Записей в дне/u);
 
     const boardApi = await requestJson("GET", `${baseUrl}/api/v1/dispatch/board`);
     assert.equal(boardApi.status, 200);

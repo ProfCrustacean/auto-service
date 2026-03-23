@@ -1,28 +1,14 @@
 import { escapeHtml } from "./pageFormShared.js";
 
 function formatLaneLoad(load) {
-  const percent = Math.round((load.utilizationRatio ?? 0) * 100);
-  return `${percent}% · ${load.appointmentsCount} записей`;
+  const percent = Math.round((load?.utilizationRatio ?? 0) * 100);
+  return `${percent}% · ${load?.appointmentsCount ?? 0} записей`;
 }
 
 function formatMinutesLabel(minuteOfDay) {
   const hour = Math.floor(minuteOfDay / 60);
   const minute = minuteOfDay % 60;
   return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
-function renderLaneLoadSummary(model) {
-  return `<section class="lane-load-grid" aria-label="Сводка нагрузки по лентам">
-    ${model.laneLoad.map((load) => {
-      const lane = model.lanes.find((entry) => entry.key === load.laneKey);
-      const levelClass = load.isOverloaded ? "warn" : "ok";
-      return `<article class="lane-load-card ${levelClass}">
-        <header>${escapeHtml(lane?.label ?? load.laneKey)}</header>
-        <strong>${escapeHtml(formatLaneLoad(load))}</strong>
-        <small>${escapeHtml(String(load.bookedMinutes ?? 0))} мин занято</small>
-      </article>`;
-    }).join("")}
-  </section>`;
 }
 
 function renderQueueList(items, kind) {
@@ -37,6 +23,7 @@ function renderQueueList(items, kind) {
 
     return `<li
       class="queue-item"
+      draggable="true"
       data-queue-kind="${escapeHtml(kind)}"
       data-item-id="${escapeHtml(item.id)}"
       data-code="${escapeHtml(item.code)}"
@@ -49,7 +36,6 @@ function renderQueueList(items, kind) {
         <span>${escapeHtml(statusLabel)}</span>
       </div>
       <div class="queue-text">${escapeHtml(item.customerName)} · ${escapeHtml(item.vehicleLabel)}</div>
-      <button type="button" class="queue-action">Назначить в выбранный слот</button>
     </li>`;
   }).join("");
 }
@@ -59,7 +45,7 @@ function renderQueuePanel(model) {
     <section class="queue-block">
       <header>
         <h2>Очередь переносов</h2>
-        <p>Записи из других дней. Выберите слот в календаре и назначьте запись.</p>
+        <p>Перетащите карточку на календарь, чтобы назначить слот и ленту.</p>
       </header>
       <ul class="queue-list" id="dispatch-queue-appointments">
         ${renderQueueList(model.queues.unscheduledAppointments, "appointment")}
@@ -69,23 +55,13 @@ function renderQueuePanel(model) {
     <section class="queue-block">
       <header>
         <h2>Приемы без записи без слота</h2>
-        <p>Клиенты без слота. Назначение создаст запись в выбранной ленте и времени.</p>
+        <p>Перетащите карточку на календарь, чтобы создать запись в выбранной ленте и времени.</p>
       </header>
       <ul class="queue-list" id="dispatch-queue-walkin">
         ${renderQueueList(model.queues.walkIn, "walkin")}
       </ul>
     </section>
   </aside>`;
-}
-
-function renderSummary(model) {
-  return `<section class="summary-strip" aria-label="Сводка по дню">
-    <article><strong>${model.summary.scheduledAppointmentsCount}</strong><span>Записей в дне</span></article>
-    <article><strong>${model.summary.carryOverQueueCount}</strong><span>Перенос из других дней</span></article>
-    <article><strong>${model.summary.walkInQueueCount}</strong><span>Без записи в очереди</span></article>
-    <article><strong>${model.summary.unscheduledDayCount}</strong><span>Без слота в этом дне</span></article>
-    <article class="${model.summary.overloadedLanesCount > 0 ? "warn" : ""}"><strong>${model.summary.overloadedLanesCount}</strong><span>Перегружено лент</span></article>
-  </section>`;
 }
 
 function renderModeHref(mode, dayLocal) {
@@ -104,7 +80,7 @@ function renderShell(model) {
     <div class="title-cluster">
       <a class="btn ghost" href="${escapeHtml(model.actions.backHref)}">← Назад на доску</a>
       <h1>Диспетчерская доска</h1>
-      <p class="subtitle">Календарный режим управления загрузкой: перетаскивайте записи между лентами, меняйте длительность, назначайте слот очередям.</p>
+      <p class="subtitle">Управляйте расписанием только через календарь: перетаскивайте существующие записи и карточки из очереди.</p>
     </div>
     <div class="controls">
       <a class="btn" href="${escapeHtml(renderDayHref(model.dayLocal, -1, model.laneMode))}">← Предыдущий день</a>
@@ -115,28 +91,6 @@ function renderShell(model) {
       <a class="btn accent" href="${escapeHtml(model.actions.createAppointmentHref)}">Новая запись</a>
     </div>
   </div>`;
-}
-
-function renderSelectedCard() {
-  return `<section class="selected-card" aria-live="polite">
-    <h2>Выбранный слот</h2>
-    <p id="selected-slot-hint" class="selected-slot-hint">Кликните по свободному месту календаря, чтобы назначить запись из очереди.</p>
-
-    <h2>Выбранная запись</h2>
-    <div id="selected-appointment-empty" class="selected-empty">Выберите карточку записи в календаре, чтобы быстро менять длительность.</div>
-    <div id="selected-appointment-details" class="selected-details" hidden>
-      <div class="selected-title-row">
-        <strong id="selected-appointment-code"></strong>
-        <span id="selected-appointment-status" class="selected-status"></span>
-      </div>
-      <div class="selected-meta" id="selected-appointment-meta"></div>
-      <div class="selected-controls">
-        <button id="duration-minus" type="button" class="btn">-15 мин</button>
-        <button id="duration-plus" type="button" class="btn">+15 мин</button>
-      </div>
-      <small>Те же изменения можно сделать перетягиванием нижней границы карточки в календаре.</small>
-    </div>
-  </section>`;
 }
 
 export function renderDispatchBoardPage(model) {
@@ -161,11 +115,7 @@ export function renderDispatchBoardPage(model) {
         --ink-soft: #51675b;
         --line: #c4d4c8;
         --accent: #117a48;
-        --accent-strong: #0f6b3f;
-        --accent-soft: #dbefe2;
-        --warn: #a76514;
         --warn-soft: #fff0dc;
-        --danger: #8f3b2a;
         --danger-soft: #fee8e2;
       }
 
@@ -232,11 +182,6 @@ export function renderDispatchBoardPage(model) {
         cursor: pointer;
       }
 
-      .btn:hover,
-      .mode-btn:hover {
-        border-color: #a7beb0;
-      }
-
       .btn.accent {
         border-color: var(--accent);
         background: var(--accent);
@@ -251,69 +196,6 @@ export function renderDispatchBoardPage(model) {
         border-color: var(--accent);
         background: var(--accent);
         color: #fff;
-      }
-
-      .summary-strip {
-        margin-top: 16px;
-        display: grid;
-        gap: 10px;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      }
-
-      .summary-strip article {
-        border: 1px solid var(--line);
-        background: var(--panel);
-        border-radius: 12px;
-        padding: 12px 14px;
-      }
-
-      .summary-strip article.warn {
-        border-color: #ddb27f;
-        background: var(--warn-soft);
-      }
-
-      .summary-strip strong {
-        display: block;
-        font-size: 1.35rem;
-      }
-
-      .summary-strip span {
-        color: var(--ink-soft);
-        font-size: 0.88rem;
-      }
-
-      .lane-load-grid {
-        margin-top: 12px;
-        display: grid;
-        gap: 8px;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      }
-
-      .lane-load-card {
-        border: 1px solid var(--line);
-        background: #fff;
-        border-radius: 12px;
-        padding: 10px 12px;
-      }
-
-      .lane-load-card header {
-        font-size: 0.82rem;
-        color: var(--ink-soft);
-      }
-
-      .lane-load-card strong {
-        margin-top: 2px;
-        display: block;
-        font-size: 1rem;
-      }
-
-      .lane-load-card small {
-        color: var(--ink-soft);
-      }
-
-      .lane-load-card.warn {
-        border-color: #ddb27f;
-        background: var(--warn-soft);
       }
 
       .layout {
@@ -359,6 +241,11 @@ export function renderDispatchBoardPage(model) {
         padding: 10px;
         display: grid;
         gap: 8px;
+        cursor: grab;
+      }
+
+      .queue-item.is-dragging {
+        opacity: 0.6;
       }
 
       .queue-head {
@@ -382,32 +269,10 @@ export function renderDispatchBoardPage(model) {
         font-size: 0.88rem;
       }
 
-      .queue-action {
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: var(--surface);
-        color: var(--ink);
-        font-size: 0.82rem;
-        font-weight: 700;
-        padding: 7px 10px;
-        cursor: pointer;
-      }
-
-      .queue-action:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-
       .queue-empty {
         color: var(--ink-soft);
         font-size: 0.88rem;
         padding: 2px 0 0;
-      }
-
-      .board-section {
-        display: grid;
-        gap: 10px;
-        align-content: start;
       }
 
       .board-frame {
@@ -453,66 +318,8 @@ export function renderDispatchBoardPage(model) {
         background: #fff;
       }
 
-      .selected-card {
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: var(--panel);
-        padding: 12px;
-        display: grid;
-        gap: 8px;
-      }
-
-      .selected-card h2 {
-        margin: 0;
-        font-size: 1rem;
-      }
-
-      .selected-slot-hint {
-        margin: 0;
-        color: var(--ink-soft);
-        border: 1px dashed var(--line);
-        border-radius: 10px;
-        padding: 8px 10px;
-        background: rgba(255, 255, 255, 0.6);
-      }
-
-      .selected-empty {
-        color: var(--ink-soft);
-        font-size: 0.9rem;
-      }
-
-      .selected-details {
-        display: grid;
-        gap: 6px;
-      }
-
-      .selected-title-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 8px;
-      }
-
-      .selected-meta {
-        color: var(--ink-soft);
-        font-size: 0.87rem;
-      }
-
-      .selected-status {
-        font-size: 0.8rem;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        padding: 2px 8px;
-        background: #fff;
-      }
-
-      .selected-controls {
-        display: flex;
-        gap: 8px;
-      }
-
-      .selected-controls .btn {
-        flex: 1;
+      .timeline-host.drop-active {
+        box-shadow: inset 0 0 0 2px rgba(17, 122, 72, 0.25);
       }
 
       .toast {
@@ -529,9 +336,7 @@ export function renderDispatchBoardPage(model) {
         display: none;
       }
 
-      .toast.show {
-        display: block;
-      }
+      .toast.show { display: block; }
 
       .toast.error {
         border-color: #dfb1a7;
@@ -543,17 +348,9 @@ export function renderDispatchBoardPage(model) {
         font-family: "Manrope", "IBM Plex Sans", "Segoe UI", sans-serif;
       }
 
-      .vis-labelset .vis-label {
-        border-color: #dce6de;
-      }
-
-      .vis-labelset .vis-label .vis-inner {
-        padding: 8px 10px;
-      }
-
-      .vis-time-axis .vis-text {
-        color: #64796d;
-      }
+      .vis-labelset .vis-label { border-color: #dce6de; }
+      .vis-labelset .vis-label .vis-inner { padding: 8px 10px; }
+      .vis-time-axis .vis-text { color: #64796d; }
 
       .vis-item {
         border-radius: 10px;
@@ -585,9 +382,7 @@ export function renderDispatchBoardPage(model) {
         box-shadow: 0 0 0 2px rgba(17, 122, 72, 0.18);
       }
 
-      .event-card {
-        line-height: 1.2;
-      }
+      .event-card { line-height: 1.2; }
 
       .event-head {
         display: flex;
@@ -616,9 +411,7 @@ export function renderDispatchBoardPage(model) {
         gap: 2px;
       }
 
-      .lane-group strong {
-        font-size: 0.86rem;
-      }
+      .lane-group strong { font-size: 0.86rem; }
 
       .lane-group small {
         color: #667c70;
@@ -626,51 +419,34 @@ export function renderDispatchBoardPage(model) {
       }
 
       @media (max-width: 1180px) {
-        .layout {
-          grid-template-columns: 1fr;
-        }
+        .layout { grid-template-columns: 1fr; }
       }
 
       @media (max-width: 720px) {
-        .shell {
-          padding: 12px 10px 20px;
-        }
-
-        .controls {
-          gap: 6px;
-        }
-
-        .btn,
-        .mode-btn {
+        .shell { padding: 12px 10px 20px; }
+        .controls { gap: 6px; }
+        .btn, .mode-btn {
           font-size: 0.82rem;
           padding: 8px 10px;
         }
-
-        .timeline-host {
-          min-height: 520px;
-        }
+        .timeline-host { min-height: 520px; }
       }
     </style>
   </head>
   <body>
     <main class="shell">
       ${renderShell(model)}
-      ${renderSummary(model)}
-      ${renderLaneLoadSummary(model)}
       <section class="layout">
         ${renderQueuePanel(model)}
-        <section class="board-section">
-          <section class="board-frame">
-            <div class="board-head">
-              <div>
-                <h2>Календарная загрузка лент</h2>
-                <p>Перетаскивайте карточки между лентами, меняйте длительность нижней границей карточки.</p>
-              </div>
-              <div class="board-range">${escapeHtml(timelineStartLabel)}–${escapeHtml(timelineEndLabel)}, шаг ${escapeHtml(String(model.timeline.stepMinutes))} мин</div>
+        <section class="board-frame">
+          <div class="board-head">
+            <div>
+              <h2>Календарная загрузка лент</h2>
+              <p>Перетаскивайте карточки внутри календаря и переносите карточки из очереди прямо на таймлайн.</p>
             </div>
-            <div id="dispatch-timeline" class="timeline-host" aria-label="Календарная доска"></div>
-          </section>
-          ${renderSelectedCard()}
+            <div class="board-range">${escapeHtml(timelineStartLabel)}–${escapeHtml(timelineEndLabel)}, шаг ${escapeHtml(String(model.timeline.stepMinutes))} мин</div>
+          </div>
+          <div id="dispatch-timeline" class="timeline-host" aria-label="Календарная доска"></div>
         </section>
       </section>
     </main>
@@ -682,22 +458,14 @@ export function renderDispatchBoardPage(model) {
       (() => {
         const model = JSON.parse(document.getElementById("dispatch-board-model").textContent);
         const toast = document.getElementById("dispatch-toast");
-        const slotHint = document.getElementById("selected-slot-hint");
-        const selectedEmpty = document.getElementById("selected-appointment-empty");
-        const selectedDetails = document.getElementById("selected-appointment-details");
-        const selectedCode = document.getElementById("selected-appointment-code");
-        const selectedStatus = document.getElementById("selected-appointment-status");
-        const selectedMeta = document.getElementById("selected-appointment-meta");
-        const durationMinus = document.getElementById("duration-minus");
-        const durationPlus = document.getElementById("duration-plus");
         const laneLoadByKey = new Map(model.laneLoad.map((entry) => [entry.laneKey, entry]));
         const laneByKey = new Map(model.lanes.map((lane) => [lane.key, lane]));
         const stepMinutes = Number.parseInt(model.timeline.stepMinutes, 10) || 15;
         const dayStart = Number.parseInt(model.timeline.startMinute, 10);
         const dayEnd = Number.parseInt(model.timeline.endMinute, 10);
+        const timelineHost = document.getElementById("dispatch-timeline");
 
-        let selectedSlot = null;
-        let selectedAppointmentId = null;
+        let draggedQueuePayload = null;
 
         function showToast(message, kind = "ok") {
           toast.textContent = message;
@@ -777,20 +545,10 @@ export function renderDispatchBoardPage(model) {
           };
         }
 
-        function formatLaneSlotDescription(slot) {
-          if (!slot) {
-            return "Кликните по свободному месту календаря, чтобы назначить запись из очереди.";
-          }
-          const lane = laneByKey.get(slot.laneKey);
-          return "Слот выбран: " + (lane ? lane.label : slot.laneKey) + ", " + minutesToLabel(slot.minuteOfDay);
-        }
-
         function postJson(url, body) {
           return fetch(url, {
             method: "POST",
-            headers: {
-              "content-type": "application/json",
-            },
+            headers: { "content-type": "application/json" },
             body: JSON.stringify(body),
           }).then(async (response) => {
             let payload = null;
@@ -799,10 +557,7 @@ export function renderDispatchBoardPage(model) {
             } catch {
               payload = null;
             }
-            return {
-              response,
-              payload,
-            };
+            return { response, payload };
           });
         }
 
@@ -815,7 +570,6 @@ export function renderDispatchBoardPage(model) {
             day: model.dayLocal,
             reason: reason ?? "Изменено на диспетчерской доске",
           };
-
           if (context.bayId !== undefined) {
             body.bayId = context.bayId;
           }
@@ -878,44 +632,7 @@ export function renderDispatchBoardPage(model) {
           };
         }
 
-        function updateSelectedSlot(slot) {
-          selectedSlot = slot;
-          slotHint.textContent = formatLaneSlotDescription(slot);
-          const disabled = !selectedSlot;
-          document.querySelectorAll(".queue-action").forEach((button) => {
-            button.disabled = disabled;
-          });
-        }
-
-        function renderSelectedAppointment(item) {
-          if (!item) {
-            selectedEmpty.hidden = false;
-            selectedDetails.hidden = true;
-            selectedAppointmentId = null;
-            return;
-          }
-
-          const startMinute = minuteFromDate(item.start);
-          const endMinute = minuteFromDate(item.end);
-          const lane = laneByKey.get(item.group);
-          const statusText = String(item.status ?? "booked");
-          selectedAppointmentId = String(item.id);
-
-          selectedCode.textContent = item.code;
-          selectedStatus.textContent = statusText;
-          selectedMeta.textContent = [
-            item.customerName + " · " + item.vehicleLabel,
-            "Лента: " + (lane ? lane.label : item.group),
-            "Время: " + minutesToLabel(startMinute) + "-" + minutesToLabel(endMinute),
-            "Ответственный: " + (item.primaryAssignee ?? "Без ответственного"),
-          ].join(" • ");
-
-          selectedEmpty.hidden = true;
-          selectedDetails.hidden = false;
-        }
-
         if (!window.vis || !window.vis.DataSet || !window.vis.Timeline) {
-          slotHint.textContent = "Календарная библиотека не загрузилась. Проверьте доступ к cdn.jsdelivr.net.";
           showToast("Не удалось инициализировать календарь", "error");
           return;
         }
@@ -925,13 +642,12 @@ export function renderDispatchBoardPage(model) {
             const load = laneLoadByKey.get(lane.key);
             return {
               id: lane.key,
-              content: "<div class='lane-group'><strong>" + escapeText(lane.label) + "</strong><small>" + escapeText(load ? Math.round((load.utilizationRatio ?? 0) * 100) + "% · " + load.appointmentsCount + " записей" : "0% · 0 записей") + "</small></div>",
+              content: "<div class='lane-group'><strong>" + escapeText(lane.label) + "</strong><small>" + escapeText(formatLaneLoad(load)) + "</small></div>",
             };
           }),
         );
 
         const itemDataset = new window.vis.DataSet(model.appointments.map((card) => toTimelineItem(card)));
-        const timelineHost = document.getElementById("dispatch-timeline");
 
         const timeline = new window.vis.Timeline(timelineHost, itemDataset, groupDataset, {
           start: buildDate(model.dayLocal, dayStart),
@@ -939,10 +655,7 @@ export function renderDispatchBoardPage(model) {
           min: buildDate(model.dayLocal, dayStart),
           max: buildDate(model.dayLocal, dayEnd),
           stack: false,
-          orientation: {
-            axis: "top",
-            item: "bottom",
-          },
+          orientation: { axis: "top", item: "bottom" },
           zoomMin: (dayEnd - dayStart) * 60 * 1000,
           zoomMax: (dayEnd - dayStart) * 60 * 1000,
           horizontalScroll: false,
@@ -956,13 +669,9 @@ export function renderDispatchBoardPage(model) {
           },
           snap(date) {
             const minute = (date.getHours() * 60) + date.getMinutes();
-            const snapped = snapMinute(minute);
-            return buildDate(model.dayLocal, snapped);
+            return buildDate(model.dayLocal, snapMinute(minute));
           },
-          margin: {
-            item: 8,
-            axis: 6,
-          },
+          margin: { item: 8, axis: 6 },
           template(item) {
             const startMinute = minuteFromDate(item.start);
             const endMinute = minuteFromDate(item.end);
@@ -1013,184 +722,161 @@ export function renderDispatchBoardPage(model) {
 
             callback(updated);
             itemDataset.update(updated);
-            renderSelectedAppointment(updated);
             showToast("Изменения сохранены");
           },
         });
 
-        timeline.on("click", (properties) => {
-          if (properties.what === "item" && properties.item) {
-            const selectedItem = itemDataset.get(properties.item);
-            renderSelectedAppointment(selectedItem);
-            return;
-          }
-
-          if (properties.what === "background" && properties.group && properties.time) {
-            updateSelectedSlot({
-              laneKey: String(properties.group),
-              minuteOfDay: minuteFromDate(properties.time),
-            });
-          }
-        });
-
-        timeline.on("select", (properties) => {
-          if (!Array.isArray(properties.items) || properties.items.length === 0) {
-            renderSelectedAppointment(null);
-            return;
-          }
-          const selectedItem = itemDataset.get(properties.items[0]);
-          renderSelectedAppointment(selectedItem);
-        });
-
-        async function applyDurationDelta(delta) {
-          if (!selectedAppointmentId) {
-            showToast("Сначала выберите запись в календаре", "error");
-            return;
-          }
-
-          const current = itemDataset.get(selectedAppointmentId);
-          if (!current) {
-            showToast("Не удалось прочитать выбранную запись", "error");
-            renderSelectedAppointment(null);
-            return;
-          }
-
-          const startMinute = minuteFromDate(current.start);
-          const nextDuration = normalizeDuration(current.durationMin + delta);
-
-          const commitResult = await previewAndCommitAppointment({
-            appointmentId: selectedAppointmentId,
-            laneKey: current.group,
-            minuteOfDay: startMinute,
-            durationMin: nextDuration,
-            reason: "Быстрое изменение длительности на календарной доске",
-          });
-
-          if (!commitResult.ok) {
-            showToast(commitResult.message, "error");
-            return;
-          }
-
-          const updated = {
-            ...current,
-            durationMin: nextDuration,
-            end: buildDate(model.dayLocal, Math.min(dayEnd, startMinute + nextDuration)),
-            status: commitResult.item?.status ?? current.status,
-            className: buildItemClass(commitResult.item?.status ?? current.status),
-          };
-          itemDataset.update(updated);
-          timeline.setSelection([selectedAppointmentId], { focus: true });
-          renderSelectedAppointment(updated);
-          showToast("Длительность обновлена");
+        function queueItemSelector(payload) {
+          return '.queue-item[data-queue-kind="' + CSS.escape(payload.kind) + '"][data-item-id="' + CSS.escape(payload.id) + '"]';
         }
 
-        durationMinus.addEventListener("click", () => {
-          applyDurationDelta(-15).catch((error) => {
-            showToast(error.message || "Не удалось изменить длительность", "error");
-          });
-        });
-        durationPlus.addEventListener("click", () => {
-          applyDurationDelta(15).catch((error) => {
-            showToast(error.message || "Не удалось изменить длительность", "error");
-          });
-        });
+        function getDropTarget(event) {
+          const properties = timeline.getEventProperties(event);
+          if (!properties || !properties.group || !properties.time) {
+            return null;
+          }
+          return {
+            laneKey: String(properties.group),
+            minuteOfDay: minuteFromDate(properties.time),
+          };
+        }
 
-        async function scheduleQueueItemFromSelectedSlot(queueItemNode) {
-          if (!selectedSlot) {
-            showToast("Сначала выберите слот на календаре", "error");
-            return;
+        async function dropQueueAppointment(payload, target) {
+          const commitResult = await previewAndCommitAppointment({
+            appointmentId: payload.id,
+            laneKey: target.laneKey,
+            minuteOfDay: target.minuteOfDay,
+            durationMin: 60,
+            reason: "Назначение из очереди переносов на календарной доске",
+          });
+          if (!commitResult.ok) {
+            showToast(commitResult.message, "error");
+            return false;
           }
 
-          const itemId = queueItemNode.dataset.itemId;
-          const queueKind = queueItemNode.dataset.queueKind;
-          const laneKey = selectedSlot.laneKey;
-          const minute = selectedSlot.minuteOfDay;
-          const laneContext = laneContextFromKey(laneKey);
+          const existing = itemDataset.get(payload.id);
+          const duration = normalizeDuration(commitResult.item?.expectedDurationMin ?? existing?.durationMin ?? 60);
+          const nextItem = {
+            ...(existing ?? {}),
+            id: payload.id,
+            group: target.laneKey,
+            start: buildDate(model.dayLocal, target.minuteOfDay),
+            end: buildDate(model.dayLocal, Math.min(dayEnd, target.minuteOfDay + duration)),
+            durationMin: duration,
+            code: existing?.code ?? payload.code,
+            customerName: existing?.customerName ?? payload.customerName,
+            vehicleLabel: existing?.vehicleLabel ?? payload.vehicleLabel,
+            status: commitResult.item?.status ?? existing?.status ?? "booked",
+            primaryAssignee: commitResult.item?.primaryAssignee ?? existing?.primaryAssignee ?? "Без ответственного",
+            className: buildItemClass(commitResult.item?.status ?? existing?.status ?? "booked"),
+          };
 
-          if (queueKind === "appointment") {
-            const moveResult = await previewAndCommitAppointment({
-              appointmentId: itemId,
-              laneKey,
-              minuteOfDay: minute,
-              durationMin: 60,
-              reason: "Назначение из очереди переносов на календарной доске",
-            });
-
-            if (!moveResult.ok) {
-              showToast(moveResult.message, "error");
-              return;
-            }
-
-            const maybeExisting = itemDataset.get(itemId);
-            if (maybeExisting) {
-              const next = {
-                ...maybeExisting,
-                group: laneKey,
-                start: buildDate(model.dayLocal, minute),
-                end: buildDate(model.dayLocal, Math.min(dayEnd, minute + maybeExisting.durationMin)),
-              };
-              itemDataset.update(next);
-              renderSelectedAppointment(next);
-            } else {
-              const inserted = {
-                id: itemId,
-                group: laneKey,
-                start: buildDate(model.dayLocal, minute),
-                end: buildDate(model.dayLocal, Math.min(dayEnd, minute + 60)),
-                code: queueItemNode.dataset.code,
-                customerName: queueItemNode.dataset.customerName,
-                vehicleLabel: queueItemNode.dataset.vehicleLabel,
-                status: moveResult.item?.status ?? "booked",
-                primaryAssignee: laneContext.primaryAssignee === undefined
-                  ? (moveResult.item?.primaryAssignee ?? "Без ответственного")
-                  : (laneContext.primaryAssignee ?? "Без ответственного"),
-                durationMin: 60,
-                className: buildItemClass(moveResult.item?.status ?? "booked"),
-              };
-              itemDataset.add(inserted);
-            }
-
-            queueItemNode.remove();
-            showToast("Запись назначена на выбранный слот");
-            return;
+          if (existing) {
+            itemDataset.update(nextItem);
+          } else {
+            itemDataset.add(nextItem);
           }
+          showToast("Запись назначена в календаре");
+          return true;
+        }
 
-          const scheduleBody = {
-            plannedStartLocal: formatSlotLocal(model.dayLocal, minute),
+        async function dropQueueWalkIn(payload, target) {
+          const laneContext = laneContextFromKey(target.laneKey);
+          const body = {
+            plannedStartLocal: formatSlotLocal(model.dayLocal, target.minuteOfDay),
             day: model.dayLocal,
             laneMode: model.laneMode,
           };
           if (laneContext.bayId !== undefined) {
-            scheduleBody.bayId = laneContext.bayId;
+            body.bayId = laneContext.bayId;
           }
           if (laneContext.primaryAssignee !== undefined) {
-            scheduleBody.primaryAssignee = laneContext.primaryAssignee;
+            body.primaryAssignee = laneContext.primaryAssignee;
           }
 
-          const scheduleResponse = await postJson("/dispatch/board/walk-ins/" + encodeURIComponent(itemId) + "/schedule", scheduleBody);
+          const scheduleResponse = await postJson("/dispatch/board/walk-ins/" + encodeURIComponent(payload.id) + "/schedule", body);
           if (!scheduleResponse.response.ok) {
             showToast(parseErrorMessage(scheduleResponse.payload, "Не удалось назначить прием без записи"), "error");
-            return;
+            return false;
           }
 
           showToast("Прием без записи назначен. Обновляю доску…");
           window.location.reload();
+          return true;
         }
 
-        document.querySelectorAll(".queue-action").forEach((button) => {
-          button.disabled = true;
-          button.addEventListener("click", () => {
-            const queueItemNode = button.closest(".queue-item");
-            if (!queueItemNode) {
-              return;
-            }
-            scheduleQueueItemFromSelectedSlot(queueItemNode).catch((error) => {
-              showToast(error?.message ?? "Ошибка назначения", "error");
-            });
-          });
+        timelineHost.addEventListener("dragover", (event) => {
+          if (!draggedQueuePayload) {
+            return;
+          }
+          const target = getDropTarget(event);
+          if (!target) {
+            return;
+          }
+          event.preventDefault();
+          timelineHost.classList.add("drop-active");
+          if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = "move";
+          }
         });
 
-        updateSelectedSlot(null);
+        timelineHost.addEventListener("dragleave", () => {
+          timelineHost.classList.remove("drop-active");
+        });
+
+        timelineHost.addEventListener("drop", async (event) => {
+          if (!draggedQueuePayload) {
+            return;
+          }
+          event.preventDefault();
+          timelineHost.classList.remove("drop-active");
+
+          const payload = draggedQueuePayload;
+          draggedQueuePayload = null;
+          const target = getDropTarget(event);
+
+          if (!target) {
+            showToast("Не удалось определить слот календаря для назначения", "error");
+            return;
+          }
+
+          let applied = false;
+          if (payload.kind === "appointment") {
+            applied = await dropQueueAppointment(payload, target);
+          } else if (payload.kind === "walkin") {
+            applied = await dropQueueWalkIn(payload, target);
+          }
+
+          if (applied) {
+            const source = document.querySelector(queueItemSelector(payload));
+            if (source) {
+              source.remove();
+            }
+          }
+        });
+
+        document.querySelectorAll(".queue-item").forEach((itemNode) => {
+          itemNode.addEventListener("dragstart", (event) => {
+            draggedQueuePayload = {
+              kind: itemNode.dataset.queueKind,
+              id: itemNode.dataset.itemId,
+              code: itemNode.dataset.code,
+              customerName: itemNode.dataset.customerName,
+              vehicleLabel: itemNode.dataset.vehicleLabel,
+            };
+            itemNode.classList.add("is-dragging");
+            if (event.dataTransfer) {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", draggedQueuePayload.kind + ":" + draggedQueuePayload.id);
+            }
+          });
+
+          itemNode.addEventListener("dragend", () => {
+            itemNode.classList.remove("is-dragging");
+            draggedQueuePayload = null;
+            timelineHost.classList.remove("drop-active");
+          });
+        });
       })();
     </script>
   </body>

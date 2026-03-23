@@ -341,7 +341,8 @@ async function main() {
   }
   assertHarness(
     dispatchBoardUi.text.includes("Диспетчерская доска") &&
-      dispatchBoardUi.text.includes("Очередь переносов"),
+      dispatchBoardUi.text.includes("Очередь переносов") &&
+      dispatchBoardUi.text.includes('id="dispatch-timeline"'),
     "dispatch board UI content missing",
     {
       step: "dispatch_board_ui",
