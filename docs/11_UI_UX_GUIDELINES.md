@@ -76,6 +76,9 @@ Must make it easy to answer:
 - the most common actions should be one or two steps away;
 - editing money or sensitive status should be explicit;
 - historical context should be easy to reach without cluttering the main path.
+- owner-facing dispatch board should avoid duplicate control surfaces:
+  - no duplicate metric strips above the board when lane context is already visible in calendar rows,
+  - no secondary manual scheduling controls outside the calendar for slot/duration changes.
 
 ## Language rule
 

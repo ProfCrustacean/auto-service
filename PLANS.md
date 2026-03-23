@@ -34,6 +34,46 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
 - 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
 - 2026-03-22 — Bloat audit execution (`AUT-55..AUT-60`)
+- 2026-03-22 — Phase 2 lifecycle core (`AUT-61..AUT-69`)
+
+## Completed Plan — Dispatch board UX simplification (calendar-only controls) (2026-03-23)
+
+### Objective
+
+Remove non-essential owner-facing noise on `/dispatch/board` and enforce a single interaction model where schedule changes happen only through the calendar.
+
+### Delivered
+
+- Removed top metric strips from dispatch board UI:
+  - global summary cards,
+  - per-lane metric cards.
+- Removed bottom manual controls:
+  - `Выбранный слот`,
+  - `Выбранная запись`,
+  - quick duration buttons `-15/+15`.
+- Kept and hardened calendar-native operations:
+  - existing appointment move/resize via timeline drag/resize,
+  - queue scheduling via direct drag-and-drop from queue cards to timeline.
+- Updated UI contract checks:
+  - page test now asserts removed blocks are absent and queue cards are draggable,
+  - smoke check now validates dispatch timeline marker is present.
+- Fixed production runtime regression in timeline init (`formatLaneLoad` browser-scope bug) and redeployed.
+
+### Verification
+
+- `npm test`: passed
+- `npm run lint`: passed
+- `npm run verify`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:render`: passed
+  - deploy id: `dep-d70m0a9r0fns73elbq90`
+  - commit parity: `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- Playwright browser smoke on deployed page:
+  - `.vis-timeline` exists,
+  - queue cards are `draggable="true"`,
+  - removed blocks absent,
+  - console errors: 0.
 
 ## Completed Plan — Foundation hardening (`AUT-89..AUT-96`) (2026-03-23)
 
@@ -146,44 +186,6 @@ Deliver the next feature block after lifecycle core: explicit parts-request oper
 - `evidence/render-log-audit-summary.json`
 - `evidence/bloat-audit-latest.json`
 - `evidence/linear-aut73-81-done-sync.json`
-
-## Completed Plan — Phase 2 lifecycle core (`AUT-61..AUT-69`) (2026-03-22)
-
-### Objective
-
-Deliver the first complete Phase 2 lifecycle slice so a vehicle can move from intake/appointment to completion through explicit work-order statuses, auditable transitions, operational queues, and deploy-verified harness coverage.
-
-### Delivered
-
-- `AUT-62`: centralized lifecycle domain map (statuses, labels, allowed transitions, blocked/terminal semantics).
-- `AUT-63`: work-order lifecycle API (`GET /api/v1/work-orders`, `GET|PATCH /api/v1/work-orders/:id`).
-- `AUT-64`: idempotent appointment conversion API (`POST /api/v1/appointments/:id/convert-to-work-order`).
-- `AUT-65`: persistence audit trail (`work_order_status_history`, `appointment_work_order_links`, seed + runtime history writes).
-- `AUT-66`: Russian lifecycle workspace and active queue UI (`/work-orders/:id`, `/work-orders/active`).
-- `AUT-67`: dashboard expanded with lifecycle-driven queues and summary metrics.
-- `AUT-68`: lifecycle domain/API/UI tests + scenario/smoke harness upgrades.
-- `AUT-69`: runbook/README lifecycle updates, rollback guidance, and Linear sync artifacts.
-
-### Verification
-
-- `npm test`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-- `npm run verify:render`: passed
-  - deploy: `dep-d703dqk50q8c73fhb08g`
-  - commit parity: `b404dccd7a81279dd8f917040f4724b0486d03f6`
-  - deployed smoke + non-destructive scenarios: passed
-  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-
-### Linear sync
-
-- `AUT-61..AUT-69` transitioned to `Done`.
-- Sync artifact was retired from git as part of canonical evidence retention cleanup.
-
-### Primary evidence
-
-- `evidence/render-log-audit-summary.json`
-- `evidence/bloat-audit-latest.json`
 
 ## Maintenance rule
 

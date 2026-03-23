@@ -19,6 +19,11 @@ Foundation hardening epic is delivered and verified; next priority is Phase 4 (p
 ## Current state (2026-03-23)
 
 ### Product/runtime
+- Dispatch board UX is simplified to owner-focused calendar-only controls:
+  - removed top metric strips (global + per-lane cards),
+  - removed bottom manual control panel ("Выбранный слот / Выбранная запись"),
+  - queue scheduling is now drag-and-drop directly into timeline only,
+  - existing booking move/resize remains timeline-native (no duplicate manual controls).
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
   - appointment lifecycle with deterministic capacity checks,
@@ -61,6 +66,7 @@ Foundation hardening epic is delivered and verified; next priority is Phase 4 (p
 
 ## Last accepted milestones
 
+- 2026-03-23: Dispatch board owner-focused simplification delivered and deployed (`ea3ca989dee8362ceadd3882a1c08bdc2da39da2`, runtime fix on top `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`).
 - 2026-03-22: Phase 2 lifecycle core epic completed (`AUT-61..AUT-69`) and synced to Done.
 - 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented and synced to Done.
 - 2026-03-22: Phase 3 parts-flow epic implemented and deployed (`AUT-73..AUT-81`), verification gates green.
@@ -77,13 +83,10 @@ Most recent local gate results:
 - `npm run secrets:scan`: passed
 
 Most recent deploy-aware gate results:
-- `npm run verify:render -- --skip-deploy`: passed
-  - explicit CLI skip mode confirmed (`skipDeploy=true`, deploy/parity/log-audit steps skipped by design)
-  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
-- `npm run verify:render -- --deploy`: passed
-  - deploy id: `dep-d707i3sr85hc73dqa3tg`
-  - commit parity: passed (`1ec6e8f5b30a825e762967f556c30ff2ec18e271`)
-  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow): passed
+- `npm run verify:render`: passed
+  - deploy id: `dep-d70m0a9r0fns73elbq90`
+  - commit parity: passed (`3945ce76b7667ee5ecccaabee04b235eeb3eabf4`)
+  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
 Primary evidence pointers:
