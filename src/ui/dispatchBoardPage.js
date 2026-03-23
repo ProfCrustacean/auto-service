@@ -613,6 +613,12 @@ export function renderDispatchBoardPage(model) {
           return safeStatus.length > 0 ? "status-" + safeStatus : "status-booked";
         }
 
+        function formatLoadLabel(load) {
+          const percent = Math.round((load?.utilizationRatio ?? 0) * 100);
+          const count = load?.appointmentsCount ?? 0;
+          return percent + "% · " + count + " записей";
+        }
+
         function toTimelineItem(card) {
           const startMinute = snapMinute(Number.parseInt(card.startMinute, 10));
           const durationMin = normalizeDuration(card.durationMin);
@@ -642,7 +648,7 @@ export function renderDispatchBoardPage(model) {
             const load = laneLoadByKey.get(lane.key);
             return {
               id: lane.key,
-              content: "<div class='lane-group'><strong>" + escapeText(lane.label) + "</strong><small>" + escapeText(formatLaneLoad(load)) + "</small></div>",
+              content: "<div class='lane-group'><strong>" + escapeText(lane.label) + "</strong><small>" + escapeText(formatLoadLabel(load)) + "</small></div>",
             };
           }),
         );
