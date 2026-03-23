@@ -154,22 +154,14 @@ function resolveConflictPreview(appointmentService, values) {
     return [];
   }
 
-  try {
-    appointmentService.ensureCapacityAvailable({
-      plannedStartLocal: values.plannedStartLocal,
-      bayId: values.bayId || null,
-      primaryAssignee: values.primaryAssignee || null,
-      status: "booked",
-      excludeAppointmentId: null,
-    });
-    return [];
-  } catch (error) {
-    if (error.code === "appointment_capacity_conflict") {
-      return localizeConflictDetails(error.details);
-    }
-
-    throw error;
-  }
+  const conflicts = appointmentService.ensureCapacityAvailable({
+    plannedStartLocal: values.plannedStartLocal,
+    bayId: values.bayId || null,
+    primaryAssignee: values.primaryAssignee || null,
+    status: "booked",
+    excludeAppointmentId: null,
+  });
+  return localizeConflictDetails(conflicts);
 }
 
 function buildBookingPageModel({
@@ -207,14 +199,6 @@ function mapDomainError(error) {
     return {
       ...shared,
       conflictDetails: [],
-    };
-  }
-
-  if (error.code === "appointment_capacity_conflict") {
-    return {
-      statusCode: 409,
-      errors: [{ field: "plannedStartLocal", message: "Конфликт загрузки в выбранном слоте" }],
-      conflictDetails: localizeConflictDetails(error.details),
     };
   }
 
@@ -295,30 +279,17 @@ export function registerAppointmentPageRoutes(app, {
         return;
       }
 
-      try {
+      conflictDetails = localizeConflictDetails(
         appointmentService.ensureCapacityAvailable({
           plannedStartLocal: appointmentValidation.value.plannedStartLocal,
           bayId: appointmentValidation.value.bayId ?? null,
           primaryAssignee: appointmentValidation.value.primaryAssignee ?? null,
           status: appointmentValidation.value.status ?? "booked",
           excludeAppointmentId: null,
-        });
-      } catch (error) {
-        if (error.code === "appointment_capacity_conflict") {
-          conflictDetails = localizeConflictDetails(error.details);
-          const model = buildBookingPageModel({
-            referenceDataService,
-            customerVehicleService,
-            appointmentService,
-            values,
-            errors: [{ field: "plannedStartLocal", message: "Конфликт загрузки в выбранном слоте" }],
-            messages,
-            conflictDetails,
-          });
-          renderBookingPage(res, { statusCode: 409, model });
-          return;
-        }
-        throw error;
+        }),
+      );
+      if (conflictDetails.length > 0) {
+        messages.push("Запись будет создана с пересечением загрузки");
       }
 
       const createdBundle = appointmentService.createAppointmentFromBookingForm({

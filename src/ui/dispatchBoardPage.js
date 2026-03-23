@@ -319,21 +319,44 @@ export function renderDispatchBoardPage(model) {
         position: fixed;
         right: 14px;
         bottom: 14px;
-        max-width: 360px;
+        max-width: 420px;
         border: 1px solid var(--line);
         border-radius: 10px;
         background: #fff;
         box-shadow: 0 10px 24px rgba(23, 47, 33, 0.16);
-        padding: 10px 12px;
         font-size: 0.88rem;
         display: none;
+        overflow: hidden;
       }
 
       .toast.show { display: block; }
 
+      .toast-inner {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+      }
+
+      .toast-close {
+        border: 0;
+        background: transparent;
+        color: #53675c;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+      }
+
       .toast.error {
         border-color: #dfb1a7;
         background: var(--danger-soft);
+      }
+
+      .toast.warning {
+        border-color: #e3ca9f;
+        background: #fff6e4;
       }
 
       .ec {
@@ -341,25 +364,66 @@ export function renderDispatchBoardPage(model) {
         font-family: "Manrope", "IBM Plex Sans", "Segoe UI", sans-serif;
       }
 
+      .ec .ec-event {
+        color: #173026;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(15, 33, 25, 0.14);
+      }
+
+      .ec .ec-event-body {
+        padding: 4px 6px;
+      }
+
+      .dispatch-event-content {
+        display: grid;
+        gap: 2px;
+      }
+
+      .dispatch-event-line {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .dispatch-event-line.primary {
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+      }
+
+      .dispatch-event-line.secondary {
+        font-size: 0.8rem;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
       .ec-event.status-confirmed,
       .ec-event.status-arrived {
-        border-color: #9cc7ae;
-        background: #eaf6ee;
+        border-color: #77b18e;
+        background: #e5f6eb;
       }
 
       .ec-event.status-booked {
-        border-color: #9bbfd3;
-        background: #e7f0f8;
+        border-color: #7ea8c2;
+        background: #e3edf7;
       }
 
-      .ec-event.status-cancelled,
-      .ec-event.status-no-show {
-        border-color: #e0bbb2;
-        background: #fff0ed;
+      .ec-event.status-no-show,
+      .ec-event.status-cancelled {
+        border-color: #d5a7a0;
+        background: #fce8e4;
+      }
+
+      .ec-event.status-overlap {
+        border-color: #c48227;
+        background: #fff4de;
       }
 
       .ec-resource {
-        font-size: 0.86rem;
+        font-size: 0.9rem;
+        font-weight: 700;
       }
 
       .ec-time,
@@ -399,12 +463,19 @@ export function renderDispatchBoardPage(model) {
       </section>
     </main>
 
-    <div id="dispatch-toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="dispatch-toast" class="toast" role="status" aria-live="polite">
+      <div class="toast-inner">
+        <span id="dispatch-toast-text"></span>
+        <button id="dispatch-toast-close" class="toast-close" type="button" aria-label="Закрыть уведомление">×</button>
+      </div>
+    </div>
     <script id="dispatch-board-model" type="application/json">${pageModelJson}</script>
     <script src="https://cdn.jsdelivr.net/npm/@event-calendar/build@5.5.1/dist/event-calendar.min.js"></script>
     <script>
       (() => {
         const toast = document.getElementById("dispatch-toast");
+        const toastText = document.getElementById("dispatch-toast-text");
+        const toastClose = document.getElementById("dispatch-toast-close");
         const calendarHost = document.getElementById("dispatch-calendar");
         const queueAppointments = document.getElementById("dispatch-queue-appointments");
         const queueWalkIn = document.getElementById("dispatch-queue-walkin");
@@ -414,13 +485,36 @@ export function renderDispatchBoardPage(model) {
         let model = JSON.parse(modelElement.textContent);
         let calendar = null;
         let draggedQueuePayload = null;
+        let toastTimeout = null;
+
+        function hideToast() {
+          toast.className = "toast";
+          if (toastTimeout) {
+            window.clearTimeout(toastTimeout);
+            toastTimeout = null;
+          }
+        }
 
         function showToast(message, kind = "ok") {
-          toast.textContent = message;
-          toast.className = "toast show" + (kind === "error" ? " error" : "");
-          window.setTimeout(() => {
-            toast.className = "toast";
-          }, 2600);
+          if (toastText) {
+            toastText.textContent = message;
+          } else {
+            toast.textContent = message;
+          }
+          toast.className = "toast show";
+          if (kind === "error") {
+            toast.classList.add("error");
+          } else if (kind === "warning") {
+            toast.classList.add("warning");
+          }
+
+          if (toastTimeout) {
+            window.clearTimeout(toastTimeout);
+          }
+          const timeoutMs = kind === "error" ? 8000 : 3200;
+          toastTimeout = window.setTimeout(() => {
+            hideToast();
+          }, timeoutMs);
         }
 
         function escapeText(value) {
@@ -450,6 +544,142 @@ export function renderDispatchBoardPage(model) {
             }
           }
           return fallback;
+        }
+
+        function parseWarningMessage(payload) {
+          const warnings = payload?.warnings;
+          if (!Array.isArray(warnings) || warnings.length === 0) {
+            return null;
+          }
+          const first = warnings[0];
+          if (first && typeof first.message === "string" && first.message.trim().length > 0) {
+            return first.message;
+          }
+          return "Назначено с пересечением загрузки";
+        }
+
+        function parseTimeToMinutes(value, fallback) {
+          const match = /^(\d{2}):(\d{2})/u.exec(String(value ?? ""));
+          if (!match) {
+            return fallback;
+          }
+          const hour = Number.parseInt(match[1], 10);
+          const minute = Number.parseInt(match[2], 10);
+          if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
+            return fallback;
+          }
+          return (hour * 60) + minute;
+        }
+
+        function laneLabelById(resourceId) {
+          const resource = (model.resources ?? []).find((entry) => entry.id === resourceId);
+          return resource?.title ?? "Лента";
+        }
+
+        function formatTimeLabel(date) {
+          if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+            return "--:--";
+          }
+          return String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
+        }
+
+        function buildDropFallbackTarget(event) {
+          const resources = Array.isArray(model.resources) ? model.resources : [];
+          if (resources.length === 0) {
+            return null;
+          }
+          const rect = calendarHost.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) {
+            return null;
+          }
+
+          const slotMinMinute = parseTimeToMinutes(model.calendar.slotMinTime, 8 * 60);
+          const slotMaxMinute = parseTimeToMinutes(model.calendar.slotMaxTime, 20 * 60);
+          const stepMinute = Math.max(5, parseTimeToMinutes(model.calendar.snapDuration, 15));
+          const totalRange = Math.max(stepMinute, slotMaxMinute - slotMinMinute);
+
+          const relativeY = Math.min(rect.height, Math.max(0, event.clientY - rect.top));
+          const minuteFloat = slotMinMinute + ((relativeY / rect.height) * totalRange);
+          const snappedMinute = Math.round(minuteFloat / stepMinute) * stepMinute;
+          const minuteOfDay = Math.max(slotMinMinute, Math.min(slotMaxMinute - stepMinute, snappedMinute));
+
+          const relativeX = Math.min(rect.width, Math.max(0, event.clientX - rect.left));
+          const resourceIndex = Math.max(
+            0,
+            Math.min(resources.length - 1, Math.floor((relativeX / rect.width) * resources.length)),
+          );
+          const resource = resources[resourceIndex];
+          if (!resource) {
+            return null;
+          }
+
+          const date = new Date(model.dayLocal + "T00:00:00");
+          date.setHours(Math.floor(minuteOfDay / 60), minuteOfDay % 60, 0, 0);
+
+          return {
+            date,
+            resource: { id: resource.id },
+          };
+        }
+
+        function resolveDropTargetInfo(event) {
+          if (calendar && typeof calendar.dateFromPoint === "function") {
+            const direct = calendar.dateFromPoint(event.clientX, event.clientY);
+            if (direct?.date && direct?.resource?.id) {
+              return direct;
+            }
+          }
+          return buildDropFallbackTarget(event);
+        }
+
+        function parseTransferPayload(event) {
+          const transfer = event?.dataTransfer;
+          if (!transfer) {
+            return null;
+          }
+
+          const rawJson = transfer.getData("application/x-auto-service-queue");
+          if (rawJson) {
+            try {
+              const parsed = JSON.parse(rawJson);
+              if (parsed?.kind && parsed?.id) {
+                return {
+                  kind: parsed.kind,
+                  id: parsed.id,
+                  code: parsed.code ?? "",
+                  customerName: parsed.customerName ?? "",
+                  vehicleLabel: parsed.vehicleLabel ?? "",
+                  durationMin: Number.parseInt(parsed.durationMin, 10) || 60,
+                };
+              }
+            } catch {
+              // fall through to text/plain strategy
+            }
+          }
+
+          const token = transfer.getData("text/plain");
+          if (!token || !token.includes(":")) {
+            return null;
+          }
+
+          const [kind, id] = token.split(":");
+          if (!kind || !id) {
+            return null;
+          }
+          const node = [...document.querySelectorAll(".queue-item")]
+            .find((entry) => entry.dataset.queueKind === kind && entry.dataset.itemId === id);
+          if (!node) {
+            return null;
+          }
+
+          return {
+            kind,
+            id,
+            code: node.dataset.code ?? "",
+            customerName: node.dataset.customerName ?? "",
+            vehicleLabel: node.dataset.vehicleLabel ?? "",
+            durationMin: Number.parseInt(node.dataset.durationMin, 10) || 60,
+          };
         }
 
         function rangeLabel(calendarModel) {
@@ -526,6 +756,7 @@ export function renderDispatchBoardPage(model) {
               itemNode.classList.add("is-dragging");
               if (event.dataTransfer) {
                 event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("application/x-auto-service-queue", JSON.stringify(draggedQueuePayload));
                 event.dataTransfer.setData("text/plain", draggedQueuePayload.kind + ":" + draggedQueuePayload.id);
               }
             });
@@ -632,7 +863,7 @@ export function renderDispatchBoardPage(model) {
 
           const preview = await postJson("/api/v1/dispatch/board/events/" + encodeURIComponent(info.event.id) + "/preview", payload);
           if (!preview.response.ok) {
-            showToast(parseErrorMessage(preview.payload, "Слот недоступен: есть конфликт по загрузке"), "error");
+            showToast(parseErrorMessage(preview.payload, "Не удалось проверить слот перед сохранением"), "error");
             info.revert();
             return;
           }
@@ -645,11 +876,16 @@ export function renderDispatchBoardPage(model) {
           }
 
           await refreshBoardModel();
-          showToast("Изменения сохранены");
+          const warningMessage = parseWarningMessage(commit.payload);
+          if (warningMessage) {
+            showToast("Сохранено с пересечением: " + warningMessage, "warning");
+            return;
+          }
+          showToast("Сохранено: " + formatTimeLabel(startDate) + " · " + laneLabelById(resourceId));
         }
 
-        async function scheduleQueuePayload(targetInfo) {
-          if (!draggedQueuePayload) {
+        async function scheduleQueuePayload(targetInfo, queuePayload) {
+          if (!queuePayload) {
             return;
           }
           if (!targetInfo || !targetInfo.date || !targetInfo.resource?.id) {
@@ -658,7 +894,7 @@ export function renderDispatchBoardPage(model) {
           }
 
           const startDate = new Date(targetInfo.date);
-          const endDate = new Date(startDate.getTime() + draggedQueuePayload.durationMin * 60000);
+          const endDate = new Date(startDate.getTime() + queuePayload.durationMin * 60000);
           const payload = toMutationPayload({
             startDate,
             endDate,
@@ -667,14 +903,14 @@ export function renderDispatchBoardPage(model) {
           });
 
           let result;
-          if (draggedQueuePayload.kind === "appointment") {
+          if (queuePayload.kind === "appointment") {
             result = await postJson(
-              "/api/v1/dispatch/board/queue/appointments/" + encodeURIComponent(draggedQueuePayload.id) + "/schedule",
+              "/api/v1/dispatch/board/queue/appointments/" + encodeURIComponent(queuePayload.id) + "/schedule",
               payload,
             );
           } else {
             result = await postJson(
-              "/api/v1/dispatch/board/queue/walk-ins/" + encodeURIComponent(draggedQueuePayload.id) + "/schedule",
+              "/api/v1/dispatch/board/queue/walk-ins/" + encodeURIComponent(queuePayload.id) + "/schedule",
               payload,
             );
           }
@@ -685,7 +921,12 @@ export function renderDispatchBoardPage(model) {
           }
 
           await refreshBoardModel();
-          showToast("Запись назначена в календаре");
+          const warningMessage = parseWarningMessage(result.payload);
+          if (warningMessage) {
+            showToast("Назначено с пересечением: " + warningMessage, "warning");
+            return;
+          }
+          showToast("Назначено: " + queuePayload.code + " · " + formatTimeLabel(startDate) + " · " + laneLabelById(payload.resourceId));
         }
 
         if (!window.EventCalendar || typeof window.EventCalendar.create !== "function") {
@@ -708,6 +949,28 @@ export function renderDispatchBoardPage(model) {
           nowIndicator: true,
           resources: model.resources.map((entry) => toCalendarResource(entry)),
           events: model.events.map((entry) => toCalendarEvent(entry)),
+          eventContent: (info) => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "dispatch-event-content";
+
+            const primaryLine = document.createElement("div");
+            primaryLine.className = "dispatch-event-line primary";
+            const code = String(info.event?.extendedProps?.code ?? info.event?.id ?? "");
+            const timeLabel = String(info.timeText ?? "").trim();
+            primaryLine.textContent = (timeLabel.length > 0 ? (timeLabel + " · ") : "") + code;
+
+            const secondaryLine = document.createElement("div");
+            secondaryLine.className = "dispatch-event-line secondary";
+            const customer = String(info.event?.extendedProps?.customerName ?? "");
+            const vehicle = String(info.event?.extendedProps?.vehicleLabel ?? "");
+            const fallbackTitle = String(info.event?.title ?? "");
+            secondaryLine.textContent = customer.length > 0 && vehicle.length > 0
+              ? (customer + " · " + vehicle)
+              : fallbackTitle;
+
+            wrapper.append(primaryLine, secondaryLine);
+            return { domNodes: [wrapper] };
+          },
           eventDrop: (info) => {
             previewAndCommitEvent(info, "Перемещение на календарной доске");
           },
@@ -717,6 +980,12 @@ export function renderDispatchBoardPage(model) {
         });
 
         calendarHost.addEventListener("dragover", (event) => {
+          if (!draggedQueuePayload) {
+            const transferPayload = parseTransferPayload(event);
+            if (transferPayload) {
+              draggedQueuePayload = transferPayload;
+            }
+          }
           if (!draggedQueuePayload) {
             return;
           }
@@ -733,14 +1002,24 @@ export function renderDispatchBoardPage(model) {
 
         calendarHost.addEventListener("drop", async (event) => {
           if (!draggedQueuePayload) {
+            draggedQueuePayload = parseTransferPayload(event);
+          }
+          if (!draggedQueuePayload) {
             return;
           }
           event.preventDefault();
           calendarHost.classList.remove("drop-active");
-          const targetInfo = calendar.dateFromPoint(event.clientX, event.clientY);
-          await scheduleQueuePayload(targetInfo);
+          const currentPayload = draggedQueuePayload;
+          const targetInfo = resolveDropTargetInfo(event);
+          await scheduleQueuePayload(targetInfo, currentPayload);
           draggedQueuePayload = null;
         });
+
+        if (toastClose) {
+          toastClose.addEventListener("click", () => {
+            hideToast();
+          });
+        }
 
         bindQueueDragHandlers();
       })();

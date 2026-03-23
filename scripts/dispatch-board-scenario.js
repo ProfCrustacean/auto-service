@@ -119,7 +119,7 @@ async function runNonDestructive(mode) {
     laneMode: board.laneMode,
   });
 
-  assertHarness(preview.status === 200 || preview.status === 409, "preview should return 200 or 409", {
+  assertHarness(preview.status === 200, "preview should return 200", {
     step: "dispatch_preview_move",
     responseStatus: preview.status,
     responsePayload: preview.payload,

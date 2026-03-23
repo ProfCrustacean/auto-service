@@ -246,6 +246,18 @@ function buildBoardPatchResponseMeta(req) {
   };
 }
 
+function extractItemWarnings(item) {
+  if (!item || typeof item !== "object") {
+    return { item, warnings: [] };
+  }
+  const warnings = Array.isArray(item.capacityWarnings) ? item.capacityWarnings : [];
+  if (warnings.length === 0) {
+    return { item, warnings: [] };
+  }
+  const { capacityWarnings, ...rest } = item;
+  return { item: rest, warnings };
+}
+
 function validateDispatchEventUpdate(payload, { requireStart = true, requireResource = true } = {}) {
   const errors = [];
   if (requireStart && payload.updates.plannedStartLocal === undefined) {
@@ -321,13 +333,13 @@ export function registerDispatchBoardPageRoutes(app, {
     const { changedBy, reason, ...updates } = validation.value;
 
     try {
-      const item = appointmentService.previewAppointmentUpdate(req.params.id, updates);
-      if (!item) {
+      const previewItem = appointmentService.previewAppointmentUpdate(req.params.id, updates);
+      if (!previewItem) {
         sendApiError(res, notFoundError("Appointment"));
         return;
       }
-
-      res.status(200).json({
+      const { item, warnings } = extractItemWarnings(previewItem);
+      const payload = {
         preview: true,
         canCommit: true,
         item,
@@ -335,7 +347,12 @@ export function registerDispatchBoardPageRoutes(app, {
         reason: reason ?? null,
         day: boardPayload.dayLocal,
         laneMode: boardPayload.laneMode,
-      });
+      };
+      if (warnings.length > 0) {
+        payload.warnings = warnings;
+      }
+
+      res.status(200).json(payload);
     } catch (error) {
       if (mapAppointmentDomainError(res, error)) {
         return;
@@ -360,22 +377,27 @@ export function registerDispatchBoardPageRoutes(app, {
     const { changedBy, reason, ...updates } = validation.value;
 
     try {
-      const item = appointmentService.updateAppointmentById(req.params.id, updates, {
+      const updated = appointmentService.updateAppointmentById(req.params.id, updates, {
         changedBy: changedBy ?? buildBoardPatchActor(req),
         reason: reason ?? "Изменено на диспетчерской доске",
         source: "dispatch_board_api_commit",
       });
-      if (!item) {
+      if (!updated) {
         sendApiError(res, notFoundError("Appointment"));
         return;
       }
-
-      res.status(200).json({
+      const { item, warnings } = extractItemWarnings(updated);
+      const payload = {
         preview: false,
         committed: true,
         item,
         ...buildBoardPatchResponseMeta(req),
-      });
+      };
+      if (warnings.length > 0) {
+        payload.warnings = warnings;
+      }
+
+      res.status(200).json(payload);
     } catch (error) {
       if (mapAppointmentDomainError(res, error)) {
         return;
@@ -403,30 +425,37 @@ export function registerDispatchBoardPageRoutes(app, {
     }
 
     try {
-      const previewItem = appointmentService.previewAppointmentUpdate(req.params.id, updates);
-      if (!previewItem) {
+      const previewCandidate = appointmentService.previewAppointmentUpdate(req.params.id, updates);
+      if (!previewCandidate) {
         sendApiError(res, notFoundError("Appointment"));
         return;
       }
+      const { item: previewItem, warnings: previewWarnings } = extractItemWarnings(previewCandidate);
 
-      const item = appointmentService.updateAppointmentById(req.params.id, updates, {
+      const updated = appointmentService.updateAppointmentById(req.params.id, updates, {
         changedBy: changedBy ?? buildBoardPatchActor(req),
         reason: reason ?? "Назначено из очереди на диспетчерской доске",
         source: "dispatch_board_queue_appointment_schedule",
       });
-      if (!item) {
+      if (!updated) {
         sendApiError(res, notFoundError("Appointment"));
         return;
       }
-
-      res.status(200).json({
+      const { item, warnings } = extractItemWarnings(updated);
+      const combinedWarnings = [...previewWarnings, ...warnings];
+      const payload = {
         preview: false,
         scheduled: true,
         previewItem,
         item,
         day: boardPayload.dayLocal,
         laneMode: boardPayload.laneMode,
-      });
+      };
+      if (combinedWarnings.length > 0) {
+        payload.warnings = combinedWarnings;
+      }
+
+      res.status(200).json(payload);
     } catch (error) {
       if (mapAppointmentDomainError(res, error)) {
         return;
@@ -473,13 +502,18 @@ export function registerDispatchBoardPageRoutes(app, {
     }
 
     try {
-      const item = appointmentService.createAppointment(validation.value);
-      res.status(201).json({
+      const created = appointmentService.createAppointment(validation.value);
+      const { item, warnings } = extractItemWarnings(created);
+      const payload = {
         item,
         createdFromWorkOrderId: workOrder.id,
         day: boardPayload.dayLocal,
         laneMode: boardPayload.laneMode,
-      });
+      };
+      if (warnings.length > 0) {
+        payload.warnings = warnings;
+      }
+      res.status(201).json(payload);
     } catch (error) {
       if (mapAppointmentDomainError(res, error)) {
         return;

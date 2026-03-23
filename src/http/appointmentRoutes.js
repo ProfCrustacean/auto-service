@@ -58,6 +58,21 @@ function handleDomainError(res, error) {
   return false;
 }
 
+function extractItemWarnings(item) {
+  if (!item || typeof item !== "object") {
+    return { item, warnings: [] };
+  }
+  const warnings = Array.isArray(item.capacityWarnings) ? item.capacityWarnings : [];
+  if (warnings.length === 0) {
+    return { item, warnings: [] };
+  }
+  const { capacityWarnings, ...rest } = item;
+  return {
+    item: rest,
+    warnings,
+  };
+}
+
 export function registerAppointmentRoutes(app, { logger, appointmentService }) {
   app.get("/api/v1/appointments", (req, res) => {
     const validation = validateListAppointmentsQuery(req.query);
@@ -134,8 +149,13 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
     }
 
     try {
-      const item = appointmentService.createAppointment(validation.value);
-      res.status(201).json({ item });
+      const created = appointmentService.createAppointment(validation.value);
+      const { item, warnings } = extractItemWarnings(created);
+      const payload = { item };
+      if (warnings.length > 0) {
+        payload.warnings = warnings;
+      }
+      res.status(201).json(payload);
     } catch (error) {
       if (handleDomainError(res, error)) {
         return;
@@ -163,31 +183,40 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
 
     try {
       if (preview) {
-        const item = appointmentService.previewAppointmentUpdate(req.params.id, updates);
-        if (!item) {
+        const previewItem = appointmentService.previewAppointmentUpdate(req.params.id, updates);
+        if (!previewItem) {
           sendApiError(res, notFoundError("Appointment"));
           return;
         }
-
-        res.status(200).json({
+        const { item, warnings } = extractItemWarnings(previewItem);
+        const payload = {
           preview: true,
           canCommit: true,
           item,
-        });
+        };
+        if (warnings.length > 0) {
+          payload.warnings = warnings;
+        }
+
+        res.status(200).json(payload);
         return;
       }
 
-      const item = appointmentService.updateAppointmentById(req.params.id, updates, {
+      const updated = appointmentService.updateAppointmentById(req.params.id, updates, {
         changedBy: actor,
         reason: reason ?? null,
         source: "api_patch_appointment",
       });
-      if (!item) {
+      if (!updated) {
         sendApiError(res, notFoundError("Appointment"));
         return;
       }
-
-      res.status(200).json({ item });
+      const { item, warnings } = extractItemWarnings(updated);
+      const payload = { item };
+      if (warnings.length > 0) {
+        payload.warnings = warnings;
+      }
+      res.status(200).json(payload);
     } catch (error) {
       if (handleDomainError(res, error)) {
         return;

@@ -315,6 +315,35 @@ function normalizeDispatchStatusClass(status) {
   return `status-${normalized}`;
 }
 
+function collectDispatchOverlappedEventIds(cards) {
+  const byLane = new Map();
+  for (const card of cards) {
+    const laneCards = byLane.get(card.laneKey) ?? [];
+    laneCards.push(card);
+    byLane.set(card.laneKey, laneCards);
+  }
+
+  const overlappedIds = new Set();
+  for (const laneCards of byLane.values()) {
+    laneCards.sort((left, right) => left.startMinute - right.startMinute || left.endMinute - right.endMinute);
+    for (let index = 0; index < laneCards.length; index += 1) {
+      const current = laneCards[index];
+      for (let nextIndex = index + 1; nextIndex < laneCards.length; nextIndex += 1) {
+        const candidate = laneCards[nextIndex];
+        if (candidate.startMinute >= current.endMinute) {
+          break;
+        }
+        if (candidate.endMinute > current.startMinute) {
+          overlappedIds.add(current.id);
+          overlappedIds.add(candidate.id);
+        }
+      }
+    }
+  }
+
+  return overlappedIds;
+}
+
 function resolveAppointmentLaneKey(appointment, laneMode) {
   if (laneMode === "technician") {
     const assignee = String(appointment.primaryAssignee ?? "").trim();
@@ -920,13 +949,17 @@ export class DashboardService {
       };
     });
 
+    const overlappedIds = collectDispatchOverlappedEventIds(appointmentCards);
     const events = appointmentCards.map((card) => ({
       id: card.id,
       start: formatLocalDateTime(dayLocal, card.startMinute),
       end: formatLocalDateTime(dayLocal, card.endMinute),
       resourceId: card.laneKey,
       title: `${card.code} · ${card.customerName} · ${card.vehicleLabel}`,
-      classNames: [normalizeDispatchStatusClass(card.status)],
+      classNames: [
+        normalizeDispatchStatusClass(card.status),
+        ...(overlappedIds.has(card.id) ? ["status-overlap"] : []),
+      ],
       extendedProps: {
         code: card.code,
         customerName: card.customerName,

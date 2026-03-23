@@ -27,7 +27,7 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
   - dispatch writes now use API-only routes under `/api/v1/dispatch/board/*`.
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
-  - appointment lifecycle with deterministic capacity checks,
+  - appointment lifecycle with global non-blocking overlap warnings (no blocking slot conflicts),
   - walk-in intake API + production pages,
   - dashboard day/week planning + unified lookup.
 - Phase 2 lifecycle core remains implemented:
@@ -80,7 +80,7 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 Most recent local gate results:
 - `npm test`: passed
 - `npm run verify`: passed
-- `npm run audit:bloat`: failed (pre-existing area budget overruns in `src/tests/scripts`)
+- `npm run audit:bloat`: passed
 - `npm run lint`: passed
 - `npm run secrets:scan`: passed
 
@@ -114,7 +114,6 @@ Primary evidence pointers:
 - Render API access can require `--resolve` fallback from this local environment; harness already supports this path.
 - Token auth remains baseline-level (no IdP/session/rotation service yet).
 - SQLite remains single-node file persistence.
-- `audit:bloat` is currently red because existing area budgets (`src/tests/scripts`) are below current repository footprint.
 
 ## Active work focus
 

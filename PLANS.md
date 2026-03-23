@@ -12,6 +12,66 @@ No active multi-step implementation plan is open right now.
 
 Create a new active plan before the next non-trivial feature/refactor/deployment slice.
 
+## Archived plan skeleton
+
+Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
+
+- 2026-03-21 — Render build/runtime log investigation and follow-up triage
+- 2026-03-21 — AUT-14 verification scenarios for scheduling and walk-in
+- 2026-03-21 — AUT-10 Walk-in intake API and active queue insertion
+- 2026-03-21 — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
+- 2026-03-21 — AUT-8 Customers and Vehicles CRUD API
+- 2026-03-21 — AUT-7 Employees and Bays CRUD API
+- 2026-03-21 — AUT-6 Persistent Data Model and Migrations
+- 2026-03-21 — Phase 0 Foundation Slice
+- 2026-03-21 — Phase 1 Dashboard UX Refactor
+- 2026-03-21 — AUT-17 health-check log noise reduction
+- 2026-03-21 — AUT-16 pin Render Node runtime to LTS
+- 2026-03-21 — AUT-18 repo-access warning remediation investigation
+- 2026-03-21 — Repository spring cleaning and harness simplification
+- 2026-03-21 — PLANS archive automation and policy enforcement
+- 2026-03-21 — Linear Playwright workflow integrated into harness
+- 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
+- 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
+- 2026-03-22 — Bloat audit execution (`AUT-55..AUT-60`)
+- 2026-03-22 — Phase 2 lifecycle core (`AUT-61..AUT-69`)
+- 2026-03-22 — Spring cleanup wave (`AUT-82..AUT-88`)
+- 2026-03-22 — Phase 3 parts flow (`AUT-73..AUT-81`)
+
+## Completed Plan — Dispatch board DnD/readability hardening + global overlap warnings (2026-03-23)
+
+### Objective
+
+Fix dispatch board usability blockers (queue drag/drop and unreadable event cards) and switch capacity conflicts from blocking errors to global non-blocking warnings.
+
+### Delivered
+
+- Reworked appointment capacity policy in domain/service layer:
+  - overlap checks now produce structured warning details instead of throwing blocking domain conflicts,
+  - create/update responses can carry `warnings` while still committing.
+- Updated API routes (`appointments` and dispatch board mutations) to surface `warnings` payloads.
+- Updated booking page flow:
+  - overlap is previewed as warning detail,
+  - submission is no longer blocked by slot overlap.
+- Hardened dispatch board DnD:
+  - transfer payload fallback parsing (`dataTransfer`) added,
+  - drop target fallback resolution added when direct point resolution is unavailable.
+- Redesigned dispatch board event readability:
+  - high-contrast event palette,
+  - deterministic two-line event content rendering (time/code + customer/vehicle),
+  - overlap events are visually marked (`status-overlap`).
+- Updated tests for the new global overlap policy and dispatch board UI contract.
+
+### Verification
+
+- `npm test -- tests/appointmentLifecycle.test.js tests/appointmentBookingPage.test.js tests/domainSchedulingWalkin.test.js tests/dispatchBoard.test.js`: passed
+- `npm test`: pending rerun after plans compaction and final gate sweep
+- `npm run lint`: passed
+- `npm run verify`: pending
+- `npm run audit:bloat`: pending
+- `npm run secrets:scan`: pending
+- `npm run verify:render`: pending
+
 ## Completed Plan — Dispatch board full EventCalendar cutover (2026-03-23)
 
 ### Objective
@@ -48,30 +108,6 @@ Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridD
   - legacy manual-control blocks absent,
   - console errors: 0.
 - `npm run audit:bloat`: failed (pre-existing budget overruns in `src/tests/scripts`; unchanged blocker category).
-
-## Archived plan skeleton
-
-Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
-
-- 2026-03-21 — Render build/runtime log investigation and follow-up triage
-- 2026-03-21 — AUT-14 verification scenarios for scheduling and walk-in
-- 2026-03-21 — AUT-10 Walk-in intake API and active queue insertion
-- 2026-03-21 — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
-- 2026-03-21 — AUT-8 Customers and Vehicles CRUD API
-- 2026-03-21 — AUT-7 Employees and Bays CRUD API
-- 2026-03-21 — AUT-6 Persistent Data Model and Migrations
-- 2026-03-21 — Phase 0 Foundation Slice
-- 2026-03-21 — Phase 1 Dashboard UX Refactor
-- 2026-03-21 — AUT-17 health-check log noise reduction
-- 2026-03-21 — AUT-16 pin Render Node runtime to LTS
-- 2026-03-21 — AUT-18 repo-access warning remediation investigation
-- 2026-03-21 — Repository spring cleaning and harness simplification
-- 2026-03-21 — PLANS archive automation and policy enforcement
-- 2026-03-21 — Linear Playwright workflow integrated into harness
-- 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
-- 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
-- 2026-03-22 — Bloat audit execution (`AUT-55..AUT-60`)
-- 2026-03-22 — Phase 2 lifecycle core (`AUT-61..AUT-69`)
 
 ## Completed Plan — Dispatch board UX simplification (calendar-only controls) (2026-03-23)
 
@@ -144,85 +180,6 @@ Reduce future delivery friction by hardening auth boundaries, decomposing reposi
 
 - Epic and subtasks `AUT-89..AUT-96` transitioned to `Done` via harness sync.
 - Sync log: `/tmp/linear-aut89-96-sync-result.json`
-
-## Completed Plan — Spring cleanup wave (`AUT-82..AUT-88`) (2026-03-22)
-
-### Objective
-
-Reduce repository noise and enforce deterministic hygiene contracts before next feature work, without changing product behavior.
-
-### Delivered
-
-- Added canonical tracked evidence allowlist at `data/hygiene/evidence-canonical.json`.
-- Added cleanup tooling:
-  - `scripts/cleanup-spring.js`,
-  - `npm run cleanup:spring` (dry-run),
-  - `npm run cleanup:spring:apply` (apply pruning).
-- Enforced canonical evidence policy with tests.
-- Pruned legacy tracked and stale untracked evidence artifacts.
-- Added `verify:render` CLI deploy mode parser with explicit `--skip-deploy` / `--deploy` precedence over env.
-- Updated runbook/hygiene docs and status records to match cleanup workflow.
-
-### Verification
-
-- `npm test`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-- `npm run secrets:scan`: passed
-- `npm run verify:render -- --skip-deploy`: passed
-- `npm run verify:render -- --deploy`: passed
-  - deploy: `dep-d707i3sr85hc73dqa3tg`
-  - commit parity: `1ec6e8f5b30a825e762967f556c30ff2ec18e271`
-  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-
-### Linear sync
-
-- Epic and subtasks `AUT-82..AUT-88` created and transitioned to `Done` via harness.
-
-### Primary evidence
-
-- `evidence/render-log-audit-summary.json`
-- `evidence/bloat-audit-latest.json`
-- `evidence/linear-aut73-81-done-sync.json`
-
-## Completed Plan — Phase 3 parts flow (`AUT-73..AUT-81`) (2026-03-22)
-
-### Objective
-
-Deliver the next feature block after lifecycle core: explicit parts-request operations under work orders, lifecycle gating while parts are unresolved, dashboard visibility for waiting-parts aging, and harness-level end-to-end verification.
-
-### Delivered
-
-- `AUT-74`: parts-request domain status machine and supplier-action status catalog.
-- `AUT-75`: migration `008` with `work_order_parts_requests`, `parts_purchase_actions`, `work_order_parts_history`, indexes, and seeded substitution examples.
-- `AUT-76`: strict work-order parts APIs and validation contracts.
-- `AUT-77`: service gating so blocking parts prevent premature lifecycle progression and resolved parts allow continuation.
-- `AUT-78`: Russian work-order page parts workspace (create/update/supplier events/history) on `/work-orders/:id`.
-- `AUT-79`: dashboard waiting-parts queue expanded with pending-count and aging signal.
-- `AUT-80`: new `scenario:parts-flow` plus `verify`/`verify:render` integration.
-- `AUT-81`: runbook/README/seed updates and bloat-budget recalibration for Phase 3 footprint.
-
-### Verification
-
-- `npm test`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-- `npm run verify:render`: passed
-  - deploy: `dep-d7071q1r0fns73cm2o70`
-  - commit parity: `be422e1752d37e9ad190fce47bd9bc99100e4401`
-  - deployed smoke + non-destructive booking/walk-in/scheduling/parts-flow scenarios: passed
-  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-
-### Linear sync
-
-- Epic and subtasks (`AUT-73..AUT-81`) are ready for Done sync through harness.
-- Sync command: `npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done`
-
-### Primary evidence
-
-- `evidence/render-log-audit-summary.json`
-- `evidence/bloat-audit-latest.json`
-- `evidence/linear-aut73-81-done-sync.json`
 
 ## Maintenance rule
 

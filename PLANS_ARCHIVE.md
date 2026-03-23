@@ -107,3 +107,89 @@ Deliver the first complete Phase 2 lifecycle slice so a vehicle can move from in
 - `evidence/render-log-audit-summary.json`
 - `evidence/bloat-audit-latest.json`
 
+## Archive Batch — 2026-03-23
+
+### Moved from PLANS.md
+
+- Completed Plan — Spring cleanup wave (`AUT-82..AUT-88`) (2026-03-22)
+- Completed Plan — Phase 3 parts flow (`AUT-73..AUT-81`) (2026-03-22)
+
+## Completed Plan — Spring cleanup wave (`AUT-82..AUT-88`) (2026-03-22)
+
+### Objective
+
+Reduce repository noise and enforce deterministic hygiene contracts before next feature work, without changing product behavior.
+
+### Delivered
+
+- Added canonical tracked evidence allowlist at `data/hygiene/evidence-canonical.json`.
+- Added cleanup tooling:
+  - `scripts/cleanup-spring.js`,
+  - `npm run cleanup:spring` (dry-run),
+  - `npm run cleanup:spring:apply` (apply pruning).
+- Enforced canonical evidence policy with tests.
+- Pruned legacy tracked and stale untracked evidence artifacts.
+- Added `verify:render` CLI deploy mode parser with explicit `--skip-deploy` / `--deploy` precedence over env.
+- Updated runbook/hygiene docs and status records to match cleanup workflow.
+
+### Verification
+
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:render -- --skip-deploy`: passed
+- `npm run verify:render -- --deploy`: passed
+  - deploy: `dep-d707i3sr85hc73dqa3tg`
+  - commit parity: `1ec6e8f5b30a825e762967f556c30ff2ec18e271`
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+
+### Linear sync
+
+- Epic and subtasks `AUT-82..AUT-88` created and transitioned to `Done` via harness.
+
+### Primary evidence
+
+- `evidence/render-log-audit-summary.json`
+- `evidence/bloat-audit-latest.json`
+- `evidence/linear-aut73-81-done-sync.json`
+
+## Completed Plan — Phase 3 parts flow (`AUT-73..AUT-81`) (2026-03-22)
+
+### Objective
+
+Deliver the next feature block after lifecycle core: explicit parts-request operations under work orders, lifecycle gating while parts are unresolved, dashboard visibility for waiting-parts aging, and harness-level end-to-end verification.
+
+### Delivered
+
+- `AUT-74`: parts-request domain status machine and supplier-action status catalog.
+- `AUT-75`: migration `008` with `work_order_parts_requests`, `parts_purchase_actions`, `work_order_parts_history`, indexes, and seeded substitution examples.
+- `AUT-76`: strict work-order parts APIs and validation contracts.
+- `AUT-77`: service gating so blocking parts prevent premature lifecycle progression and resolved parts allow continuation.
+- `AUT-78`: Russian work-order page parts workspace (create/update/supplier events/history) on `/work-orders/:id`.
+- `AUT-79`: dashboard waiting-parts queue expanded with pending-count and aging signal.
+- `AUT-80`: new `scenario:parts-flow` plus `verify`/`verify:render` integration.
+- `AUT-81`: runbook/README/seed updates and bloat-budget recalibration for Phase 3 footprint.
+
+### Verification
+
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run verify:render`: passed
+  - deploy: `dep-d7071q1r0fns73cm2o70`
+  - commit parity: `be422e1752d37e9ad190fce47bd9bc99100e4401`
+  - deployed smoke + non-destructive booking/walk-in/scheduling/parts-flow scenarios: passed
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+
+### Linear sync
+
+- Epic and subtasks (`AUT-73..AUT-81`) are ready for Done sync through harness.
+- Sync command: `npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done`
+
+### Primary evidence
+
+- `evidence/render-log-audit-summary.json`
+- `evidence/bloat-audit-latest.json`
+- `evidence/linear-aut73-81-done-sync.json`
+

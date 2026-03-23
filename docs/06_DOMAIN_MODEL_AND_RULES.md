@@ -45,14 +45,14 @@ Rules:
 A bay is a real capacity constraint.
 
 Rules:
-- a bay can only host one active planned job in the same time slot unless the service explicitly allows overlap for a specific case;
+- bay overlap is allowed by product policy in v1 scheduling flows, but must be surfaced as an explicit warning;
 - a bay assignment may change during the day, but changes should be visible.
 
 ### Employee
 An employee is a real labor capacity constraint.
 
 Rules:
-- an employee can be assigned to multiple jobs only if the service intentionally allows it;
+- assignee overlap is allowed by product policy in v1 scheduling flows, but must be surfaced as an explicit warning;
 - a primary responsible person should be visible for each work order even when several people contribute.
 
 ### Appointment
@@ -63,6 +63,7 @@ Rules:
 - appointments can become work orders later;
 - walk-ins may create same-day appointments or skip directly into intake flow;
 - cancelled appointments should remain visible in history.
+- overlap conflicts in slot assignment should not block create/update in v1; they should be returned as structured warnings.
 
 ### Work Order
 A work order is the main operational record for a repair visit.

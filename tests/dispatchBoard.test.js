@@ -16,6 +16,8 @@ test("dispatch board page and api render EventCalendar payload", async () => {
     assert.match(html, /id="dispatch-calendar"/u);
     assert.match(html, /event-calendar\.min\.js/u);
     assert.match(html, /draggable="true"/u);
+    assert.match(html, /dispatch-event-line primary/u);
+    assert.match(html, /status-overlap/u);
     assert.doesNotMatch(html, /vis-timeline/u);
     assert.doesNotMatch(html, /Выбранный слот/u);
     assert.doesNotMatch(html, /Выбранная запись/u);
@@ -74,6 +76,7 @@ test("dispatch board scheduling flow supports preview, commit, history, and queu
     assert.equal(preview.json.preview, true);
     assert.equal(preview.json.item.plannedStartLocal, "2026-03-23 13:30");
     assert.equal(preview.json.item.expectedDurationMin, 90);
+    assert.equal(Array.isArray(preview.json.warnings), false);
 
     const stillUnchanged = await requestJson("GET", `${baseUrl}/api/v1/appointments/${createdId}`);
     assert.equal(stillUnchanged.status, 200);
@@ -113,16 +116,22 @@ test("dispatch board scheduling flow supports preview, commit, history, and queu
 
     const walkInCandidate = boardPayload.json.queues.walkIn[0];
     assert.ok(walkInCandidate?.id);
+    const conflictResource = boardPayload.json.resources.find((entry) => entry.id === "bay:bay-1") ?? targetResource;
 
-    const scheduleWalkIn = await requestJson("POST", `${baseUrl}/api/v1/dispatch/board/queue/walk-ins/${walkInCandidate.id}/schedule`, {
-      start: "2026-03-23 18:00",
-      end: "2026-03-23 18:45",
-      resourceId: targetResource.id,
-      laneMode: "bay",
-      dayLocal: "2026-03-23",
-    });
+    const scheduleWalkIn = await requestJson(
+      "POST",
+      `${baseUrl}/api/v1/dispatch/board/queue/walk-ins/${walkInCandidate.id}/schedule`,
+      {
+        start: "2026-03-23 09:00",
+        end: "2026-03-23 09:45",
+        resourceId: conflictResource.id,
+        laneMode: "bay",
+        dayLocal: "2026-03-23",
+      },
+    );
     assert.equal(scheduleWalkIn.status, 201);
     assert.equal(scheduleWalkIn.json.createdFromWorkOrderId, walkInCandidate.id);
+    assert.equal(Array.isArray(scheduleWalkIn.json.warnings), true);
 
     const boardAfter = await requestJson("GET", `${baseUrl}/api/v1/dispatch/board?day=2026-03-23&laneMode=bay`);
     assert.equal(boardAfter.status, 200);

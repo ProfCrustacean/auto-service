@@ -179,7 +179,7 @@ export class AppointmentService {
     return this.repository.listAppointmentScheduleHistory(id, { limit });
   }
 
-  ensureCapacityAvailable({
+  collectCapacityConflicts({
     plannedStartLocal,
     expectedDurationMin = null,
     bayId,
@@ -188,12 +188,12 @@ export class AppointmentService {
     excludeAppointmentId = null,
   }) {
     if (!isBlockingStatus(status)) {
-      return;
+      return [];
     }
 
     const targetRange = buildTimeRange({ plannedStartLocal, expectedDurationMin });
     if (!targetRange) {
-      return;
+      return [];
     }
 
     const dateFromLocal = formatLocalDateOnly(targetRange.start);
@@ -268,9 +268,11 @@ export class AppointmentService {
       }
     }
 
-    if (details.length > 0) {
-      throw makeDomainError("appointment_capacity_conflict", "Double-booking conflict for selected slot", details);
-    }
+    return details;
+  }
+
+  ensureCapacityAvailable(payload) {
+    return this.collectCapacityConflicts(payload);
   }
 
   createAppointment(payload) {
@@ -283,7 +285,7 @@ export class AppointmentService {
       bayId: payload.bayId ?? null,
     });
 
-    this.ensureCapacityAvailable({
+    const capacityWarnings = this.collectCapacityConflicts({
       plannedStartLocal: payload.plannedStartLocal,
       expectedDurationMin: payload.expectedDurationMin ?? null,
       bayId: payload.bayId ?? null,
@@ -294,7 +296,7 @@ export class AppointmentService {
 
     const code = this.repository.allocateNextAppointmentCode();
 
-    return this.repository.createAppointment({
+    const created = this.repository.createAppointment({
       id: toId("apt"),
       code,
       plannedStartLocal: payload.plannedStartLocal,
@@ -311,6 +313,15 @@ export class AppointmentService {
       expectedDurationMin: payload.expectedDurationMin ?? null,
       notes: payload.notes ?? null,
     });
+
+    if (capacityWarnings.length === 0) {
+      return created;
+    }
+
+    return {
+      ...created,
+      capacityWarnings,
+    };
   }
 
   createAppointmentFromBookingForm({
@@ -375,7 +386,7 @@ export class AppointmentService {
       bayId: nextBayId ?? null,
     });
 
-    this.ensureCapacityAvailable({
+    const capacityWarnings = this.collectCapacityConflicts({
       plannedStartLocal: nextPlannedStartLocal,
       expectedDurationMin: nextExpectedDurationMin,
       bayId: nextBayId,
@@ -403,6 +414,7 @@ export class AppointmentService {
     return {
       existing,
       repositoryUpdates,
+      capacityWarnings,
     };
   }
 
@@ -415,6 +427,7 @@ export class AppointmentService {
     return {
       ...context.existing,
       ...context.repositoryUpdates,
+      capacityWarnings: context.capacityWarnings,
     };
   }
 
@@ -452,7 +465,14 @@ export class AppointmentService {
         }
       }
 
-      return updated;
+      if (context.capacityWarnings.length === 0) {
+        return updated;
+      }
+
+      return {
+        ...updated,
+        capacityWarnings: context.capacityWarnings,
+      };
     });
   }
 }

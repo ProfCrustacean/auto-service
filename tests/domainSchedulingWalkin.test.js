@@ -43,19 +43,17 @@ test("domain services support scheduling and walk-in acceptance scenario", () =>
     const confirmed = appointmentService.updateAppointmentById(appointment.id, { status: "confirmed" });
     assert.equal(confirmed.status, "confirmed");
 
-    assert.throws(
-      () =>
-        appointmentService.createAppointment({
-          plannedStartLocal: slot,
-          customerId: "cust-4",
-          vehicleId: "veh-4",
-          complaint: "Domain conflict appointment",
-          bayId: "bay-1",
-          primaryAssignee: "Сергей Кузнецов",
-          status: "booked",
-        }),
-      (error) => error?.code === "appointment_capacity_conflict",
-    );
+    const overlapping = appointmentService.createAppointment({
+      plannedStartLocal: slot,
+      customerId: "cust-4",
+      vehicleId: "veh-4",
+      complaint: "Domain conflict appointment",
+      bayId: "bay-1",
+      primaryAssignee: "Сергей Кузнецов",
+      status: "booked",
+    });
+    assert.equal(Array.isArray(overlapping.capacityWarnings), true);
+    assert.equal(overlapping.capacityWarnings[0].field, "bayId");
 
     const walkIn = walkInIntakeService.createWalkInIntake({
       customerId: "cust-1",
@@ -74,7 +72,7 @@ test("domain services support scheduling and walk-in acceptance scenario", () =>
     const workOrdersAfter = repository.listWorkOrders().length;
     const intakeEvents = repository.listIntakeEvents();
 
-    assert.equal(appointmentsAfter, appointmentsBefore + 1);
+    assert.equal(appointmentsAfter, appointmentsBefore + 2);
     assert.equal(workOrdersAfter, workOrdersBefore + 1);
     assert.equal(intakeEvents.some((item) => item.id === walkIn.intakeEvent.id), true);
   } finally {

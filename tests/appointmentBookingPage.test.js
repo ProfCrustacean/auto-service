@@ -26,7 +26,7 @@ test("appointments/new renders booking form and lookup", async () => {
   });
 });
 
-test("appointments/new keeps validation and conflict feedback", async () => {
+test("appointments/new keeps validation and non-blocking overlap feedback", async () => {
   await withTestServer("auto-service-appointment-page-errors", async ({ baseUrl }) => {
     const invalid = await submitUrlEncodedForm(`${baseUrl}/appointments/new`, {
       plannedStartLocal: "2026-03-23 10:30",
@@ -39,17 +39,32 @@ test("appointments/new keeps validation and conflict feedback", async () => {
     assert.match(invalid.text, /Исправьте ошибки перед сохранением/u);
     assert.match(invalid.text, /Опишите жалобу или запрос клиента/u);
 
-    const conflict = await submitUrlEncodedForm(`${baseUrl}/appointments/new`, {
-      plannedStartLocal: "2026-03-23 09:00",
-      customerId: "cust-2",
-      vehicleId: "veh-3",
-      complaint: "Диагностика",
-      bayId: "bay-1",
-    });
+    const overlap = await submitUrlEncodedForm(
+      `${baseUrl}/appointments/new`,
+      {
+        plannedStartLocal: "2026-03-23 09:00",
+        customerId: "cust-2",
+        vehicleId: "veh-3",
+        complaint: "Диагностика",
+        bayId: "bay-1",
+      },
+      { redirect: "manual" },
+    );
 
-    assert.equal(conflict.status, 409);
-    assert.match(conflict.text, /Конфликт загрузки в выбранном слоте/u);
-    assert.match(conflict.text, /Пост уже занят на это время/u);
+    assert.equal(overlap.status, 303);
+    assert.match(overlap.location ?? "", /^\/appointments\/[^?]+\?created=1/u);
+  });
+});
+
+test("appointments/new preview renders overlap warning details", async () => {
+  await withTestServer("auto-service-appointment-page-overlap-preview", async ({ baseUrl }) => {
+    const previewRes = await fetch(
+      `${baseUrl}/appointments/new?plannedStartLocal=2026-03-23%2009:00&customerId=cust-2&vehicleId=veh-3&complaint=%D0%94%D0%B8%D0%B0%D0%B3%D0%BD%D0%BE%D1%81%D1%82%D0%B8%D0%BA%D0%B0&bayId=bay-1`,
+    );
+    assert.equal(previewRes.status, 200);
+    const previewHtml = await previewRes.text();
+    assert.match(previewHtml, /Конфликт загрузки в выбранном слоте/u);
+    assert.match(previewHtml, /Пост уже занят на это время/u);
   });
 });
 
@@ -136,32 +151,41 @@ test("appointments/new supports inline customer+vehicle create", async () => {
   });
 });
 
-test("appointments/new rolls back inline entities on conflict", async () => {
-  await withTestServer("auto-service-appointment-page-inline-rollback", async ({ baseUrl }) => {
+test("appointments/new allows inline entity create even with overlap", async () => {
+  await withTestServer("auto-service-appointment-page-inline-overlap", async ({ baseUrl }) => {
     const token = `${Date.now()}`;
     const beforeCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
     const beforeVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
+    const beforeAppointments = await requestJson("GET", `${baseUrl}/api/v1/appointments`);
     assert.equal(beforeCustomers.status, 200);
     assert.equal(beforeVehicles.status, 200);
+    assert.equal(beforeAppointments.status, 200);
 
-    const submit = await submitUrlEncodedForm(`${baseUrl}/appointments/new`, {
-      plannedStartLocal: "2026-03-23 09:00",
-      complaint: "Откат",
-      bayId: "bay-1",
-      newCustomerFullName: `RB Клиент ${token}`,
-      newCustomerPhone: `+7 927 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`,
-      newVehicleLabel: `RB Авто ${token}`,
-      newVehiclePlateNumber: `RB${token.slice(-6)}`,
-    });
+    const submit = await submitUrlEncodedForm(
+      `${baseUrl}/appointments/new`,
+      {
+        plannedStartLocal: "2026-03-23 09:00",
+        complaint: "Откат",
+        bayId: "bay-1",
+        newCustomerFullName: `RB Клиент ${token}`,
+        newCustomerPhone: `+7 927 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`,
+        newVehicleLabel: `RB Авто ${token}`,
+        newVehiclePlateNumber: `RB${token.slice(-6)}`,
+      },
+      { redirect: "manual" },
+    );
 
-    assert.equal(submit.status, 409);
-    assert.match(submit.text, /Конфликт загрузки в выбранном слоте/u);
+    assert.equal(submit.status, 303);
+    assert.match(submit.location ?? "", /^\/appointments\/[^?]+\?created=1/u);
 
     const afterCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
     const afterVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
+    const afterAppointments = await requestJson("GET", `${baseUrl}/api/v1/appointments`);
     assert.equal(afterCustomers.status, 200);
     assert.equal(afterVehicles.status, 200);
-    assert.equal(afterCustomers.json.count, beforeCustomers.json.count);
-    assert.equal(afterVehicles.json.count, beforeVehicles.json.count);
+    assert.equal(afterAppointments.status, 200);
+    assert.equal(afterCustomers.json.count, beforeCustomers.json.count + 1);
+    assert.equal(afterVehicles.json.count, beforeVehicles.json.count + 1);
+    assert.equal(afterAppointments.json.count, beforeAppointments.json.count + 1);
   });
 });

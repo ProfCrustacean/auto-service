@@ -8,7 +8,7 @@ import {
   waitForServer,
 } from "./helpers/httpHarness.js";
 
-test("appointment lifecycle API enforces transitions and deterministic capacity conflicts", async () => {
+test("appointment lifecycle API enforces transitions and returns non-blocking capacity warnings", async () => {
   const tempDb = createTempDatabase("auto-service-appointment-lifecycle-test");
   const { databasePath, cleanup } = tempDb;
   const { server, database } = makeServer({ databasePath });
@@ -65,9 +65,9 @@ test("appointment lifecycle API enforces transitions and deterministic capacity 
       bayId: "bay-1",
       primaryAssignee: "Сергей Кузнецов",
     });
-    assert.equal(bayConflict.status, 409);
-    assert.equal(bayConflict.json.error.code, "conflict");
-    assert.equal(bayConflict.json.error.details[0].field, "bayId");
+    assert.equal(bayConflict.status, 201);
+    assert.equal(Array.isArray(bayConflict.json.warnings), true);
+    assert.equal(bayConflict.json.warnings[0].field, "bayId");
 
     const assigneeConflict = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
       plannedStartLocal: "2026-03-22 09:00",
@@ -77,9 +77,9 @@ test("appointment lifecycle API enforces transitions and deterministic capacity 
       bayId: "bay-2",
       primaryAssignee: "Иван Петров",
     });
-    assert.equal(assigneeConflict.status, 409);
-    assert.equal(assigneeConflict.json.error.code, "conflict");
-    assert.equal(assigneeConflict.json.error.details[0].field, "primaryAssignee");
+    assert.equal(assigneeConflict.status, 201);
+    assert.equal(Array.isArray(assigneeConflict.json.warnings), true);
+    assert.equal(assigneeConflict.json.warnings[0].field, "primaryAssignee");
 
     const normalizedCreate = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
       plannedStartLocal: "2026-03-22T13:00",
@@ -100,8 +100,8 @@ test("appointment lifecycle API enforces transitions and deterministic capacity 
       bayId: "bay-2",
       primaryAssignee: "Сергей Кузнецов",
     });
-    assert.equal(normalizedConflict.status, 409);
-    assert.equal(normalizedConflict.json.error.code, "conflict");
+    assert.equal(normalizedConflict.status, 201);
+    assert.equal(Array.isArray(normalizedConflict.json.warnings), true);
 
     const invalidSlot = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
       plannedStartLocal: "Завтра 09:00",
@@ -167,9 +167,9 @@ test("appointment lifecycle API enforces transitions and deterministic capacity 
         bayId: "bay-1",
       },
     );
-    assert.equal(moveToConflict.status, 409);
-    assert.equal(moveToConflict.json.error.code, "conflict");
-    assert.equal(moveToConflict.json.error.details[0].field, "bayId");
+    assert.equal(moveToConflict.status, 200);
+    assert.equal(Array.isArray(moveToConflict.json.warnings), true);
+    assert.equal(moveToConflict.json.warnings[0].field, "bayId");
 
     const filtered = await requestJson("GET", `${baseUrl}/api/v1/appointments?status=arrived`);
     assert.equal(filtered.status, 200);
