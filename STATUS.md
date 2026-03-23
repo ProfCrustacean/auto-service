@@ -14,16 +14,17 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Foundation hardening epic is delivered and verified; next priority is Phase 4 (payments and reporting closure).
+Dispatch board full vertical-calendar migration is delivered and verified; next priority remains Phase 4 (payments and reporting closure).
 
 ## Current state (2026-03-23)
 
 ### Product/runtime
-- Dispatch board UX is simplified to owner-focused calendar-only controls:
-  - removed top metric strips (global + per-lane cards),
-  - removed bottom manual control panel ("Выбранный слот / Выбранная запись"),
-  - queue scheduling is now drag-and-drop directly into timeline only,
-  - existing booking move/resize remains timeline-native (no duplicate manual controls).
+- Dispatch board is fully migrated to EventCalendar (`@event-calendar/build@5.5.1`) with owner-focused calendar-only controls:
+  - vertical `resourceTimeGridDay` view (time top-to-bottom, resources as lanes),
+  - removed top metric strips and removed bottom manual control panel,
+  - queue scheduling is drag-and-drop into calendar only,
+  - existing booking move/resize is calendar-native only,
+  - dispatch writes now use API-only routes under `/api/v1/dispatch/board/*`.
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
   - appointment lifecycle with deterministic capacity checks,
@@ -47,7 +48,7 @@ Foundation hardening epic is delivered and verified; next priority is Phase 4 (p
 
 ### Harness/operations
 - Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
-- Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios including parts-flow, log audit).
+- Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios including dispatch board, log audit).
 - Authorization boundary is unified across API/page write routes using `src/http/mutationPolicy.js`.
 - Render verify deploy mode is explicit and deterministic via CLI flags (`--skip-deploy` / `--deploy`) with CLI-over-env precedence.
 - Harness internals now share process orchestration helpers via `scripts/harness-process.js`.
@@ -67,6 +68,7 @@ Foundation hardening epic is delivered and verified; next priority is Phase 4 (p
 ## Last accepted milestones
 
 - 2026-03-23: Dispatch board owner-focused simplification delivered and deployed (`ea3ca989dee8362ceadd3882a1c08bdc2da39da2`, runtime fix on top `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`).
+- 2026-03-23: Dispatch board full EventCalendar cutover delivered and deployed (`a885874c7d0e7546769eb3b5cda074853f4252d5`).
 - 2026-03-22: Phase 2 lifecycle core epic completed (`AUT-61..AUT-69`) and synced to Done.
 - 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented and synced to Done.
 - 2026-03-22: Phase 3 parts-flow epic implemented and deployed (`AUT-73..AUT-81`), verification gates green.
@@ -78,14 +80,14 @@ Foundation hardening epic is delivered and verified; next priority is Phase 4 (p
 Most recent local gate results:
 - `npm test`: passed
 - `npm run verify`: passed
-- `npm run audit:bloat`: passed
+- `npm run audit:bloat`: failed (pre-existing area budget overruns in `src/tests/scripts`)
 - `npm run lint`: passed
 - `npm run secrets:scan`: passed
 
 Most recent deploy-aware gate results:
 - `npm run verify:render`: passed
-  - deploy id: `dep-d70m0a9r0fns73elbq90`
-  - commit parity: passed (`3945ce76b7667ee5ecccaabee04b235eeb3eabf4`)
+  - deploy id: `dep-d70mr1juibrs73aphtq0`
+  - commit parity: passed (`a885874c7d0e7546769eb3b5cda074853f4252d5`)
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
@@ -113,6 +115,7 @@ Primary evidence pointers:
 - Render API access can require `--resolve` fallback from this local environment; harness already supports this path.
 - Token auth remains baseline-level (no IdP/session/rotation service yet).
 - SQLite remains single-node file persistence.
+- `audit:bloat` is currently red because existing area budgets (`src/tests/scripts`) are below current repository footprint.
 
 ## Active work focus
 

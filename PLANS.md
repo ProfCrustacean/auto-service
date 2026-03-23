@@ -6,42 +6,49 @@ Hot-path execution plan file for current non-trivial work.
 
 Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-## Active Plan — Dispatch board full EventCalendar cutover (2026-03-23)
+## Active Plan — None
+
+No active multi-step implementation plan is open right now.
+
+Create a new active plan before the next non-trivial feature/refactor/deployment slice.
+
+## Completed Plan — Dispatch board full EventCalendar cutover (2026-03-23)
 
 ### Objective
 
-Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridDay`) and fully migrate dispatch board write flows to API-only contracts.
+Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridDay`) and migrate dispatch board writes to API-only routes.
 
-### Scope
+### Delivered
 
-- Full `/dispatch/board` UI engine replacement.
-- `GET /api/v1/dispatch/board` payload migration to calendar-native model (`calendar/resources/events/queues/actions`).
-- Remove legacy `/dispatch/board/*` write routes; add `/api/v1/dispatch/board/*` write routes.
-- Update mutation policy, tests, smoke/scenario harness, docs, status, and deploy verification.
+- Replaced dispatch board engine with EventCalendar standalone bundle (`@event-calendar/build@5.5.1`) in vertical `resourceTimeGridDay` mode.
+- Migrated `GET /api/v1/dispatch/board` payload to calendar-native schema:
+  - `calendar`, `resources`, `events`, `queues`, `actions`.
+- Removed legacy write routes under `/dispatch/board/*` and added API-only mutations:
+  - `POST /api/v1/dispatch/board/events/:id/preview`
+  - `POST /api/v1/dispatch/board/events/:id/commit`
+  - `POST /api/v1/dispatch/board/queue/appointments/:id/schedule`
+  - `POST /api/v1/dispatch/board/queue/walk-ins/:id/schedule`
+- Updated mutation policy for dispatch board API writes (`api.dispatch_board.write`).
+- Updated dispatch board integration tests, smoke checks, and dispatch scenario harness flow.
+- Updated runbook + UX guidelines for vertical calendar and queue drag-only control model.
 
-### Steps
+### Verification
 
-1. Baseline:
-   - `npm test`, `npm run verify`, `npm run audit:bloat`.
-2. Backend projection:
-   - migrate `dashboardService.getDispatchBoard()` output to EventCalendar-native schema.
-3. API routes:
-   - remove legacy UI write routes and introduce API-only dispatch mutation routes.
-4. UI engine migration:
-   - remove `vis-timeline`, integrate `@event-calendar/build@5.5.1` standalone bundle,
-   - wire drag/resize commits and queue external drop.
-5. Harness/test migration:
-   - update dispatch board tests, smoke markers, and dispatch scenario route payloads.
-6. Documentation/state updates:
-   - `STATUS.md`, `docs/11_UI_UX_GUIDELINES.md`, `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`, plan closeout.
-7. Full validation and deploy:
-   - `npm run lint`, `npm test`, `npm run verify`, `npm run secrets:scan`, `npm run audit:bloat`, `npm run verify:render`, production browser smoke.
-
-### Current baseline snapshot
-
+- `npm run lint`: passed
 - `npm test`: passed
 - `npm run verify`: passed
-- `npm run audit:bloat`: failed (pre-existing area budget overruns in `src/tests/scripts`; no new regressions yet)
+- `npm run secrets:scan`: passed
+- `npm run verify:render`: passed
+  - deploy id: `dep-d70mr1juibrs73aphtq0`
+  - commit parity: passed (`a885874c7d0e7546769eb3b5cda074853f4252d5`)
+  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- Browser smoke (Playwright) on production `/dispatch/board`:
+  - vertical resource time-grid visible,
+  - queue cards draggable,
+  - legacy manual-control blocks absent,
+  - console errors: 0.
+- `npm run audit:bloat`: failed (pre-existing budget overruns in `src/tests/scripts`; unchanged blocker category).
 
 ## Archived plan skeleton
 
