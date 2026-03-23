@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-23T18:49:06.257Z",
+  "generatedAt": "2026-03-23T19:05:50.493Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,24 +23,24 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1039199,
+      "totalBytes": 1041918,
       "byArea": {
-        "src": 513345,
-        "tests": 148673,
+        "src": 515795,
+        "tests": 148778,
         "scripts": 206861,
         "docs": 77652,
-        "evidence": 7498,
+        "evidence": 7662,
         "other": 85170
       }
     },
     "topTrackedFiles": [
       {
         "path": "src/repositories/sqliteRepository.js",
-        "bytes": 54037
+        "bytes": 54406
       },
       {
         "path": "src/ui/dispatchBoardPage.js",
-        "bytes": 38288
+        "bytes": 40151
       },
       {
         "path": "src/ui/workOrderLifecyclePage.js",
@@ -72,7 +72,7 @@
       },
       {
         "path": "src/services/workOrderService.js",
-        "bytes": 23582
+        "bytes": 23736
       },
       {
         "path": "src/persistence/seedDatabase.js",
@@ -96,7 +96,7 @@
       },
       {
         "path": "src/http/dispatchBoardPageRoutes.js",
-        "bytes": 16255
+        "bytes": 16319
       },
       {
         "path": "scripts/scheduling-walkin-scenario.js",
@@ -117,7 +117,7 @@
     ],
     "evidence": {
       "trackedFileCount": 3,
-      "totalBytes": 7498,
+      "totalBytes": 7662,
       "largestFile": {
         "path": "evidence/linear-aut73-81-done-sync.json",
         "bytes": 3567
@@ -136,8 +136,8 @@
       "duplicatedLines": 1820,
       "clones": 141,
       "sources": 111,
-      "lines": 22304,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-p0IG55/report/jscpd-report.json"
+      "lines": 22314,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-pu3XEt/report/jscpd-report.json"
     }
   },
   "violations": []

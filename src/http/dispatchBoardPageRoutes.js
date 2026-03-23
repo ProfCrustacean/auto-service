@@ -504,6 +504,8 @@ export function registerDispatchBoardPageRoutes(app, {
     try {
       const created = appointmentService.createAppointment(validation.value);
       const { item, warnings } = extractItemWarnings(created);
+      workOrderService.linkAppointment(workOrder.id, item.id);
+
       const payload = {
         item,
         createdFromWorkOrderId: workOrder.id,

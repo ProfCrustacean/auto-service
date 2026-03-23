@@ -362,6 +362,7 @@ export function renderDispatchBoardPage(model) {
       .ec {
         border: 0;
         font-family: "Manrope", "IBM Plex Sans", "Segoe UI", sans-serif;
+        --ec-event-text-color: #173026;
       }
 
       .ec .ec-event {
@@ -381,6 +382,22 @@ export function renderDispatchBoardPage(model) {
       .ec .ec-event .dispatch-event-line {
         color: #173026 !important;
         text-shadow: none;
+      }
+
+      .ec .ec-event-time,
+      .ec .ec-event-title,
+      .ec-event,
+      .ec-event * {
+        color: #173026 !important;
+      }
+
+      .ec-dragging .ec-event,
+      .ec-resizing-y .ec-event,
+      .ec-resizing-x .ec-event,
+      .ec-dragging .ec-event *,
+      .ec-resizing-y .ec-event *,
+      .ec-resizing-x .ec-event * {
+        color: #173026 !important;
       }
 
       .dispatch-event-content {
@@ -498,6 +515,10 @@ export function renderDispatchBoardPage(model) {
         let calendar = null;
         let draggedQueuePayload = null;
         let pointerDragState = null;
+        let nativeDragInProgress = false;
+        let nativeDragMarkerAt = 0;
+        let queueMutationInFlight = false;
+        const pendingEventMutationIds = new Set();
         let recentHtmlDropAt = 0;
         let toastTimeout = null;
 
@@ -764,6 +785,9 @@ export function renderDispatchBoardPage(model) {
         function bindQueueDragHandlers() {
           document.querySelectorAll(".queue-item").forEach((itemNode) => {
             itemNode.addEventListener("dragstart", (event) => {
+              nativeDragInProgress = true;
+              nativeDragMarkerAt = Date.now();
+              pointerDragState = null;
               draggedQueuePayload = {
                 kind: itemNode.dataset.queueKind,
                 id: itemNode.dataset.itemId,
@@ -781,6 +805,8 @@ export function renderDispatchBoardPage(model) {
             });
 
             itemNode.addEventListener("dragend", () => {
+              nativeDragInProgress = false;
+              nativeDragMarkerAt = Date.now();
               itemNode.classList.remove("is-dragging");
               draggedQueuePayload = null;
               calendarHost.classList.remove("drop-active");
@@ -833,6 +859,9 @@ export function renderDispatchBoardPage(model) {
           pointerDragState = null;
           calendarHost.classList.remove("drop-active");
 
+          if (nativeDragInProgress || Date.now() - nativeDragMarkerAt < 700) {
+            return;
+          }
           if (!currentState.active) {
             return;
           }
@@ -894,8 +923,10 @@ export function renderDispatchBoardPage(model) {
           const url = "/api/v1/dispatch/board?day="
             + encodeURIComponent(model.dayLocal)
             + "&laneMode="
-            + encodeURIComponent(model.laneMode);
-          const response = await fetch(url, { method: "GET" });
+            + encodeURIComponent(model.laneMode)
+            + "&_ts="
+            + Date.now();
+          const response = await fetch(url, { method: "GET", cache: "no-store" });
           if (!response.ok) {
             throw new Error("Не удалось обновить модель диспетчерской доски");
           }
@@ -923,47 +954,65 @@ export function renderDispatchBoardPage(model) {
         }
 
         async function previewAndCommitEvent(info, reason) {
+          if (!info?.event?.id) {
+            return;
+          }
+          const eventId = String(info.event.id);
+          if (pendingEventMutationIds.has(eventId)) {
+            showToast("Сохранение уже выполняется, дождитесь завершения", "warning");
+            info.revert();
+            return;
+          }
+          pendingEventMutationIds.add(eventId);
           const resourceId = resolveEventResourceId(info.event, info.newResource);
           if (!resourceId) {
             showToast("Не удалось определить ленту для сохранения", "error");
             info.revert();
+            pendingEventMutationIds.delete(eventId);
             return;
           }
 
-          const startDate = info.event.start;
-          const endDate = info.event.end ?? new Date(startDate.getTime() + 60 * 60000);
-          const payload = toMutationPayload({
-            startDate,
-            endDate,
-            resourceId,
-            reason,
-          });
+          try {
+            const startDate = info.event.start;
+            const endDate = info.event.end ?? new Date(startDate.getTime() + 60 * 60000);
+            const payload = toMutationPayload({
+              startDate,
+              endDate,
+              resourceId,
+              reason,
+            });
 
-          const preview = await postJson("/api/v1/dispatch/board/events/" + encodeURIComponent(info.event.id) + "/preview", payload);
-          if (!preview.response.ok) {
-            showToast(parseErrorMessage(preview.payload, "Не удалось проверить слот перед сохранением"), "error");
-            info.revert();
-            return;
-          }
+            const preview = await postJson("/api/v1/dispatch/board/events/" + encodeURIComponent(info.event.id) + "/preview", payload);
+            if (!preview.response.ok) {
+              showToast(parseErrorMessage(preview.payload, "Не удалось проверить слот перед сохранением"), "error");
+              info.revert();
+              return;
+            }
 
-          const commit = await postJson("/api/v1/dispatch/board/events/" + encodeURIComponent(info.event.id) + "/commit", payload);
-          if (!commit.response.ok) {
-            showToast(parseErrorMessage(commit.payload, "Не удалось сохранить изменения"), "error");
-            info.revert();
-            return;
-          }
+            const commit = await postJson("/api/v1/dispatch/board/events/" + encodeURIComponent(info.event.id) + "/commit", payload);
+            if (!commit.response.ok) {
+              showToast(parseErrorMessage(commit.payload, "Не удалось сохранить изменения"), "error");
+              info.revert();
+              return;
+            }
 
-          await refreshBoardModel();
-          const warningMessage = parseWarningMessage(commit.payload);
-          if (warningMessage) {
-            showToast("Сохранено с пересечением: " + warningMessage, "warning");
-            return;
+            await refreshBoardModel();
+            const warningMessage = parseWarningMessage(commit.payload);
+            if (warningMessage) {
+              showToast("Сохранено с пересечением: " + warningMessage, "warning");
+              return;
+            }
+            showToast("Сохранено: " + formatTimeLabel(startDate) + " · " + laneLabelById(resourceId));
+          } finally {
+            pendingEventMutationIds.delete(eventId);
           }
-          showToast("Сохранено: " + formatTimeLabel(startDate) + " · " + laneLabelById(resourceId));
         }
 
         async function scheduleQueuePayload(targetInfo, queuePayload) {
           if (!queuePayload) {
+            return;
+          }
+          if (queueMutationInFlight) {
             return;
           }
           if (!targetInfo || !targetInfo.date || !targetInfo.resource?.id) {
@@ -971,40 +1020,45 @@ export function renderDispatchBoardPage(model) {
             return;
           }
 
-          const startDate = new Date(targetInfo.date);
-          const endDate = new Date(startDate.getTime() + queuePayload.durationMin * 60000);
-          const payload = toMutationPayload({
-            startDate,
-            endDate,
-            resourceId: String(targetInfo.resource.id),
-            reason: "Назначение из очереди на календарной доске",
-          });
+          queueMutationInFlight = true;
+          try {
+            const startDate = new Date(targetInfo.date);
+            const endDate = new Date(startDate.getTime() + queuePayload.durationMin * 60000);
+            const payload = toMutationPayload({
+              startDate,
+              endDate,
+              resourceId: String(targetInfo.resource.id),
+              reason: "Назначение из очереди на календарной доске",
+            });
 
-          let result;
-          if (queuePayload.kind === "appointment") {
-            result = await postJson(
-              "/api/v1/dispatch/board/queue/appointments/" + encodeURIComponent(queuePayload.id) + "/schedule",
-              payload,
-            );
-          } else {
-            result = await postJson(
-              "/api/v1/dispatch/board/queue/walk-ins/" + encodeURIComponent(queuePayload.id) + "/schedule",
-              payload,
-            );
-          }
+            let result;
+            if (queuePayload.kind === "appointment") {
+              result = await postJson(
+                "/api/v1/dispatch/board/queue/appointments/" + encodeURIComponent(queuePayload.id) + "/schedule",
+                payload,
+              );
+            } else {
+              result = await postJson(
+                "/api/v1/dispatch/board/queue/walk-ins/" + encodeURIComponent(queuePayload.id) + "/schedule",
+                payload,
+              );
+            }
 
-          if (!result.response.ok) {
-            showToast(parseErrorMessage(result.payload, "Не удалось выполнить назначение"), "error");
-            return;
-          }
+            if (!result.response.ok) {
+              showToast(parseErrorMessage(result.payload, "Не удалось выполнить назначение"), "error");
+              return;
+            }
 
-          await refreshBoardModel();
-          const warningMessage = parseWarningMessage(result.payload);
-          if (warningMessage) {
-            showToast("Назначено с пересечением: " + warningMessage, "warning");
-            return;
+            await refreshBoardModel();
+            const warningMessage = parseWarningMessage(result.payload);
+            if (warningMessage) {
+              showToast("Назначено с пересечением: " + warningMessage, "warning");
+              return;
+            }
+            showToast("Назначено: " + queuePayload.code + " · " + formatTimeLabel(startDate) + " · " + laneLabelById(payload.resourceId));
+          } finally {
+            queueMutationInFlight = false;
           }
-          showToast("Назначено: " + queuePayload.code + " · " + formatTimeLabel(startDate) + " · " + laneLabelById(payload.resourceId));
         }
 
         if (!window.EventCalendar || typeof window.EventCalendar.create !== "function") {
@@ -1088,9 +1142,9 @@ export function renderDispatchBoardPage(model) {
           event.preventDefault();
           calendarHost.classList.remove("drop-active");
           const currentPayload = draggedQueuePayload;
+          recentHtmlDropAt = Date.now();
           const targetInfo = resolveDropTargetInfo(event);
           await scheduleQueuePayload(targetInfo, currentPayload);
-          recentHtmlDropAt = Date.now();
           draggedQueuePayload = null;
         }
 

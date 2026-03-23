@@ -137,5 +137,6 @@ test("dispatch board scheduling flow supports preview, commit, history, and queu
     assert.equal(boardAfter.status, 200);
     assert.equal(boardAfter.json.events.some((entry) => entry.id === createdId), true);
     assert.equal(boardAfter.json.events.some((entry) => entry.id === carryOverId), true);
+    assert.equal(boardAfter.json.queues.walkIn.some((entry) => entry.id === walkInCandidate.id), false);
   });
 });

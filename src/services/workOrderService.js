@@ -116,6 +116,13 @@ export class WorkOrderService {
     return this.repository.listUnscheduledWalkInWorkOrders({ limit });
   }
 
+  linkAppointment(workOrderId, appointmentId) {
+    this.repository.createAppointmentWorkOrderLink({
+      appointmentId,
+      workOrderId,
+    });
+  }
+
   getWorkOrderById(id) {
     const item = this.repository.getWorkOrderRecordById(id);
     if (!item) {

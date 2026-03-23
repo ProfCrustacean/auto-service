@@ -1577,6 +1577,19 @@ export class SqliteRepository {
     };
   }
 
+  createAppointmentWorkOrderLink({ appointmentId, workOrderId }) {
+    const nowIso = new Date().toISOString();
+    this.database
+      .prepare(
+        `INSERT OR IGNORE INTO appointment_work_order_links(
+          appointment_id,
+          work_order_id,
+          created_at
+        ) VALUES (?, ?, ?)`,
+      )
+      .run(appointmentId, workOrderId, nowIso);
+  }
+
   createWorkOrderFromAppointment({
     appointmentId,
     intakeEventId,
