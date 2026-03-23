@@ -197,6 +197,24 @@ export function renderEntitySelectionSection({
   fieldErrorMap,
   vehicleMakeLabel,
 }) {
+  const hasNewCustomerValues = [
+    values.newCustomerFullName,
+    values.newCustomerPhone,
+    values.newCustomerMessagingHandle,
+    values.newCustomerNotes,
+  ].some((value) => String(value ?? "").trim().length > 0);
+
+  const hasNewVehicleValues = [
+    values.newVehicleLabel,
+    values.newVehiclePlateNumber,
+    values.newVehicleVin,
+    values.newVehicleMake,
+    values.newVehicleModel,
+    values.newVehicleProductionYear,
+    values.newVehicleMileageKm,
+    values.newVehicleEngineOrTrim,
+  ].some((value) => String(value ?? "").trim().length > 0);
+
   return `<section class="row">
             <h3>1) Клиент и авто</h3>
             <div class="field-grid">
@@ -223,59 +241,65 @@ export function renderEntitySelectionSection({
               </label>
             </div>
 
-            <div class="field-grid">
-              <label>Новый клиент: ФИО
-                <input type="text" name="newCustomerFullName" value="${escapeHtml(values.newCustomerFullName)}" placeholder="Если клиента нет в базе" />
-                ${renderFieldErrors(fieldErrorMap, "newCustomerFullName")}
-              </label>
-              <label>Новый клиент: Телефон
-                <input type="text" name="newCustomerPhone" value="${escapeHtml(values.newCustomerPhone)}" placeholder="+7 ..." />
-                ${renderFieldErrors(fieldErrorMap, "newCustomerPhone")}
-              </label>
-              <label>Новый клиент: Мессенджер
-                <input type="text" name="newCustomerMessagingHandle" value="${escapeHtml(values.newCustomerMessagingHandle)}" placeholder="@handle (опционально)" />
-                ${renderFieldErrors(fieldErrorMap, "newCustomerMessagingHandle")}
-              </label>
-              <label>Новый клиент: Примечание
-                <input type="text" name="newCustomerNotes" value="${escapeHtml(values.newCustomerNotes)}" placeholder="Опционально" />
-                ${renderFieldErrors(fieldErrorMap, "newCustomerNotes")}
-              </label>
-            </div>
+            <details class="expander"${hasNewCustomerValues ? " open" : ""}>
+              <summary>Новый клиент (если не найден в базе)</summary>
+              <div class="field-grid">
+                <label>Новый клиент: ФИО
+                  <input type="text" name="newCustomerFullName" value="${escapeHtml(values.newCustomerFullName)}" placeholder="Если клиента нет в базе" />
+                  ${renderFieldErrors(fieldErrorMap, "newCustomerFullName")}
+                </label>
+                <label>Новый клиент: Телефон
+                  <input type="text" name="newCustomerPhone" value="${escapeHtml(values.newCustomerPhone)}" placeholder="+7 ..." />
+                  ${renderFieldErrors(fieldErrorMap, "newCustomerPhone")}
+                </label>
+                <label>Новый клиент: Мессенджер
+                  <input type="text" name="newCustomerMessagingHandle" value="${escapeHtml(values.newCustomerMessagingHandle)}" placeholder="@handle (опционально)" />
+                  ${renderFieldErrors(fieldErrorMap, "newCustomerMessagingHandle")}
+                </label>
+                <label>Новый клиент: Примечание
+                  <input type="text" name="newCustomerNotes" value="${escapeHtml(values.newCustomerNotes)}" placeholder="Опционально" />
+                  ${renderFieldErrors(fieldErrorMap, "newCustomerNotes")}
+                </label>
+              </div>
+            </details>
 
-            <div class="field-grid">
-              <label>Новое авто: Название
-                <input type="text" name="newVehicleLabel" value="${escapeHtml(values.newVehicleLabel)}" placeholder="Например: Lada Vesta A111AA13" />
-                ${renderFieldErrors(fieldErrorMap, "newVehicleLabel")}
-              </label>
-              <label>Новое авто: Номер
-                <input type="text" name="newVehiclePlateNumber" value="${escapeHtml(values.newVehiclePlateNumber)}" placeholder="A111AA13" />
-                ${renderFieldErrors(fieldErrorMap, "newVehiclePlateNumber")}
-              </label>
-              <label>Новое авто: VIN
-                <input type="text" name="newVehicleVin" value="${escapeHtml(values.newVehicleVin)}" placeholder="Опционально" />
-                ${renderFieldErrors(fieldErrorMap, "newVehicleVin")}
-              </label>
-              <label>${escapeHtml(vehicleMakeLabel)}
-                <input type="text" name="newVehicleMake" value="${escapeHtml(values.newVehicleMake)}" placeholder="Марка" />
-                ${renderFieldErrors(fieldErrorMap, "newVehicleMake")}
-              </label>
-              <label>Новое авто: Модель
-                <input type="text" name="newVehicleModel" value="${escapeHtml(values.newVehicleModel)}" placeholder="Модель" />
-                ${renderFieldErrors(fieldErrorMap, "newVehicleModel")}
-              </label>
-              <label>Новое авто: Год
-                <input type="text" name="newVehicleProductionYear" value="${escapeHtml(values.newVehicleProductionYear)}" placeholder="2008" />
-                ${renderFieldErrors(fieldErrorMap, "newVehicleProductionYear")}
-              </label>
-              <label>Новое авто: Пробег, км
-                <input type="text" name="newVehicleMileageKm" value="${escapeHtml(values.newVehicleMileageKm)}" placeholder="125000" />
-                ${renderFieldErrors(fieldErrorMap, "newVehicleMileageKm")}
-              </label>
-              <label>Новое авто: Двигатель / комплектация
-                <input type="text" name="newVehicleEngineOrTrim" value="${escapeHtml(values.newVehicleEngineOrTrim)}" placeholder="Опционально" />
-                ${renderFieldErrors(fieldErrorMap, "newVehicleEngineOrTrim")}
-              </label>
-            </div>
+            <details class="expander"${hasNewVehicleValues ? " open" : ""}>
+              <summary>Новое авто (если не найдено в базе)</summary>
+              <div class="field-grid">
+                <label>Новое авто: Название
+                  <input type="text" name="newVehicleLabel" value="${escapeHtml(values.newVehicleLabel)}" placeholder="Например: Lada Vesta A111AA13" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehicleLabel")}
+                </label>
+                <label>Новое авто: Номер
+                  <input type="text" name="newVehiclePlateNumber" value="${escapeHtml(values.newVehiclePlateNumber)}" placeholder="A111AA13" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehiclePlateNumber")}
+                </label>
+                <label>Новое авто: VIN
+                  <input type="text" name="newVehicleVin" value="${escapeHtml(values.newVehicleVin)}" placeholder="Опционально" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehicleVin")}
+                </label>
+                <label>${escapeHtml(vehicleMakeLabel)}
+                  <input type="text" name="newVehicleMake" value="${escapeHtml(values.newVehicleMake)}" placeholder="Марка" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehicleMake")}
+                </label>
+                <label>Новое авто: Модель
+                  <input type="text" name="newVehicleModel" value="${escapeHtml(values.newVehicleModel)}" placeholder="Модель" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehicleModel")}
+                </label>
+                <label>Новое авто: Год
+                  <input type="text" name="newVehicleProductionYear" value="${escapeHtml(values.newVehicleProductionYear)}" placeholder="2008" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehicleProductionYear")}
+                </label>
+                <label>Новое авто: Пробег, км
+                  <input type="text" name="newVehicleMileageKm" value="${escapeHtml(values.newVehicleMileageKm)}" placeholder="125000" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehicleMileageKm")}
+                </label>
+                <label>Новое авто: Двигатель / комплектация
+                  <input type="text" name="newVehicleEngineOrTrim" value="${escapeHtml(values.newVehicleEngineOrTrim)}" placeholder="Опционально" />
+                  ${renderFieldErrors(fieldErrorMap, "newVehicleEngineOrTrim")}
+                </label>
+              </div>
+            </details>
           </section>`;
 }
 
@@ -407,6 +431,22 @@ export function renderFormPageDocument({
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 10px;
+    }
+    .expander {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfcfa;
+      padding: 8px 10px;
+    }
+    .expander summary {
+      cursor: pointer;
+      font-size: 0.86rem;
+      color: var(--muted);
+      font-weight: 600;
+      user-select: none;
+    }
+    .expander[open] summary {
+      margin-bottom: 8px;
     }
     label {
       display: grid;

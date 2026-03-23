@@ -1941,7 +1941,7 @@ export class SqliteRepository {
         toStatusLabelRu: statusLabelRu,
         changedAt: nowIso,
         changedBy: "front_desk",
-        reason: "Прием walk-in",
+        reason: "Прием без записи",
         source: "walk_in_intake",
       });
     });

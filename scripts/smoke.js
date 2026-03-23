@@ -291,8 +291,8 @@ async function main() {
     });
   }
   assertHarness(
-    walkInUi.text.includes("Прием walk-in") &&
-      walkInUi.text.includes("Форма intake"),
+    walkInUi.text.includes("Прием без записи") &&
+      walkInUi.text.includes("Форма приема"),
     "walk-in UI content missing",
     {
       step: "walkin_ui",

@@ -72,7 +72,7 @@ export function renderWalkInIntakePage(model) {
   const body = `<div class="wrap">
     <section class="panel row">
       <a class="btn" href="/">← Назад на доску</a>
-      <h1>Прием walk-in</h1>
+      <h1>Прием без записи</h1>
       <p class="muted small">Оформите клиента, который приехал без записи: выберите/создайте клиента и авто, заполните жалобу, направьте в активную очередь.</p>
       <div class="summary-grid">
         ${renderSummaryCard({ title: "Текущий клиент", content: customerSummary })}
@@ -100,7 +100,7 @@ export function renderWalkInIntakePage(model) {
     })}
 
     <section class="panel row">
-      <h2>Форма intake</h2>
+      <h2>Форма приема</h2>
       <form method="post" action="/intake/walk-in" data-intake-form>
         <input type="hidden" name="q" value="${escapeHtml(values.q)}" />
 
@@ -146,7 +146,7 @@ export function renderWalkInIntakePage(model) {
         </div>
 
         <div class="row">
-          <button class="btn primary" type="submit" data-submit>Принять walk-in</button>
+          <button class="btn primary" type="submit" data-submit>Принять без записи</button>
           <p class="muted small">Если клиент или авто не выбраны, система создаст их из блоков «Новый клиент» / «Новое авто» и сразу оформит заказ-наряд.</p>
         </div>
       </form>
@@ -154,7 +154,7 @@ export function renderWalkInIntakePage(model) {
   </div>`;
 
   return renderFormPageDocument({
-    title: "Прием walk-in",
+    title: "Прием без записи",
     body,
     formSelector: "[data-intake-form]",
     submitBusyText: "Создаем...",

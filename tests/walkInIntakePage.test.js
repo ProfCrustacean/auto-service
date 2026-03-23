@@ -12,8 +12,8 @@ test("intake/walk-in renders intake form and lookup", async () => {
     const pageRes = await fetch(`${baseUrl}/intake/walk-in`);
     assert.equal(pageRes.status, 200);
     const html = await pageRes.text();
-    assert.match(html, /Прием walk-in/u);
-    assert.match(html, /Форма intake/u);
+    assert.match(html, /Прием без записи/u);
+    assert.match(html, /Форма приема/u);
     assert.doesNotMatch(html, /Экран будет реализован/u);
 
     const lookupRes = await fetch(`${baseUrl}/intake/walk-in?q=Kia`);

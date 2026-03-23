@@ -85,7 +85,7 @@ test("health and dashboard endpoints return successful responses", async () => {
     const intakeRes = await fetch(`${baseUrl}/intake/walk-in`);
     assert.equal(intakeRes.status, 200);
     const intakeHtml = await intakeRes.text();
-    assert.match(intakeHtml, /Прием walk-in/);
+    assert.match(intakeHtml, /Прием без записи/);
   } finally {
     await closeServer(server);
     database.close();

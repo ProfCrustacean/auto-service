@@ -13,6 +13,7 @@ function renderField(label, value) {
 
 export function renderSimpleDetailPage({ title, backHref, fields }) {
   const fieldRows = fields.map((field) => renderField(field.label, field.value)).join("\n");
+  const isNotFound = /не найден/u.test(String(title ?? ""));
 
   return `<!doctype html>
 <html lang="ru">
@@ -35,6 +36,22 @@ export function renderSimpleDetailPage({ title, backHref, fields }) {
       border: 1px solid #d5ddd6;
       border-radius: 12px;
     }
+    .actions {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .btn {
+      text-decoration: none;
+      border-radius: 999px;
+      border: 1px solid #d5ddd6;
+      padding: 6px 12px;
+      color: #1f2b20;
+      display: inline-block;
+      background: #f8fbf8;
+      font-size: 0.9rem;
+    }
     h1 {
       margin: 0 0 12px;
       font-size: 1.3rem;
@@ -56,9 +73,14 @@ export function renderSimpleDetailPage({ title, backHref, fields }) {
   <main>
     <a href="${escapeHtml(backHref)}">← Назад на доску</a>
     <h1>${escapeHtml(title)}</h1>
+    ${isNotFound ? '<p>Проверьте идентификатор в адресе или вернитесь к списку активных заказ-нарядов.</p>' : ""}
     <ul>
       ${fieldRows}
     </ul>
+    <div class="actions">
+      <a class="btn" href="/">На главную</a>
+      <a class="btn" href="/work-orders/active">Активная очередь заказ-нарядов</a>
+    </div>
   </main>
 </body>
 </html>`;

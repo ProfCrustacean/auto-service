@@ -529,7 +529,7 @@ export function renderDashboardPage(model) {
       </div>
       <div class="action-bar">
         <a class="btn primary" href="${escapeHtml(actions.newAppointmentHref)}">Новая запись</a>
-        <a class="btn" href="${escapeHtml(actions.newWalkInHref)}">Принять walk-in</a>
+        <a class="btn" href="${escapeHtml(actions.newWalkInHref)}">Принять без записи</a>
         <a class="btn" href="${escapeHtml(actions.openDispatchBoardHref ?? "/dispatch/board")}">Диспетчерская доска</a>
         <a class="btn" href="${escapeHtml(actions.openActiveQueueHref)}">Открыть активную очередь</a>
       </div>

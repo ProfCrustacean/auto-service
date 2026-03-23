@@ -54,8 +54,8 @@ async function runNonDestructiveScenario(mode) {
     responseStatus: intakePage.status,
     responseBodySnippet: intakePage.text.slice(0, 500),
   });
-  expectTextIncludes(intakePage, "Прием walk-in", "walkin_page_open");
-  expectTextIncludes(intakePage, "Форма intake", "walkin_page_open");
+  expectTextIncludes(intakePage, "Прием без записи", "walkin_page_open");
+  expectTextIncludes(intakePage, "Форма приема", "walkin_page_open");
 
   const lookupPage = await requestPage("/intake/walk-in?q=Kia", "walkin_lookup");
   assertHarness(lookupPage.status === 200, "walk-in lookup page must return 200", {
