@@ -162,6 +162,7 @@ export function createApp({
   registerAppointmentPageRoutes(app, {
     logger,
     appointmentService,
+    walkInIntakeService,
     customerVehicleService,
     referenceDataService,
   });

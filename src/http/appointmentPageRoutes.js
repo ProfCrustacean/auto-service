@@ -1,4 +1,5 @@
 import { validateAppointmentCreate } from "./appointmentValidators.js";
+import { validateWalkInCreate } from "./walkInIntakeValidators.js";
 import { renderAppointmentBookingPage } from "../ui/appointmentBookingPage.js";
 import {
   buildCustomerVehicleFormHelpers,
@@ -11,6 +12,8 @@ import {
 } from "./pageFlowUtils.js";
 
 const LOOKUP_RESULTS_LIMIT = 8;
+const MODE_BOOKING = "booking";
+const MODE_WALKIN = "walkin";
 const CONFLICT_MESSAGE_BY_FIELD = {
   bayId: "Пост уже занят на это время",
   primaryAssignee: "Сотрудник уже занят на это время",
@@ -48,6 +51,7 @@ const EXACT_VALIDATION_MESSAGE_TRANSLATIONS = new Map([
   ["unknown field", "Неподдерживаемое поле формы"],
 ]);
 const FORM_FIELDS = [
+  "mode",
   "q",
   "customerId",
   "vehicleId",
@@ -117,6 +121,10 @@ function localizeConflictDetails(details) {
   });
 }
 
+function normalizeMode(value) {
+  return String(value ?? MODE_BOOKING).trim() === MODE_WALKIN ? MODE_WALKIN : MODE_BOOKING;
+}
+
 function buildAppointmentPayload(values, { customerId, vehicleId }) {
   const payload = {
     plannedStartLocal: values.plannedStartLocal,
@@ -145,7 +153,29 @@ function buildAppointmentPayload(values, { customerId, vehicleId }) {
   return payload;
 }
 
-function resolveConflictPreview(appointmentService, values) {
+function buildWalkInPayload(values, { customerId, vehicleId }) {
+  const payload = {
+    customerId,
+    vehicleId,
+    complaint: values.complaint,
+  };
+
+  if (values.bayId.length > 0) {
+    payload.bayId = values.bayId;
+  }
+
+  if (values.primaryAssignee.length > 0) {
+    payload.primaryAssignee = values.primaryAssignee;
+  }
+
+  return payload;
+}
+
+function resolveConflictPreview(appointmentService, values, mode) {
+  if (mode === MODE_WALKIN) {
+    return [];
+  }
+
   if (values.plannedStartLocal.length === 0) {
     return [];
   }
@@ -168,13 +198,14 @@ function buildBookingPageModel({
   referenceDataService,
   customerVehicleService,
   appointmentService,
+  mode,
   values,
   errors = [],
   warnings = [],
   messages = [],
   conflictDetails = null,
 }) {
-  const previewConflict = conflictDetails ?? resolveConflictPreview(appointmentService, values);
+  const previewConflict = conflictDetails ?? resolveConflictPreview(appointmentService, values, mode);
   return buildCustomerVehiclePageModel({
     referenceDataService,
     customerVehicleService,
@@ -184,6 +215,7 @@ function buildBookingPageModel({
     warnings,
     messages,
     extra: {
+      mode,
       conflictDetails: previewConflict,
     },
   });
@@ -205,20 +237,117 @@ function mapDomainError(error) {
   return null;
 }
 
+function buildModeValidationState({
+  mode,
+  values,
+  hasInlineCustomerInput,
+  hasInlineVehicleInput,
+}) {
+  if (mode === MODE_WALKIN) {
+    return validateCustomerVehicleSubmission({
+      values,
+      buildPayload: buildWalkInPayload,
+      validatePayload: validateWalkInCreate,
+      hasInlineCustomerInput,
+      hasInlineVehicleInput,
+      localizeValidationMessage,
+    });
+  }
+
+  return validateCustomerVehicleSubmission({
+    values,
+    buildPayload: buildAppointmentPayload,
+    validatePayload: validateAppointmentCreate,
+    hasInlineCustomerInput,
+    hasInlineVehicleInput,
+    localizeValidationMessage,
+  });
+}
+
+function submitByMode({
+  mode,
+  appointmentService,
+  walkInIntakeService,
+  validationValue,
+  selectedCustomerId,
+  selectedVehicleId,
+  inlineCustomerPayload,
+  inlineVehiclePayload,
+  messages,
+}) {
+  if (mode === MODE_WALKIN) {
+    const createdResult = walkInIntakeService.createWalkInFromIntakeForm({
+      intakePayload: validationValue,
+      selectedCustomerId: selectedCustomerId || null,
+      selectedVehicleId: selectedVehicleId || null,
+      inlineCustomerPayload,
+      inlineVehiclePayload,
+    });
+    if (createdResult.customer) {
+      messages.push(`Создан клиент: ${createdResult.customer.fullName}`);
+    }
+    if (createdResult.vehicle) {
+      messages.push(`Создано авто: ${createdResult.vehicle.label}`);
+    }
+
+    return {
+      redirectPath: `/work-orders/${encodeURIComponent(createdResult.bundle.workOrder.id)}?created=1`,
+      conflictDetails: [],
+    };
+  }
+
+  const conflictDetails = localizeConflictDetails(
+    appointmentService.ensureCapacityAvailable({
+      plannedStartLocal: validationValue.plannedStartLocal,
+      bayId: validationValue.bayId ?? null,
+      primaryAssignee: validationValue.primaryAssignee ?? null,
+      status: validationValue.status ?? "booked",
+      excludeAppointmentId: null,
+    }),
+  );
+  if (conflictDetails.length > 0) {
+    messages.push("Запись будет создана с пересечением загрузки");
+  }
+
+  const createdBundle = appointmentService.createAppointmentFromBookingForm({
+    appointmentPayload: validationValue,
+    selectedCustomerId: selectedCustomerId || null,
+    selectedVehicleId: selectedVehicleId || null,
+    inlineCustomerPayload,
+    inlineVehiclePayload,
+  });
+
+  if (createdBundle.customer) {
+    messages.push(`Создан клиент: ${createdBundle.customer.fullName}`);
+  }
+  if (createdBundle.vehicle) {
+    messages.push(`Создано авто: ${createdBundle.vehicle.label}`);
+  }
+
+  return {
+    redirectPath: `/appointments/${encodeURIComponent(createdBundle.appointment.id)}?created=1`,
+    conflictDetails,
+  };
+}
+
 export function registerAppointmentPageRoutes(app, {
   logger,
   appointmentService,
+  walkInIntakeService,
   customerVehicleService,
   referenceDataService,
 }) {
   app.get("/appointments/new", (req, res) => {
     const values = normalizeFormValues(req.query ?? {});
+    const mode = normalizeMode(req.query?.mode ?? values.mode);
+    values.mode = mode;
 
     try {
       const model = buildBookingPageModel({
         referenceDataService,
         customerVehicleService,
         appointmentService,
+        mode,
         values,
       });
       renderBookingPage(res, { statusCode: 200, model });
@@ -232,6 +361,7 @@ export function registerAppointmentPageRoutes(app, {
           referenceDataService,
           customerVehicleService,
           appointmentService,
+          mode,
           values: currentValues,
           errors: currentErrors,
         }),
@@ -243,18 +373,18 @@ export function registerAppointmentPageRoutes(app, {
 
   app.post("/appointments/new", (req, res) => {
     const values = normalizeFormValues(req.body ?? {});
+    const mode = normalizeMode(values.mode);
+    values.mode = mode;
     const errors = [];
     const messages = [];
     let conflictDetails = [];
 
     try {
-      const validationState = validateCustomerVehicleSubmission({
+      const validationState = buildModeValidationState({
+        mode,
         values,
-        buildPayload: buildAppointmentPayload,
-        validatePayload: validateAppointmentCreate,
         hasInlineCustomerInput,
         hasInlineVehicleInput,
-        localizeValidationMessage,
       });
       errors.push(...validationState.errors);
       const {
@@ -270,6 +400,7 @@ export function registerAppointmentPageRoutes(app, {
           referenceDataService,
           customerVehicleService,
           appointmentService,
+          mode,
           values,
           errors,
           messages,
@@ -279,36 +410,19 @@ export function registerAppointmentPageRoutes(app, {
         return;
       }
 
-      conflictDetails = localizeConflictDetails(
-        appointmentService.ensureCapacityAvailable({
-          plannedStartLocal: appointmentValidation.value.plannedStartLocal,
-          bayId: appointmentValidation.value.bayId ?? null,
-          primaryAssignee: appointmentValidation.value.primaryAssignee ?? null,
-          status: appointmentValidation.value.status ?? "booked",
-          excludeAppointmentId: null,
-        }),
-      );
-      if (conflictDetails.length > 0) {
-        messages.push("Запись будет создана с пересечением загрузки");
-      }
-
-      const createdBundle = appointmentService.createAppointmentFromBookingForm({
-        appointmentPayload: appointmentValidation.value,
-        selectedCustomerId: customerId || null,
-        selectedVehicleId: vehicleId || null,
+      const submitResult = submitByMode({
+        mode,
+        appointmentService,
+        walkInIntakeService,
+        validationValue: appointmentValidation.value,
+        selectedCustomerId: customerId,
+        selectedVehicleId: vehicleId,
         inlineCustomerPayload,
         inlineVehiclePayload,
+        messages,
       });
-
-      if (createdBundle.customer) {
-        messages.push(`Создан клиент: ${createdBundle.customer.fullName}`);
-      }
-      if (createdBundle.vehicle) {
-        messages.push(`Создано авто: ${createdBundle.vehicle.label}`);
-      }
-
-      const createdAppointment = createdBundle.appointment;
-      res.redirect(303, `/appointments/${encodeURIComponent(createdAppointment.id)}?created=1`);
+      conflictDetails = submitResult.conflictDetails;
+      res.redirect(303, submitResult.redirectPath);
     } catch (error) {
       const mapped = mapDomainError(error);
       if (mapped) {
@@ -316,6 +430,7 @@ export function registerAppointmentPageRoutes(app, {
           referenceDataService,
           customerVehicleService,
           appointmentService,
+          mode,
           values,
           errors: [...errors, ...mapped.errors],
           messages,
@@ -334,6 +449,7 @@ export function registerAppointmentPageRoutes(app, {
           referenceDataService,
           customerVehicleService,
           appointmentService,
+          mode,
           values: currentValues,
           errors: currentErrors,
         }),

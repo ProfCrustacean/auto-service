@@ -85,10 +85,17 @@ test("health and dashboard endpoints return successful responses", async () => {
     assert.match(bookingHtml, /Новая запись/);
     assert.match(bookingHtml, /Форма записи/);
 
+    const walkInModeRes = await fetch(`${baseUrl}/appointments/new?mode=walkin`);
+    assert.equal(walkInModeRes.status, 200);
+    const walkInModeHtml = await walkInModeRes.text();
+    assert.match(walkInModeHtml, /Форма приема/);
+    assert.match(walkInModeHtml, /Принять без записи/);
+
     const intakeRes = await fetch(`${baseUrl}/intake/walk-in`);
-    assert.equal(intakeRes.status, 200);
+    assert.equal(intakeRes.status, 410);
     const intakeHtml = await intakeRes.text();
-    assert.match(intakeHtml, /Прием без записи/);
+    assert.match(intakeHtml, /Страница перенесена/);
+    assert.match(intakeHtml, /\/appointments\/new\?mode=walkin/);
   } finally {
     await closeServer(server);
     database.close();

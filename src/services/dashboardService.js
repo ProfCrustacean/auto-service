@@ -770,7 +770,7 @@ export class DashboardService {
       },
       actions: {
         newAppointmentHref: "/appointments/new",
-        newWalkInHref: "/intake/walk-in",
+        newWalkInHref: "/appointments/new?mode=walkin",
         openActiveQueueHref: "/work-orders/active",
         openDispatchBoardHref: "/dispatch/board",
       },
@@ -1006,7 +1006,7 @@ export class DashboardService {
       actions: {
         backHref: "/",
         createAppointmentHref: "/appointments/new",
-        createWalkInHref: "/intake/walk-in",
+        createWalkInHref: "/appointments/new?mode=walkin",
       },
     };
   }

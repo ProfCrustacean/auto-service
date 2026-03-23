@@ -19,6 +19,10 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 ## Current state (2026-03-23)
 
 ### Product/runtime
+- Booking and walk-in UI now run on one page:
+  - `/appointments/new` has mode switch (`booking` / `walkin`),
+  - `mode=walkin` uses same customer/vehicle selection with intake submit (`work-order` creation, no planned slot fields),
+  - legacy page route `/intake/walk-in` is explicitly deprecated (`410 Gone`) with migration hint.
 - Dashboard weekly planning UI is now owner-readable without horizontal weekly scroll:
   - `Неделя по постам` and `Неделя по сотрудникам` are stacked vertically (one above another),
   - week window now uses calendar week semantics `Пн–Вс` (instead of rolling `today+6`),
@@ -34,7 +38,7 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
   - appointment lifecycle with global non-blocking overlap warnings (no blocking slot conflicts),
-  - walk-in intake API + production pages,
+  - walk-in intake API + unified booking/walk-in production page flow,
   - dashboard day/week planning + unified lookup.
 - Phase 2 lifecycle core remains implemented:
   - work-order lifecycle domain status map and transition invariants,

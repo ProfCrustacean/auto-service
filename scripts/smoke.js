@@ -278,20 +278,21 @@ async function main() {
 
   const walkInUi = await requestText(baseUrl, {
     step: "walkin_ui",
-    path: "/intake/walk-in",
+    path: "/appointments/new?mode=walkin",
   });
   if (walkInUi.status !== 200) {
-    failHarness("unexpected response status for GET /intake/walk-in", {
+    failHarness("unexpected response status for GET /appointments/new?mode=walkin", {
       step: "walkin_ui",
       method: "GET",
-      path: "/intake/walk-in",
+      path: "/appointments/new?mode=walkin",
       url: walkInUi.url,
       responseStatus: walkInUi.status,
       responseBodySnippet: walkInUi.text?.slice(0, 400),
     });
   }
   assertHarness(
-    walkInUi.text.includes("Прием без записи") &&
+    walkInUi.text.includes("Новая запись") &&
+      walkInUi.text.includes("Принять сейчас") &&
       walkInUi.text.includes("Форма приема"),
     "walk-in UI content missing",
     {

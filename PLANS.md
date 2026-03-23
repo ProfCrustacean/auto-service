@@ -12,6 +12,39 @@ No active multi-step implementation plan is open right now.
 
 Create a new active plan before the next non-trivial feature/refactor/deployment slice.
 
+## Completed Plan — Unified `/appointments/new` with walk-in mode (2026-03-23)
+
+### Objective
+
+Collapse duplicated booking/walk-in page flows into one owner-facing page and deprecate the legacy walk-in page route.
+
+### Delivered
+
+- `/appointments/new` now supports two UI modes on one form:
+  - `booking` (default),
+  - `walkin` (`/appointments/new?mode=walkin`).
+- Unified POST handler in `appointmentPageRoutes`:
+  - booking mode preserves existing appointment create flow,
+  - walk-in mode calls `walkInIntakeService.createWalkInFromIntakeForm(...)` and redirects to `/work-orders/:id?created=1`.
+- Legacy page route `/intake/walk-in` is now explicit `410 Gone` for both GET and POST with migration hint.
+- Dashboard/dispatch actions now point to `/appointments/new?mode=walkin`.
+- Harness updates:
+  - smoke now validates walk-in mode via `/appointments/new?mode=walkin`,
+  - `scripts/walkin-page-scenario.js` moved from legacy path to mode-aware unified page submit.
+- Removed dead legacy UI renderer file `src/ui/walkInIntakePage.js`.
+- Docs/status sync:
+  - `README.md`,
+  - `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
+  - `STATUS.md`.
+
+### Verification
+
+- `npm test`: passed
+- `npm run lint`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run secrets:scan`: passed
+
 ## Completed Plan — Dashboard week blocks cleanup (vertical stack + Monday week start) (2026-03-23)
 
 ### Objective
@@ -65,6 +98,7 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-22 — Spring cleanup wave (`AUT-82..AUT-88`)
 - 2026-03-22 — Phase 3 parts flow (`AUT-73..AUT-81`)
 - 2026-03-23 — Dispatch board UX simplification (calendar-only controls)
+- 2026-03-23 — Foundation hardening (`AUT-89..AUT-96`)
 
 ## Completed Plan — Dispatch board DnD/readability hardening + global overlap warnings (2026-03-23)
 
@@ -143,39 +177,6 @@ Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridD
   - legacy manual-control blocks absent,
   - console errors: 0.
 - `npm run audit:bloat`: failed (pre-existing budget overruns in `src/tests/scripts`; unchanged blocker category).
-
-## Completed Plan — Foundation hardening (`AUT-89..AUT-96`) (2026-03-23)
-
-### Objective
-
-Reduce future delivery friction by hardening auth boundaries, decomposing repository hotspots, codifying persistence transition/recovery paths, and enforcing stronger harness/static hygiene contracts.
-
-### Delivered
-
-- Unified mutation auth policy across API/page write paths (`src/http/mutationPolicy.js`, `src/http/authz.js`) with role parity tests.
-- Split `SqliteRepository` hotspot into bounded modules (`sqliteRepositoryMappers`, `sqliteRepositoryReferenceCustomerVehicle`) while keeping repository interface stable.
-- Added persistence transition/recovery deliverables:
-  - `docs/24_PERSISTENCE_TRANSITION_AND_RECOVERY.md`,
-  - fixture-integrity validation in seeding flow,
-  - `scripts/db-backup-restore-drill.js`.
-- Modularized harness process orchestration (`scripts/harness-process.js`) and applied it in `verify`/`verify:render`.
-- Added and wired static + hygiene gates:
-  - `npm run lint` (`scripts/static-guardrails.js`),
-  - `npm run hygiene:check` (`scripts/hygiene-check.js`).
-
-### Verification
-
-- `npm test`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-- `npm run lint`: passed
-- `npm run secrets:scan`: passed
-- `npm run verify:render -- --skip-deploy`: passed
-
-### Linear sync
-
-- Epic and subtasks `AUT-89..AUT-96` transitioned to `Done` via harness sync.
-- Sync log: `/tmp/linear-aut89-96-sync-result.json`
 
 ## Maintenance rule
 

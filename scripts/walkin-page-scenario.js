@@ -14,6 +14,8 @@ import {
 
 loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
+const WALKIN_PAGE_PATH = "/appointments/new?mode=walkin";
+const WALKIN_SUBMIT_PATH = "/appointments/new";
 
 async function request(path, { step, method = "GET", body } = {}) {
   return requestScenarioJson(baseUrl, path, { step, method, body });
@@ -45,7 +47,7 @@ function extractWorkOrderId(locationHeader) {
 }
 
 async function runNonDestructiveScenario(mode) {
-  const intakePage = await requestPage("/intake/walk-in", "walkin_page_open");
+  const intakePage = await requestPage(WALKIN_PAGE_PATH, "walkin_page_open");
   assertHarness(intakePage.status === 200, "walk-in page must return 200", {
     step: "walkin_page_open",
     method: intakePage.method,
@@ -54,10 +56,10 @@ async function runNonDestructiveScenario(mode) {
     responseStatus: intakePage.status,
     responseBodySnippet: intakePage.text.slice(0, 500),
   });
-  expectTextIncludes(intakePage, "Прием без записи", "walkin_page_open");
+  expectTextIncludes(intakePage, "Новая запись", "walkin_page_open");
   expectTextIncludes(intakePage, "Форма приема", "walkin_page_open");
 
-  const lookupPage = await requestPage("/intake/walk-in?q=Kia", "walkin_lookup");
+  const lookupPage = await requestPage(`${WALKIN_PAGE_PATH}&q=Kia`, "walkin_lookup");
   assertHarness(lookupPage.status === 200, "walk-in lookup page must return 200", {
     step: "walkin_lookup",
     method: lookupPage.method,
@@ -69,9 +71,10 @@ async function runNonDestructiveScenario(mode) {
   expectTextIncludes(lookupPage, "Клиенты", "walkin_lookup");
   expectTextIncludes(lookupPage, "Авто", "walkin_lookup");
 
-  const invalidSubmit = await submitForm("/intake/walk-in", {
+  const invalidSubmit = await submitForm(WALKIN_SUBMIT_PATH, {
     step: "walkin_invalid_submit",
     payload: {
+      mode: "walkin",
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: "",
@@ -88,9 +91,10 @@ async function runNonDestructiveScenario(mode) {
   expectTextIncludes(invalidSubmit, "Исправьте ошибки перед сохранением", "walkin_invalid_submit");
   expectTextIncludes(invalidSubmit, "Опишите жалобу или запрос клиента", "walkin_invalid_submit");
 
-  const mismatchSubmit = await submitForm("/intake/walk-in", {
+  const mismatchSubmit = await submitForm(WALKIN_SUBMIT_PATH, {
     step: "walkin_mismatch_submit",
     payload: {
+      mode: "walkin",
       customerId: "cust-1",
       vehicleId: "veh-3",
       complaint: "Walk-in mismatch check",
@@ -125,9 +129,10 @@ async function runDefaultScenario(mode) {
   expectStatus(before, 200, "dashboard_before");
 
   const uniqueToken = `${Date.now()}`;
-  const submit = await submitForm("/intake/walk-in", {
+  const submit = await submitForm(WALKIN_SUBMIT_PATH, {
     step: "walkin_submit",
     payload: {
+      mode: "walkin",
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: `Scenario walk-in page ${uniqueToken}`,

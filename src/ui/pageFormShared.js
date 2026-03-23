@@ -54,7 +54,12 @@ export function buildPrefillHref({ basePath, values, persistedFields, overrides 
   }
 
   const serialized = params.toString();
-  return serialized.length > 0 ? `${basePath}?${serialized}` : basePath;
+  if (serialized.length === 0) {
+    return basePath;
+  }
+
+  const joiner = basePath.includes("?") ? "&" : "?";
+  return `${basePath}${joiner}${serialized}`;
 }
 
 export function renderSelectOptions(items, {

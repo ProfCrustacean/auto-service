@@ -15,6 +15,8 @@ test("appointments/new renders booking form and lookup", async () => {
     const html = await pageRes.text();
     assert.match(html, /Новая запись/u);
     assert.match(html, /Форма записи/u);
+    assert.match(html, /Запись по времени/u);
+    assert.match(html, /Принять сейчас/u);
     assert.doesNotMatch(html, /Экран будет реализован/u);
 
     const lookupRes = await fetch(`${baseUrl}/appointments/new?q=Kia`);
@@ -23,6 +25,19 @@ test("appointments/new renders booking form and lookup", async () => {
     assert.match(lookupHtml, /Клиенты/u);
     assert.match(lookupHtml, /Авто/u);
     assert.match(lookupHtml, /Kia Rio/u);
+  });
+});
+
+test("appointments/new supports walk-in mode UI without slot fields", async () => {
+  await withTestServer("auto-service-appointment-page-walkin-render", async ({ baseUrl }) => {
+    const response = await fetch(`${baseUrl}/appointments/new?mode=walkin`);
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.match(html, /Новая запись/u);
+    assert.match(html, /Форма приема/u);
+    assert.match(html, /Принять без записи/u);
+    assert.doesNotMatch(html, /Плановый старт/u);
+    assert.doesNotMatch(html, /Ожидаемая длительность/u);
   });
 });
 
@@ -53,18 +68,6 @@ test("appointments/new keeps validation and non-blocking overlap feedback", asyn
 
     assert.equal(overlap.status, 303);
     assert.match(overlap.location ?? "", /^\/appointments\/[^?]+\?created=1/u);
-  });
-});
-
-test("appointments/new preview renders overlap warning details", async () => {
-  await withTestServer("auto-service-appointment-page-overlap-preview", async ({ baseUrl }) => {
-    const previewRes = await fetch(
-      `${baseUrl}/appointments/new?plannedStartLocal=2026-03-23%2009:00&customerId=cust-2&vehicleId=veh-3&complaint=%D0%94%D0%B8%D0%B0%D0%B3%D0%BD%D0%BE%D1%81%D1%82%D0%B8%D0%BA%D0%B0&bayId=bay-1`,
-    );
-    assert.equal(previewRes.status, 200);
-    const previewHtml = await previewRes.text();
-    assert.match(previewHtml, /Конфликт загрузки в выбранном слоте/u);
-    assert.match(previewHtml, /Пост уже занят на это время/u);
   });
 });
 
@@ -110,82 +113,42 @@ test("appointments/new submits and redirects to detail", async () => {
   });
 });
 
-test("appointments/new supports inline customer+vehicle create", async () => {
-  await withTestServer("auto-service-appointment-page-inline-create", async ({ baseUrl }) => {
-    const token = `${Date.now()}`;
-    const fullName = `Клиент ${token}`;
-    const phone = `+7 927 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`;
-    const vehicleLabel = `Авто ${token}`;
+test("appointments/new walk-in mode submits and redirects to work-order detail", async () => {
+  await withTestServer("auto-service-appointment-page-walkin-submit", async ({ baseUrl }) => {
+    const beforeDashboard = await requestJson("GET", `${baseUrl}/api/v1/dashboard/today`);
+    assert.equal(beforeDashboard.status, 200);
 
     const submit = await submitUrlEncodedForm(
       `${baseUrl}/appointments/new`,
       {
-        plannedStartLocal: buildUniqueSlot(token, 13),
-        complaint: "Проверка",
-        newCustomerFullName: fullName,
-        newCustomerPhone: phone,
-        newVehicleLabel: vehicleLabel,
-        newVehiclePlateNumber: `UI${token.slice(-6)}`,
+        mode: "walkin",
+        customerId: "cust-2",
+        vehicleId: "veh-3",
+        complaint: "Walk-in через unified page",
       },
       { redirect: "manual" },
     );
 
     assert.equal(submit.status, 303);
-    const appointmentId = extractRedirectId(submit.location, "appointments");
-    assert.equal(Boolean(appointmentId), true);
+    assert.match(submit.location ?? "", /^\/work-orders\/[^?]+\?created=1/u);
+    const workOrderId = extractRedirectId(submit.location, "work-orders");
+    assert.equal(Boolean(workOrderId), true);
 
-    const appointmentApi = await requestJson("GET", `${baseUrl}/api/v1/appointments/${appointmentId}`);
-    assert.equal(appointmentApi.status, 200);
+    const detailRes = await fetch(`${baseUrl}${submit.location}`);
+    assert.equal(detailRes.status, 200);
+    const detailHtml = await detailRes.text();
+    assert.match(detailHtml, /Заказ-наряд WO-/u);
 
-    const customerId = appointmentApi.json.item.customerId;
-    const vehicleId = appointmentApi.json.item.vehicleId;
-    const customerApi = await requestJson("GET", `${baseUrl}/api/v1/customers/${customerId}`);
-    assert.equal(customerApi.status, 200);
-    assert.equal(customerApi.json.item.fullName, fullName);
-    assert.equal(customerApi.json.item.phone, phone);
-
-    const vehicleApi = await requestJson("GET", `${baseUrl}/api/v1/vehicles/${vehicleId}`);
-    assert.equal(vehicleApi.status, 200);
-    assert.equal(vehicleApi.json.item.label, vehicleLabel);
-    assert.equal(vehicleApi.json.item.customerId, customerId);
-  });
-});
-
-test("appointments/new allows inline entity create even with overlap", async () => {
-  await withTestServer("auto-service-appointment-page-inline-overlap", async ({ baseUrl }) => {
-    const token = `${Date.now()}`;
-    const beforeCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
-    const beforeVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
-    const beforeAppointments = await requestJson("GET", `${baseUrl}/api/v1/appointments`);
-    assert.equal(beforeCustomers.status, 200);
-    assert.equal(beforeVehicles.status, 200);
-    assert.equal(beforeAppointments.status, 200);
-
-    const submit = await submitUrlEncodedForm(
-      `${baseUrl}/appointments/new`,
-      {
-        plannedStartLocal: "2026-03-23 09:00",
-        complaint: "Откат",
-        bayId: "bay-1",
-        newCustomerFullName: `RB Клиент ${token}`,
-        newCustomerPhone: `+7 927 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`,
-        newVehicleLabel: `RB Авто ${token}`,
-        newVehiclePlateNumber: `RB${token.slice(-6)}`,
-      },
-      { redirect: "manual" },
+    const afterDashboard = await requestJson("GET", `${baseUrl}/api/v1/dashboard/today`);
+    assert.equal(afterDashboard.status, 200);
+    assert.equal(
+      afterDashboard.json.summary.activeWorkOrders,
+      beforeDashboard.json.summary.activeWorkOrders + 1,
     );
-
-    assert.equal(submit.status, 303);
-    assert.match(submit.location ?? "", /^\/appointments\/[^?]+\?created=1/u);
-
-    const afterCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
-    const afterVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
-    const afterAppointments = await requestJson("GET", `${baseUrl}/api/v1/appointments`);
-    assert.equal(afterCustomers.status, 200);
-    assert.equal(afterVehicles.status, 200);
-    assert.equal(afterAppointments.status, 200);
-    assert.equal(afterCustomers.json.count, beforeCustomers.json.count + 1);
-    assert.equal(afterVehicles.json.count, beforeVehicles.json.count + 1);
-    assert.equal(afterAppointments.json.count, beforeAppointments.json.count + 1);
+    assert.equal(
+      afterDashboard.json.summary.appointmentsToday,
+      beforeDashboard.json.summary.appointmentsToday,
+    );
+    assert.equal(afterDashboard.json.queues.active.some((item) => item.id === workOrderId), true);
   });
 });

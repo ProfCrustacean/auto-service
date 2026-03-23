@@ -146,6 +146,8 @@ Open:
 - `http://127.0.0.1:3000/` (Russian dashboard UI)
 - `http://127.0.0.1:3000/healthz`
 - `http://127.0.0.1:3000/api/v1/dashboard/today`
+- `http://127.0.0.1:3000/appointments/new` (единая страница записи; `?mode=walkin` для приема без записи)
+- `http://127.0.0.1:3000/intake/walk-in` (`410 Gone`, перенаправляющий указатель на unified page)
 
 Phase 1 reference-data APIs:
 - `GET|POST /api/v1/employees`
@@ -212,7 +214,7 @@ CI quality gate:
 `npm run verify` is self-contained:
 - runs tests,
 - boots an isolated app instance with a temporary SQLite database,
-- runs smoke checks plus booking-page, walk-in-page, scheduling/walk-in, and parts-flow scenarios,
+- runs smoke checks plus booking-page (`/appointments/new`), walk-in mode (`/appointments/new?mode=walkin`), scheduling/walk-in, and parts-flow scenarios,
 - then stops the app automatically.
 
 Render stage commands:
@@ -305,7 +307,6 @@ Sync existing tasks from a spec file into a target state:
 LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done
 ```
 
-Retained sample specs:
 - `data/linear/phase1-task-template.json`
 - `data/linear/workorder-epic-aut61-2026-03-22.json`
 - `linear:create` is idempotent by normalized title (skips existing tasks).

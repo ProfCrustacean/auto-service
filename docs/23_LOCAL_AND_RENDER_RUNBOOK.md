@@ -95,7 +95,7 @@ Harness outputs written to stdout/stderr/files are redacted before persistence t
 `npm run verify` is self-contained:
 - does not require a pre-started local server,
 - starts a temporary isolated app instance and DB,
-- runs test + smoke + booking-page + walk-in-page + scheduling/walk-in + parts-flow scenario checks,
+- runs test + smoke + booking-page + unified walk-in-mode page + scheduling/walk-in + parts-flow scenario checks,
 - and shuts down automatically.
 
 Optional toggles:
@@ -130,7 +130,7 @@ CI gate:
 Scenario fixture assumptions (current):
 - Smoke checks validate API/UI contracts (including unified lookup) and summary-to-array consistency instead of fixed seeded counts.
 - Booking-page scenario validates `/appointments/new` read/write behavior locally and non-destructive behavior remotely.
-- Walk-in-page scenario validates `/intake/walk-in` read/write behavior locally and non-destructive behavior remotely.
+- Walk-in-page scenario validates unified walk-in mode at `/appointments/new?mode=walkin` (including mode-aware submit) and non-destructive behavior remotely.
 - Scheduling/walk-in scenario resolves customers/vehicles/bays/employees dynamically from live API data.
 - Scheduling/walk-in scenario also validates appointment -> work-order conversion idempotency and lifecycle transitions (`scheduled -> in_progress -> ready_pickup`).
 - Parts-flow scenario validates blocking parts request lifecycle (`requested -> received/substituted`), work-order gating, and replacement request creation.
