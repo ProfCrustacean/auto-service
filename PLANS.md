@@ -39,8 +39,7 @@ Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridD
 - `npm run verify`: passed
 - `npm run secrets:scan`: passed
 - `npm run verify:render`: passed
-  - deploy id: `dep-d70mt21r0fns73elrchg`
-  - commit parity: passed (`c9a1ebeb35a5ab81121f7b65e7f911b9f669792a`)
+  - deploy + commit parity + smoke + non-destructive scenarios + post-deploy log audit: passed
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 - Browser smoke (Playwright) on production `/dispatch/board`:

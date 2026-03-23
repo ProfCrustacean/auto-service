@@ -68,7 +68,7 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 ## Last accepted milestones
 
 - 2026-03-23: Dispatch board owner-focused simplification delivered and deployed (`ea3ca989dee8362ceadd3882a1c08bdc2da39da2`, runtime fix on top `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`).
-- 2026-03-23: Dispatch board full EventCalendar cutover delivered and deployed (`c9a1ebeb35a5ab81121f7b65e7f911b9f669792a` on latest verified deploy; feature payload introduced in `a885874c7d0e7546769eb3b5cda074853f4252d5`).
+- 2026-03-23: Dispatch board full EventCalendar cutover delivered and deployed (vertical EventCalendar board + API-only dispatch mutations).
 - 2026-03-22: Phase 2 lifecycle core epic completed (`AUT-61..AUT-69`) and synced to Done.
 - 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented and synced to Done.
 - 2026-03-22: Phase 3 parts-flow epic implemented and deployed (`AUT-73..AUT-81`), verification gates green.
@@ -86,8 +86,7 @@ Most recent local gate results:
 
 Most recent deploy-aware gate results:
 - `npm run verify:render`: passed
-  - deploy id: `dep-d70mt21r0fns73elrchg`
-  - commit parity: passed (`c9a1ebeb35a5ab81121f7b65e7f911b9f669792a`)
+  - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
