@@ -39,6 +39,12 @@ Service defaults:
   - `PATCH /api/v1/work-orders/:id/parts-requests/:requestId`
   - `POST /api/v1/work-orders/:id/parts-requests/:requestId/purchase-actions`
 - Unified lookup API: `GET /api/v1/search?q=<term>` (customer/phone/plate/VIN/model)
+- Dispatch board API:
+  - `GET /api/v1/dispatch/board`
+  - `POST /api/v1/dispatch/board/events/:id/preview`
+  - `POST /api/v1/dispatch/board/events/:id/commit`
+  - `POST /api/v1/dispatch/board/queue/appointments/:id/schedule`
+  - `POST /api/v1/dispatch/board/queue/walk-ins/:id/schedule`
 - Russian dashboard UI: `GET /`
 - Work-order lifecycle/parts UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`, plus parts forms under `/work-orders/:id/parts-requests*`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)

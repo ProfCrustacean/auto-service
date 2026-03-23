@@ -1,43 +1,34 @@
 import { escapeHtml } from "./pageFormShared.js";
 
-function formatLaneLoad(load) {
-  const percent = Math.round((load?.utilizationRatio ?? 0) * 100);
-  return `${percent}% · ${load?.appointmentsCount ?? 0} записей`;
-}
+function renderQueueItem(item, kind) {
+  const statusLabel = kind === "walkin"
+    ? item.statusLabelRu
+    : `${item.plannedStartLocal} · ${item.status}`;
+  const durationMin = Number.isInteger(item.expectedDurationMin) ? item.expectedDurationMin : 60;
 
-function formatMinutesLabel(minuteOfDay) {
-  const hour = Math.floor(minuteOfDay / 60);
-  const minute = minuteOfDay % 60;
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  return `<li
+    class="queue-item"
+    draggable="true"
+    data-queue-kind="${escapeHtml(kind)}"
+    data-item-id="${escapeHtml(item.id)}"
+    data-code="${escapeHtml(item.code)}"
+    data-customer-name="${escapeHtml(item.customerName)}"
+    data-vehicle-label="${escapeHtml(item.vehicleLabel)}"
+    data-duration-min="${escapeHtml(String(durationMin))}"
+  >
+    <div class="queue-head">
+      <strong>${escapeHtml(item.code)}</strong>
+      <span>${escapeHtml(statusLabel)}</span>
+    </div>
+    <div class="queue-text">${escapeHtml(item.customerName)} · ${escapeHtml(item.vehicleLabel)}</div>
+  </li>`;
 }
 
 function renderQueueList(items, kind) {
   if (items.length === 0) {
     return '<li class="queue-empty">Нет элементов</li>';
   }
-
-  return items.map((item) => {
-    const statusLabel = kind === "walkin"
-      ? item.statusLabelRu
-      : `${item.plannedStartLocal} · ${item.status}`;
-
-    return `<li
-      class="queue-item"
-      draggable="true"
-      data-queue-kind="${escapeHtml(kind)}"
-      data-item-id="${escapeHtml(item.id)}"
-      data-code="${escapeHtml(item.code)}"
-      data-customer-name="${escapeHtml(item.customerName)}"
-      data-vehicle-label="${escapeHtml(item.vehicleLabel)}"
-      data-status-label="${escapeHtml(statusLabel)}"
-    >
-      <div class="queue-head">
-        <strong>${escapeHtml(item.code)}</strong>
-        <span>${escapeHtml(statusLabel)}</span>
-      </div>
-      <div class="queue-text">${escapeHtml(item.customerName)} · ${escapeHtml(item.vehicleLabel)}</div>
-    </li>`;
-  }).join("");
+  return items.map((item) => renderQueueItem(item, kind)).join("");
 }
 
 function renderQueuePanel(model) {
@@ -80,11 +71,11 @@ function renderShell(model) {
     <div class="title-cluster">
       <a class="btn ghost" href="${escapeHtml(model.actions.backHref)}">← Назад на доску</a>
       <h1>Диспетчерская доска</h1>
-      <p class="subtitle">Управляйте расписанием только через календарь: перетаскивайте существующие записи и карточки из очереди.</p>
+      <p class="subtitle">Календарный режим управления загрузкой: изменяйте слот и длительность только перетаскиванием в календаре.</p>
     </div>
     <div class="controls">
       <a class="btn" href="${escapeHtml(renderDayHref(model.dayLocal, -1, model.laneMode))}">← Предыдущий день</a>
-      <span class="day-chip">${escapeHtml(model.dayLocal)}</span>
+      <span class="day-chip" id="dispatch-day-chip">${escapeHtml(model.dayLocal)}</span>
       <a class="btn" href="${escapeHtml(renderDayHref(model.dayLocal, 1, model.laneMode))}">Следующий день →</a>
       <a class="mode-btn ${model.laneMode === "bay" ? "active" : ""}" href="${escapeHtml(renderModeHref("bay", model.dayLocal))}">Посты</a>
       <a class="mode-btn ${model.laneMode === "technician" ? "active" : ""}" href="${escapeHtml(renderModeHref("technician", model.dayLocal))}">Ответственные</a>
@@ -93,11 +84,13 @@ function renderShell(model) {
   </div>`;
 }
 
+function renderRangeLabel(calendarModel) {
+  return `${calendarModel.slotMinTime.slice(0, 5)}–${calendarModel.slotMaxTime.slice(0, 5)}, шаг ${calendarModel.slotDuration.slice(3, 5)} мин`;
+}
+
 export function renderDispatchBoardPage(model) {
-  const laneLoadByKey = new Map(model.laneLoad.map((entry) => [entry.laneKey, entry]));
   const pageModelJson = JSON.stringify(model).replaceAll("</script", "<\\/script");
-  const timelineStartLabel = formatMinutesLabel(model.timeline.startMinute);
-  const timelineEndLabel = formatMinutesLabel(model.timeline.endMinute);
+  const rangeLabel = renderRangeLabel(model.calendar);
 
   return `<!doctype html>
 <html lang="ru">
@@ -105,7 +98,7 @@ export function renderDispatchBoardPage(model) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Диспетчерская доска</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.4/styles/vis-timeline-graph2d.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@event-calendar/build@5.5.1/dist/event-calendar.min.css" />
     <style>
       :root {
         --bg: #e9f0ea;
@@ -115,7 +108,6 @@ export function renderDispatchBoardPage(model) {
         --ink-soft: #51675b;
         --line: #c4d4c8;
         --accent: #117a48;
-        --warn-soft: #fff0dc;
         --danger-soft: #fee8e2;
       }
 
@@ -311,14 +303,15 @@ export function renderDispatchBoardPage(model) {
         font-weight: 700;
       }
 
-      .timeline-host {
+      .calendar-host {
         border: 1px solid var(--line);
         border-radius: 12px;
         overflow: hidden;
         background: #fff;
+        min-height: 640px;
       }
 
-      .timeline-host.drop-active {
+      .calendar-host.drop-active {
         box-shadow: inset 0 0 0 2px rgba(17, 122, 72, 0.25);
       }
 
@@ -343,79 +336,35 @@ export function renderDispatchBoardPage(model) {
         background: var(--danger-soft);
       }
 
-      .vis-timeline {
+      .ec {
         border: 0;
         font-family: "Manrope", "IBM Plex Sans", "Segoe UI", sans-serif;
       }
 
-      .vis-labelset .vis-label { border-color: #dce6de; }
-      .vis-labelset .vis-label .vis-inner { padding: 8px 10px; }
-      .vis-time-axis .vis-text { color: #64796d; }
-
-      .vis-item {
-        border-radius: 10px;
-        border: 1px solid #9ec9ae;
-        background: #e6f4ea;
-        color: var(--ink);
-        box-shadow: 0 2px 4px rgba(30, 55, 39, 0.08);
-      }
-
-      .vis-item.status-confirmed,
-      .vis-item.status-arrived {
+      .ec-event.status-confirmed,
+      .ec-event.status-arrived {
         border-color: #9cc7ae;
         background: #eaf6ee;
       }
 
-      .vis-item.status-booked {
+      .ec-event.status-booked {
         border-color: #9bbfd3;
         background: #e7f0f8;
       }
 
-      .vis-item.status-cancelled,
-      .vis-item.status-no-show {
+      .ec-event.status-cancelled,
+      .ec-event.status-no-show {
         border-color: #e0bbb2;
         background: #fff0ed;
       }
 
-      .vis-item.vis-selected {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 2px rgba(17, 122, 72, 0.18);
+      .ec-resource {
+        font-size: 0.86rem;
       }
 
-      .event-card { line-height: 1.2; }
-
-      .event-head {
-        display: flex;
-        justify-content: space-between;
-        gap: 6px;
-      }
-
-      .event-code {
-        font-size: 0.8rem;
-        font-weight: 800;
-      }
-
-      .event-time {
-        font-size: 0.74rem;
-        color: #41584d;
-      }
-
-      .event-meta {
-        margin-top: 4px;
-        font-size: 0.76rem;
-        color: #2c4137;
-      }
-
-      .lane-group {
-        display: grid;
-        gap: 2px;
-      }
-
-      .lane-group strong { font-size: 0.86rem; }
-
-      .lane-group small {
-        color: #667c70;
-        font-size: 0.72rem;
+      .ec-time,
+      .ec-header {
+        color: #64796d;
       }
 
       @media (max-width: 1180px) {
@@ -429,7 +378,6 @@ export function renderDispatchBoardPage(model) {
           font-size: 0.82rem;
           padding: 8px 10px;
         }
-        .timeline-host { min-height: 520px; }
       }
     </style>
   </head>
@@ -442,29 +390,29 @@ export function renderDispatchBoardPage(model) {
           <div class="board-head">
             <div>
               <h2>Календарная загрузка лент</h2>
-              <p>Перетаскивайте карточки внутри календаря и переносите карточки из очереди прямо на таймлайн.</p>
+              <p>Перетаскивайте карточки внутри календаря и переносите карточки из очереди прямо в нужный слот.</p>
             </div>
-            <div class="board-range">${escapeHtml(timelineStartLabel)}–${escapeHtml(timelineEndLabel)}, шаг ${escapeHtml(String(model.timeline.stepMinutes))} мин</div>
+            <div class="board-range" id="dispatch-board-range">${escapeHtml(rangeLabel)}</div>
           </div>
-          <div id="dispatch-timeline" class="timeline-host" aria-label="Календарная доска"></div>
+          <div id="dispatch-calendar" class="calendar-host" aria-label="Календарная доска"></div>
         </section>
       </section>
     </main>
 
     <div id="dispatch-toast" class="toast" role="status" aria-live="polite"></div>
     <script id="dispatch-board-model" type="application/json">${pageModelJson}</script>
-    <script src="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.4/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@event-calendar/build@5.5.1/dist/event-calendar.min.js"></script>
     <script>
       (() => {
-        const model = JSON.parse(document.getElementById("dispatch-board-model").textContent);
         const toast = document.getElementById("dispatch-toast");
-        const laneLoadByKey = new Map(model.laneLoad.map((entry) => [entry.laneKey, entry]));
-        const laneByKey = new Map(model.lanes.map((lane) => [lane.key, lane]));
-        const stepMinutes = Number.parseInt(model.timeline.stepMinutes, 10) || 15;
-        const dayStart = Number.parseInt(model.timeline.startMinute, 10);
-        const dayEnd = Number.parseInt(model.timeline.endMinute, 10);
-        const timelineHost = document.getElementById("dispatch-timeline");
-
+        const calendarHost = document.getElementById("dispatch-calendar");
+        const queueAppointments = document.getElementById("dispatch-queue-appointments");
+        const queueWalkIn = document.getElementById("dispatch-queue-walkin");
+        const dayChip = document.getElementById("dispatch-day-chip");
+        const boardRange = document.getElementById("dispatch-board-range");
+        const modelElement = document.getElementById("dispatch-board-model");
+        let model = JSON.parse(modelElement.textContent);
+        let calendar = null;
         let draggedQueuePayload = null;
 
         function showToast(message, kind = "ok") {
@@ -484,6 +432,15 @@ export function renderDispatchBoardPage(model) {
             .replaceAll("'", "&#039;");
         }
 
+        function formatLocalDateTime(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          const hour = String(date.getHours()).padStart(2, "0");
+          const minute = String(date.getMinutes()).padStart(2, "0");
+          return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+        }
+
         function parseErrorMessage(payload, fallback) {
           const errors = payload?.error?.details;
           if (Array.isArray(errors) && errors.length > 0) {
@@ -495,394 +452,297 @@ export function renderDispatchBoardPage(model) {
           return fallback;
         }
 
-        function buildDate(dayLocal, minuteOfDay) {
-          const base = new Date(dayLocal + "T00:00:00");
-          base.setHours(0, minuteOfDay, 0, 0);
-          return base;
+        function rangeLabel(calendarModel) {
+          return calendarModel.slotMinTime.slice(0, 5)
+            + "–"
+            + calendarModel.slotMaxTime.slice(0, 5)
+            + ", шаг "
+            + calendarModel.slotDuration.slice(3, 5)
+            + " мин";
         }
 
-        function clampMinute(minute) {
-          const min = Math.max(dayStart, Number.parseInt(minute, 10));
-          const max = Math.max(dayStart + stepMinutes, dayEnd);
-          return Math.min(max, min);
-        }
-
-        function snapMinute(minute) {
-          const ratio = Math.round(minute / stepMinutes);
-          return clampMinute(ratio * stepMinutes);
-        }
-
-        function minuteFromDate(date) {
-          return snapMinute((date.getHours() * 60) + date.getMinutes());
-        }
-
-        function minutesToLabel(minuteOfDay) {
-          const hour = Math.floor(minuteOfDay / 60);
-          const minute = minuteOfDay % 60;
-          return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
-        }
-
-        function formatSlotLocal(dayLocal, minuteOfDay) {
-          return dayLocal + " " + minutesToLabel(minuteOfDay);
-        }
-
-        function laneContextFromKey(laneKey) {
-          if (laneKey.startsWith("bay:")) {
-            return {
-              bayId: laneKey === "bay:none" ? null : laneKey.slice(4),
-              primaryAssignee: undefined,
-            };
-          }
-          if (laneKey.startsWith("tech:")) {
-            return {
-              bayId: undefined,
-              primaryAssignee: laneKey === "tech:none" ? null : laneKey.slice(5),
-            };
-          }
+        function toCalendarResource(entry) {
           return {
-            bayId: undefined,
-            primaryAssignee: undefined,
+            id: entry.id,
+            title: entry.title,
+            extendedProps: entry.extendedProps ?? {},
           };
         }
 
-        function postJson(url, body) {
-          return fetch(url, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(body),
-          }).then(async (response) => {
-            let payload = null;
-            try {
-              payload = await response.json();
-            } catch {
-              payload = null;
-            }
-            return { response, payload };
+        function toCalendarEvent(entry) {
+          return {
+            id: entry.id,
+            start: entry.start,
+            end: entry.end,
+            resourceId: entry.resourceId,
+            title: entry.title,
+            classNames: entry.classNames ?? [],
+            extendedProps: entry.extendedProps ?? {},
+          };
+        }
+
+        function queueItemMarkup(item, kind) {
+          const statusLabel = kind === "walkin"
+            ? item.statusLabelRu
+            : item.plannedStartLocal + " · " + item.status;
+          const durationMin = Number.isInteger(item.expectedDurationMin) ? item.expectedDurationMin : 60;
+          return "<li class='queue-item' draggable='true'"
+            + " data-queue-kind='" + escapeText(kind) + "'"
+            + " data-item-id='" + escapeText(item.id) + "'"
+            + " data-code='" + escapeText(item.code) + "'"
+            + " data-customer-name='" + escapeText(item.customerName) + "'"
+            + " data-vehicle-label='" + escapeText(item.vehicleLabel) + "'"
+            + " data-duration-min='" + escapeText(String(durationMin)) + "'>"
+            + "<div class='queue-head'>"
+            + "<strong>" + escapeText(item.code) + "</strong>"
+            + "<span>" + escapeText(statusLabel) + "</span>"
+            + "</div>"
+            + "<div class='queue-text'>" + escapeText(item.customerName + " · " + item.vehicleLabel) + "</div>"
+            + "</li>";
+        }
+
+        function renderQueueList(items, kind, target) {
+          if (!target) {
+            return;
+          }
+          if (!Array.isArray(items) || items.length === 0) {
+            target.innerHTML = "<li class='queue-empty'>Нет элементов</li>";
+            return;
+          }
+          target.innerHTML = items.map((item) => queueItemMarkup(item, kind)).join("");
+        }
+
+        function bindQueueDragHandlers() {
+          document.querySelectorAll(".queue-item").forEach((itemNode) => {
+            itemNode.addEventListener("dragstart", (event) => {
+              draggedQueuePayload = {
+                kind: itemNode.dataset.queueKind,
+                id: itemNode.dataset.itemId,
+                code: itemNode.dataset.code,
+                customerName: itemNode.dataset.customerName,
+                vehicleLabel: itemNode.dataset.vehicleLabel,
+                durationMin: Number.parseInt(itemNode.dataset.durationMin, 10) || 60,
+              };
+              itemNode.classList.add("is-dragging");
+              if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", draggedQueuePayload.kind + ":" + draggedQueuePayload.id);
+              }
+            });
+
+            itemNode.addEventListener("dragend", () => {
+              itemNode.classList.remove("is-dragging");
+              draggedQueuePayload = null;
+              calendarHost.classList.remove("drop-active");
+            });
           });
         }
 
-        async function previewAndCommitAppointment({ appointmentId, laneKey, minuteOfDay, durationMin, reason }) {
-          const context = laneContextFromKey(laneKey);
-          const body = {
-            plannedStartLocal: formatSlotLocal(model.dayLocal, minuteOfDay),
-            expectedDurationMin: durationMin,
+        async function postJson(url, body) {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          let payload = null;
+          try {
+            payload = await response.json();
+          } catch {
+            payload = null;
+          }
+          return { response, payload };
+        }
+
+        function resolveEventResourceId(event, fallbackResource) {
+          if (fallbackResource?.id !== undefined && fallbackResource?.id !== null) {
+            return String(fallbackResource.id);
+          }
+          if (Array.isArray(event?.resourceIds) && event.resourceIds.length > 0) {
+            return String(event.resourceIds[0]);
+          }
+          if (event?.resourceId !== undefined && event?.resourceId !== null) {
+            return String(event.resourceId);
+          }
+          if (event?.resources && Array.isArray(event.resources) && event.resources[0]?.id) {
+            return String(event.resources[0].id);
+          }
+          return null;
+        }
+
+        function toMutationPayload({ startDate, endDate, resourceId, reason }) {
+          return {
+            start: formatLocalDateTime(startDate),
+            end: formatLocalDateTime(endDate),
+            resourceId,
             laneMode: model.laneMode,
-            day: model.dayLocal,
-            reason: reason ?? "Изменено на диспетчерской доске",
+            dayLocal: model.dayLocal,
+            reason,
           };
-          if (context.bayId !== undefined) {
-            body.bayId = context.bayId;
-          }
-          if (context.primaryAssignee !== undefined) {
-            body.primaryAssignee = context.primaryAssignee;
+        }
+
+        async function refreshBoardModel() {
+          const url = "/api/v1/dispatch/board?day="
+            + encodeURIComponent(model.dayLocal)
+            + "&laneMode="
+            + encodeURIComponent(model.laneMode);
+          const response = await fetch(url, { method: "GET" });
+          if (!response.ok) {
+            throw new Error("Не удалось обновить модель диспетчерской доски");
           }
 
-          const preview = await postJson("/dispatch/board/appointments/" + encodeURIComponent(appointmentId) + "/preview", body);
+          const nextModel = await response.json();
+          model = nextModel;
+          if (dayChip) {
+            dayChip.textContent = model.dayLocal;
+          }
+          if (boardRange) {
+            boardRange.textContent = rangeLabel(model.calendar);
+          }
+
+          calendar.setOption("date", model.dayLocal + "T00:00:00");
+          calendar.setOption("slotMinTime", model.calendar.slotMinTime);
+          calendar.setOption("slotMaxTime", model.calendar.slotMaxTime);
+          calendar.setOption("slotDuration", model.calendar.slotDuration);
+          calendar.setOption("snapDuration", model.calendar.snapDuration);
+          calendar.setOption("resources", model.resources.map((resource) => toCalendarResource(resource)));
+          calendar.setOption("events", model.events.map((entry) => toCalendarEvent(entry)));
+
+          renderQueueList(model.queues.unscheduledAppointments, "appointment", queueAppointments);
+          renderQueueList(model.queues.walkIn, "walkin", queueWalkIn);
+          bindQueueDragHandlers();
+        }
+
+        async function previewAndCommitEvent(info, reason) {
+          const resourceId = resolveEventResourceId(info.event, info.newResource);
+          if (!resourceId) {
+            showToast("Не удалось определить ленту для сохранения", "error");
+            info.revert();
+            return;
+          }
+
+          const startDate = info.event.start;
+          const endDate = info.event.end ?? new Date(startDate.getTime() + 60 * 60000);
+          const payload = toMutationPayload({
+            startDate,
+            endDate,
+            resourceId,
+            reason,
+          });
+
+          const preview = await postJson("/api/v1/dispatch/board/events/" + encodeURIComponent(info.event.id) + "/preview", payload);
           if (!preview.response.ok) {
-            return {
-              ok: false,
-              message: parseErrorMessage(preview.payload, "Слот недоступен: есть конфликт по загрузке"),
-            };
+            showToast(parseErrorMessage(preview.payload, "Слот недоступен: есть конфликт по загрузке"), "error");
+            info.revert();
+            return;
           }
 
-          const commit = await postJson("/dispatch/board/appointments/" + encodeURIComponent(appointmentId) + "/commit", body);
+          const commit = await postJson("/api/v1/dispatch/board/events/" + encodeURIComponent(info.event.id) + "/commit", payload);
           if (!commit.response.ok) {
-            return {
-              ok: false,
-              message: parseErrorMessage(commit.payload, "Не удалось сохранить изменения"),
-            };
+            showToast(parseErrorMessage(commit.payload, "Не удалось сохранить изменения"), "error");
+            info.revert();
+            return;
           }
 
-          return {
-            ok: true,
-            item: commit.payload?.item ?? null,
-          };
+          await refreshBoardModel();
+          showToast("Изменения сохранены");
         }
 
-        function normalizeDuration(duration) {
-          const parsed = Number.parseInt(duration, 10);
-          if (!Number.isInteger(parsed)) {
-            return 60;
+        async function scheduleQueuePayload(targetInfo) {
+          if (!draggedQueuePayload) {
+            return;
           }
-          const normalized = Math.max(stepMinutes, parsed);
-          return Math.min(720, normalized);
+          if (!targetInfo || !targetInfo.date || !targetInfo.resource?.id) {
+            showToast("Не удалось определить слот календаря для назначения", "error");
+            return;
+          }
+
+          const startDate = new Date(targetInfo.date);
+          const endDate = new Date(startDate.getTime() + draggedQueuePayload.durationMin * 60000);
+          const payload = toMutationPayload({
+            startDate,
+            endDate,
+            resourceId: String(targetInfo.resource.id),
+            reason: "Назначение из очереди на календарной доске",
+          });
+
+          let result;
+          if (draggedQueuePayload.kind === "appointment") {
+            result = await postJson(
+              "/api/v1/dispatch/board/queue/appointments/" + encodeURIComponent(draggedQueuePayload.id) + "/schedule",
+              payload,
+            );
+          } else {
+            result = await postJson(
+              "/api/v1/dispatch/board/queue/walk-ins/" + encodeURIComponent(draggedQueuePayload.id) + "/schedule",
+              payload,
+            );
+          }
+
+          if (!result.response.ok) {
+            showToast(parseErrorMessage(result.payload, "Не удалось выполнить назначение"), "error");
+            return;
+          }
+
+          await refreshBoardModel();
+          showToast("Запись назначена в календаре");
         }
 
-        function buildItemClass(status) {
-          const safeStatus = String(status ?? "").toLowerCase().replace(/[^a-z0-9-]/g, "");
-          return safeStatus.length > 0 ? "status-" + safeStatus : "status-booked";
-        }
-
-        function formatLoadLabel(load) {
-          const percent = Math.round((load?.utilizationRatio ?? 0) * 100);
-          const count = load?.appointmentsCount ?? 0;
-          return percent + "% · " + count + " записей";
-        }
-
-        function toTimelineItem(card) {
-          const startMinute = snapMinute(Number.parseInt(card.startMinute, 10));
-          const durationMin = normalizeDuration(card.durationMin);
-          const endMinute = Math.min(dayEnd, startMinute + durationMin);
-          return {
-            id: card.id,
-            group: card.laneKey,
-            start: buildDate(model.dayLocal, startMinute),
-            end: buildDate(model.dayLocal, endMinute),
-            code: card.code,
-            customerName: card.customerName,
-            vehicleLabel: card.vehicleLabel,
-            status: card.status,
-            primaryAssignee: card.primaryAssignee ?? "Без ответственного",
-            durationMin,
-            className: buildItemClass(card.status),
-          };
-        }
-
-        if (!window.vis || !window.vis.DataSet || !window.vis.Timeline) {
+        if (!window.EventCalendar || typeof window.EventCalendar.create !== "function") {
           showToast("Не удалось инициализировать календарь", "error");
           return;
         }
 
-        const groupDataset = new window.vis.DataSet(
-          model.lanes.map((lane) => {
-            const load = laneLoadByKey.get(lane.key);
-            return {
-              id: lane.key,
-              content: "<div class='lane-group'><strong>" + escapeText(lane.label) + "</strong><small>" + escapeText(formatLoadLabel(load)) + "</small></div>",
-            };
-          }),
-        );
-
-        const itemDataset = new window.vis.DataSet(model.appointments.map((card) => toTimelineItem(card)));
-
-        const timeline = new window.vis.Timeline(timelineHost, itemDataset, groupDataset, {
-          start: buildDate(model.dayLocal, dayStart),
-          end: buildDate(model.dayLocal, dayEnd),
-          min: buildDate(model.dayLocal, dayStart),
-          max: buildDate(model.dayLocal, dayEnd),
-          stack: false,
-          orientation: { axis: "top", item: "bottom" },
-          zoomMin: (dayEnd - dayStart) * 60 * 1000,
-          zoomMax: (dayEnd - dayStart) * 60 * 1000,
-          horizontalScroll: false,
-          verticalScroll: true,
-          moveable: false,
-          editable: {
-            updateTime: true,
-            updateGroup: true,
-            add: false,
-            remove: false,
+        calendar = window.EventCalendar.create(calendarHost, {
+          view: model.calendar.view,
+          date: model.dayLocal + "T00:00:00",
+          locale: model.calendar.locale,
+          allDaySlot: false,
+          editable: true,
+          eventStartEditable: true,
+          eventDurationEditable: true,
+          slotMinTime: model.calendar.slotMinTime,
+          slotMaxTime: model.calendar.slotMaxTime,
+          slotDuration: model.calendar.slotDuration,
+          snapDuration: model.calendar.snapDuration,
+          nowIndicator: true,
+          resources: model.resources.map((entry) => toCalendarResource(entry)),
+          events: model.events.map((entry) => toCalendarEvent(entry)),
+          eventDrop: (info) => {
+            previewAndCommitEvent(info, "Перемещение на календарной доске");
           },
-          snap(date) {
-            const minute = (date.getHours() * 60) + date.getMinutes();
-            return buildDate(model.dayLocal, snapMinute(minute));
-          },
-          margin: { item: 8, axis: 6 },
-          template(item) {
-            const startMinute = minuteFromDate(item.start);
-            const endMinute = minuteFromDate(item.end);
-            return "<div class='event-card'>"
-              + "<div class='event-head'>"
-              + "<span class='event-code'>" + escapeText(item.code) + "</span>"
-              + "<span class='event-time'>" + escapeText(minutesToLabel(startMinute) + "-" + minutesToLabel(endMinute)) + "</span>"
-              + "</div>"
-              + "<div class='event-meta'>" + escapeText(item.customerName + " · " + item.vehicleLabel) + "</div>"
-              + "</div>";
-          },
-          async onMove(item, callback) {
-            const startMinute = minuteFromDate(item.start);
-            const endMinute = minuteFromDate(item.end);
-            const duration = normalizeDuration(Math.max(stepMinutes, endMinute - startMinute));
-            const laneKey = item.group;
-            const appointmentId = String(item.id);
-
-            const commitResult = await previewAndCommitAppointment({
-              appointmentId,
-              laneKey,
-              minuteOfDay: startMinute,
-              durationMin: duration,
-              reason: "Перемещение или изменение длительности на календарной доске",
-            });
-
-            if (!commitResult.ok) {
-              showToast(commitResult.message, "error");
-              callback(null);
-              return;
-            }
-
-            const current = itemDataset.get(appointmentId);
-            if (!current) {
-              callback(null);
-              return;
-            }
-
-            const updated = {
-              ...current,
-              group: laneKey,
-              start: buildDate(model.dayLocal, startMinute),
-              end: buildDate(model.dayLocal, Math.min(dayEnd, startMinute + duration)),
-              durationMin: duration,
-              status: commitResult.item?.status ?? current.status,
-              className: buildItemClass(commitResult.item?.status ?? current.status),
-            };
-
-            callback(updated);
-            itemDataset.update(updated);
-            showToast("Изменения сохранены");
+          eventResize: (info) => {
+            previewAndCommitEvent(info, "Изменение длительности на календарной доске");
           },
         });
 
-        function queueItemSelector(payload) {
-          return '.queue-item[data-queue-kind="' + CSS.escape(payload.kind) + '"][data-item-id="' + CSS.escape(payload.id) + '"]';
-        }
-
-        function getDropTarget(event) {
-          const properties = timeline.getEventProperties(event);
-          if (!properties || !properties.group || !properties.time) {
-            return null;
-          }
-          return {
-            laneKey: String(properties.group),
-            minuteOfDay: minuteFromDate(properties.time),
-          };
-        }
-
-        async function dropQueueAppointment(payload, target) {
-          const commitResult = await previewAndCommitAppointment({
-            appointmentId: payload.id,
-            laneKey: target.laneKey,
-            minuteOfDay: target.minuteOfDay,
-            durationMin: 60,
-            reason: "Назначение из очереди переносов на календарной доске",
-          });
-          if (!commitResult.ok) {
-            showToast(commitResult.message, "error");
-            return false;
-          }
-
-          const existing = itemDataset.get(payload.id);
-          const duration = normalizeDuration(commitResult.item?.expectedDurationMin ?? existing?.durationMin ?? 60);
-          const nextItem = {
-            ...(existing ?? {}),
-            id: payload.id,
-            group: target.laneKey,
-            start: buildDate(model.dayLocal, target.minuteOfDay),
-            end: buildDate(model.dayLocal, Math.min(dayEnd, target.minuteOfDay + duration)),
-            durationMin: duration,
-            code: existing?.code ?? payload.code,
-            customerName: existing?.customerName ?? payload.customerName,
-            vehicleLabel: existing?.vehicleLabel ?? payload.vehicleLabel,
-            status: commitResult.item?.status ?? existing?.status ?? "booked",
-            primaryAssignee: commitResult.item?.primaryAssignee ?? existing?.primaryAssignee ?? "Без ответственного",
-            className: buildItemClass(commitResult.item?.status ?? existing?.status ?? "booked"),
-          };
-
-          if (existing) {
-            itemDataset.update(nextItem);
-          } else {
-            itemDataset.add(nextItem);
-          }
-          showToast("Запись назначена в календаре");
-          return true;
-        }
-
-        async function dropQueueWalkIn(payload, target) {
-          const laneContext = laneContextFromKey(target.laneKey);
-          const body = {
-            plannedStartLocal: formatSlotLocal(model.dayLocal, target.minuteOfDay),
-            day: model.dayLocal,
-            laneMode: model.laneMode,
-          };
-          if (laneContext.bayId !== undefined) {
-            body.bayId = laneContext.bayId;
-          }
-          if (laneContext.primaryAssignee !== undefined) {
-            body.primaryAssignee = laneContext.primaryAssignee;
-          }
-
-          const scheduleResponse = await postJson("/dispatch/board/walk-ins/" + encodeURIComponent(payload.id) + "/schedule", body);
-          if (!scheduleResponse.response.ok) {
-            showToast(parseErrorMessage(scheduleResponse.payload, "Не удалось назначить прием без записи"), "error");
-            return false;
-          }
-
-          showToast("Прием без записи назначен. Обновляю доску…");
-          window.location.reload();
-          return true;
-        }
-
-        timelineHost.addEventListener("dragover", (event) => {
+        calendarHost.addEventListener("dragover", (event) => {
           if (!draggedQueuePayload) {
             return;
           }
-          const target = getDropTarget(event);
-          if (!target) {
-            return;
-          }
           event.preventDefault();
-          timelineHost.classList.add("drop-active");
+          calendarHost.classList.add("drop-active");
           if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
           }
         });
 
-        timelineHost.addEventListener("dragleave", () => {
-          timelineHost.classList.remove("drop-active");
+        calendarHost.addEventListener("dragleave", () => {
+          calendarHost.classList.remove("drop-active");
         });
 
-        timelineHost.addEventListener("drop", async (event) => {
+        calendarHost.addEventListener("drop", async (event) => {
           if (!draggedQueuePayload) {
             return;
           }
           event.preventDefault();
-          timelineHost.classList.remove("drop-active");
-
-          const payload = draggedQueuePayload;
+          calendarHost.classList.remove("drop-active");
+          const targetInfo = calendar.dateFromPoint(event.clientX, event.clientY);
+          await scheduleQueuePayload(targetInfo);
           draggedQueuePayload = null;
-          const target = getDropTarget(event);
-
-          if (!target) {
-            showToast("Не удалось определить слот календаря для назначения", "error");
-            return;
-          }
-
-          let applied = false;
-          if (payload.kind === "appointment") {
-            applied = await dropQueueAppointment(payload, target);
-          } else if (payload.kind === "walkin") {
-            applied = await dropQueueWalkIn(payload, target);
-          }
-
-          if (applied) {
-            const source = document.querySelector(queueItemSelector(payload));
-            if (source) {
-              source.remove();
-            }
-          }
         });
 
-        document.querySelectorAll(".queue-item").forEach((itemNode) => {
-          itemNode.addEventListener("dragstart", (event) => {
-            draggedQueuePayload = {
-              kind: itemNode.dataset.queueKind,
-              id: itemNode.dataset.itemId,
-              code: itemNode.dataset.code,
-              customerName: itemNode.dataset.customerName,
-              vehicleLabel: itemNode.dataset.vehicleLabel,
-            };
-            itemNode.classList.add("is-dragging");
-            if (event.dataTransfer) {
-              event.dataTransfer.effectAllowed = "move";
-              event.dataTransfer.setData("text/plain", draggedQueuePayload.kind + ":" + draggedQueuePayload.id);
-            }
-          });
-
-          itemNode.addEventListener("dragend", () => {
-            itemNode.classList.remove("is-dragging");
-            draggedQueuePayload = null;
-            timelineHost.classList.remove("drop-active");
-          });
-        });
+        bindQueueDragHandlers();
       })();
     </script>
   </body>

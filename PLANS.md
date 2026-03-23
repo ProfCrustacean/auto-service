@@ -6,11 +6,42 @@ Hot-path execution plan file for current non-trivial work.
 
 Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-## Active Plan — None
+## Active Plan — Dispatch board full EventCalendar cutover (2026-03-23)
 
-No active multi-step implementation plan is open right now.
+### Objective
 
-Create a new active plan before the next non-trivial feature/refactor/deployment slice.
+Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridDay`) and fully migrate dispatch board write flows to API-only contracts.
+
+### Scope
+
+- Full `/dispatch/board` UI engine replacement.
+- `GET /api/v1/dispatch/board` payload migration to calendar-native model (`calendar/resources/events/queues/actions`).
+- Remove legacy `/dispatch/board/*` write routes; add `/api/v1/dispatch/board/*` write routes.
+- Update mutation policy, tests, smoke/scenario harness, docs, status, and deploy verification.
+
+### Steps
+
+1. Baseline:
+   - `npm test`, `npm run verify`, `npm run audit:bloat`.
+2. Backend projection:
+   - migrate `dashboardService.getDispatchBoard()` output to EventCalendar-native schema.
+3. API routes:
+   - remove legacy UI write routes and introduce API-only dispatch mutation routes.
+4. UI engine migration:
+   - remove `vis-timeline`, integrate `@event-calendar/build@5.5.1` standalone bundle,
+   - wire drag/resize commits and queue external drop.
+5. Harness/test migration:
+   - update dispatch board tests, smoke markers, and dispatch scenario route payloads.
+6. Documentation/state updates:
+   - `STATUS.md`, `docs/11_UI_UX_GUIDELINES.md`, `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`, plan closeout.
+7. Full validation and deploy:
+   - `npm run lint`, `npm test`, `npm run verify`, `npm run secrets:scan`, `npm run audit:bloat`, `npm run verify:render`, production browser smoke.
+
+### Current baseline snapshot
+
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: failed (pre-existing area budget overruns in `src/tests/scripts`; no new regressions yet)
 
 ## Archived plan skeleton
 

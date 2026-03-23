@@ -79,10 +79,10 @@ const MUTATION_POLICIES = [
     allowedRoles: new Set(["owner", "front_desk", "technician"]),
   },
   {
-    id: "ui.dispatch_board.write",
+    id: "api.dispatch_board.write",
     channel: "ui",
     methods: new Set(["POST"]),
-    pattern: /^\/dispatch\/board\/(?:appointments\/[^/]+\/(?:preview|commit)|walk-ins\/[^/]+\/schedule)$/u,
+    pattern: /^\/api\/v1\/dispatch\/board\/(?:events\/[^/]+\/(?:preview|commit)|queue\/(?:appointments|walk-ins)\/[^/]+\/schedule)$/u,
     allowedRoles: new Set(["owner", "front_desk"]),
   },
 ];

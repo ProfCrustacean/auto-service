@@ -11,6 +11,8 @@ import {
 import { renderDispatchBoardPage } from "../ui/dispatchBoardPage.js";
 import { handleUnexpectedError } from "./routeUtils.js";
 
+const LOCAL_SLOT_RE = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/u;
+
 function normalizeMode(rawMode) {
   return rawMode === "technician" ? "technician" : "bay";
 }
@@ -48,35 +50,139 @@ function toOptionalIntegerOrRaw(value) {
   return trimmed;
 }
 
-function normalizeBoardPatchPayload(body) {
-  const payload = {};
+function parseLocalDateTime(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
 
-  if (body.plannedStartLocal !== undefined) {
-    payload.plannedStartLocal = toOptionalStringOrNull(body.plannedStartLocal);
+  const trimmed = value.trim();
+  const match = LOCAL_SLOT_RE.exec(trimmed);
+  if (match) {
+    const year = Number.parseInt(match[1], 10);
+    const month = Number.parseInt(match[2], 10);
+    const day = Number.parseInt(match[3], 10);
+    const hours = Number.parseInt(match[4], 10);
+    const minutes = Number.parseInt(match[5], 10);
+    return new Date(year, month - 1, day, hours, minutes, 0, 0);
   }
-  if (body.bayId !== undefined) {
-    payload.bayId = toOptionalStringOrNull(body.bayId);
+
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
   }
-  if (body.primaryAssignee !== undefined) {
-    payload.primaryAssignee = toOptionalStringOrNull(body.primaryAssignee);
+  return parsed;
+}
+
+function formatLocalDateTime(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hour}:${minute}`;
+}
+
+function resolveAssignmentFromResourceId(resourceId, laneMode) {
+  if (resourceId === undefined) {
+    return { updates: {} };
   }
-  if (body.expectedDurationMin !== undefined) {
-    payload.expectedDurationMin = toOptionalIntegerOrRaw(body.expectedDurationMin);
+
+  const raw = toOptionalStringOrNull(resourceId);
+  if (raw === undefined) {
+    return { updates: {} };
   }
-  if (body.status !== undefined) {
-    payload.status = toOptionalStringOrNull(body.status);
+  if (raw === null) {
+    return {
+      errors: [{ field: "resourceId", message: "resourceId must be a non-empty string" }],
+    };
   }
-  if (body.notes !== undefined) {
-    payload.notes = toOptionalStringOrNull(body.notes);
+
+  if (laneMode === "technician") {
+    if (!raw.startsWith("tech:")) {
+      return {
+        errors: [{ field: "resourceId", message: "resourceId must start with tech: in technician mode" }],
+      };
+    }
+    return {
+      updates: {
+        primaryAssignee: raw === "tech:none" ? null : raw.slice(5),
+      },
+    };
   }
+
+  if (!raw.startsWith("bay:")) {
+    return {
+      errors: [{ field: "resourceId", message: "resourceId must start with bay: in bay mode" }],
+    };
+  }
+  return {
+    updates: {
+      bayId: raw === "bay:none" ? null : raw.slice(4),
+    },
+  };
+}
+
+function buildBoardPatchPayload(body = {}, query = {}) {
+  const errors = [];
+  const laneMode = normalizeMode(body.laneMode ?? query.laneMode);
+  const updates = {};
+
+  const startRaw = toOptionalStringOrNull(body.start ?? body.plannedStartLocal);
+  if (startRaw !== undefined) {
+    if (startRaw === null) {
+      errors.push({ field: "start", message: "start must be a non-empty date-time string" });
+    } else {
+      const startDate = parseLocalDateTime(startRaw);
+      if (!startDate) {
+        errors.push({ field: "start", message: "start must be a valid date-time" });
+      } else {
+        updates.plannedStartLocal = formatLocalDateTime(startDate);
+      }
+    }
+  }
+
+  const endRaw = toOptionalStringOrNull(body.end);
+  if (endRaw !== undefined && endRaw !== null) {
+    const startDate = parseLocalDateTime(startRaw ?? updates.plannedStartLocal ?? "");
+    const endDate = parseLocalDateTime(endRaw);
+    if (!startDate || !endDate) {
+      errors.push({ field: "end", message: "end must be a valid date-time and start must be valid" });
+    } else {
+      const durationMinutes = Math.max(5, Math.round((endDate.getTime() - startDate.getTime()) / 60000));
+      if (durationMinutes <= 0) {
+        errors.push({ field: "end", message: "end must be later than start" });
+      } else {
+        updates.expectedDurationMin = durationMinutes;
+      }
+    }
+  } else if (body.expectedDurationMin !== undefined) {
+    updates.expectedDurationMin = toOptionalIntegerOrRaw(body.expectedDurationMin);
+  }
+
+  const assignmentResolution = resolveAssignmentFromResourceId(body.resourceId, laneMode);
+  if (assignmentResolution.errors) {
+    errors.push(...assignmentResolution.errors);
+  } else {
+    Object.assign(updates, assignmentResolution.updates);
+  }
+
   if (body.reason !== undefined) {
-    payload.reason = toOptionalStringOrNull(body.reason);
+    updates.reason = toOptionalStringOrNull(body.reason);
   }
   if (body.changedBy !== undefined) {
-    payload.changedBy = toOptionalStringOrNull(body.changedBy);
+    updates.changedBy = toOptionalStringOrNull(body.changedBy);
   }
 
-  return payload;
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    laneMode,
+    dayLocal: normalizeDay(body.dayLocal ?? body.day ?? query.day),
+    updates,
+  };
 }
 
 function mapAppointmentDomainError(res, error) {
@@ -135,9 +241,32 @@ function buildBoardPatchActor(req) {
 
 function buildBoardPatchResponseMeta(req) {
   return {
-    day: normalizeDay(req.body?.day ?? req.query?.day),
+    day: normalizeDay(req.body?.dayLocal ?? req.body?.day ?? req.query?.day),
     laneMode: normalizeMode(req.body?.laneMode ?? req.query?.laneMode),
   };
+}
+
+function validateDispatchEventUpdate(payload, { requireStart = true, requireResource = true } = {}) {
+  const errors = [];
+  if (requireStart && payload.updates.plannedStartLocal === undefined) {
+    errors.push({ field: "start", message: "start is required" });
+  }
+  const hasLaneUpdate = payload.updates.bayId !== undefined || payload.updates.primaryAssignee !== undefined;
+  if (requireResource && !hasLaneUpdate) {
+    errors.push({ field: "resourceId", message: "resourceId is required" });
+  }
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return validateAppointmentUpdate(payload.updates);
+}
+
+function deriveQueueDurationMinutes(updates, fallback = 60) {
+  if (Number.isInteger(updates.expectedDurationMin)) {
+    return updates.expectedDurationMin;
+  }
+  return fallback;
 }
 
 export function registerDispatchBoardPageRoutes(app, {
@@ -176,8 +305,14 @@ export function registerDispatchBoardPageRoutes(app, {
     }
   });
 
-  app.post("/dispatch/board/appointments/:id/preview", (req, res) => {
-    const validation = validateAppointmentUpdate(normalizeBoardPatchPayload(req.body ?? {}));
+  app.post("/api/v1/dispatch/board/events/:id/preview", (req, res) => {
+    const boardPayload = buildBoardPatchPayload(req.body ?? {}, req.query ?? {});
+    if (!boardPayload.ok) {
+      sendApiError(res, validationError(boardPayload.errors));
+      return;
+    }
+
+    const validation = validateDispatchEventUpdate(boardPayload, { requireStart: true, requireResource: true });
     if (!validation.ok) {
       sendApiError(res, validationError(validation.errors));
       return;
@@ -198,7 +333,8 @@ export function registerDispatchBoardPageRoutes(app, {
         item,
         actor: changedBy ?? buildBoardPatchActor(req),
         reason: reason ?? null,
-        ...buildBoardPatchResponseMeta(req),
+        day: boardPayload.dayLocal,
+        laneMode: boardPayload.laneMode,
       });
     } catch (error) {
       if (mapAppointmentDomainError(res, error)) {
@@ -208,8 +344,14 @@ export function registerDispatchBoardPageRoutes(app, {
     }
   });
 
-  app.post("/dispatch/board/appointments/:id/commit", (req, res) => {
-    const validation = validateAppointmentUpdate(normalizeBoardPatchPayload(req.body ?? {}));
+  app.post("/api/v1/dispatch/board/events/:id/commit", (req, res) => {
+    const boardPayload = buildBoardPatchPayload(req.body ?? {}, req.query ?? {});
+    if (!boardPayload.ok) {
+      sendApiError(res, validationError(boardPayload.errors));
+      return;
+    }
+
+    const validation = validateDispatchEventUpdate(boardPayload, { requireStart: true, requireResource: true });
     if (!validation.ok) {
       sendApiError(res, validationError(validation.errors));
       return;
@@ -221,7 +363,7 @@ export function registerDispatchBoardPageRoutes(app, {
       const item = appointmentService.updateAppointmentById(req.params.id, updates, {
         changedBy: changedBy ?? buildBoardPatchActor(req),
         reason: reason ?? "Изменено на диспетчерской доске",
-        source: "dispatch_board_ui_commit",
+        source: "dispatch_board_api_commit",
       });
       if (!item) {
         sendApiError(res, notFoundError("Appointment"));
@@ -242,22 +384,86 @@ export function registerDispatchBoardPageRoutes(app, {
     }
   });
 
-  app.post("/dispatch/board/walk-ins/:id/schedule", (req, res) => {
+  app.post("/api/v1/dispatch/board/queue/appointments/:id/schedule", (req, res) => {
+    const boardPayload = buildBoardPatchPayload(req.body ?? {}, req.query ?? {});
+    if (!boardPayload.ok) {
+      sendApiError(res, validationError(boardPayload.errors));
+      return;
+    }
+
+    const validation = validateDispatchEventUpdate(boardPayload, { requireStart: true, requireResource: true });
+    if (!validation.ok) {
+      sendApiError(res, validationError(validation.errors));
+      return;
+    }
+
+    const { changedBy, reason, ...updates } = validation.value;
+    if (updates.expectedDurationMin === undefined) {
+      updates.expectedDurationMin = deriveQueueDurationMinutes(updates, 60);
+    }
+
+    try {
+      const previewItem = appointmentService.previewAppointmentUpdate(req.params.id, updates);
+      if (!previewItem) {
+        sendApiError(res, notFoundError("Appointment"));
+        return;
+      }
+
+      const item = appointmentService.updateAppointmentById(req.params.id, updates, {
+        changedBy: changedBy ?? buildBoardPatchActor(req),
+        reason: reason ?? "Назначено из очереди на диспетчерской доске",
+        source: "dispatch_board_queue_appointment_schedule",
+      });
+      if (!item) {
+        sendApiError(res, notFoundError("Appointment"));
+        return;
+      }
+
+      res.status(200).json({
+        preview: false,
+        scheduled: true,
+        previewItem,
+        item,
+        day: boardPayload.dayLocal,
+        laneMode: boardPayload.laneMode,
+      });
+    } catch (error) {
+      if (mapAppointmentDomainError(res, error)) {
+        return;
+      }
+      handleUnexpectedError(logger, req, res, error, "dispatch_board_queue_appointment_schedule_failed");
+    }
+  });
+
+  app.post("/api/v1/dispatch/board/queue/walk-ins/:id/schedule", (req, res) => {
+    const boardPayload = buildBoardPatchPayload(req.body ?? {}, req.query ?? {});
+    if (!boardPayload.ok) {
+      sendApiError(res, validationError(boardPayload.errors));
+      return;
+    }
+
+    const dispatchValidation = validateDispatchEventUpdate(boardPayload, { requireStart: true, requireResource: true });
+    if (!dispatchValidation.ok) {
+      sendApiError(res, validationError(dispatchValidation.errors));
+      return;
+    }
+
     const workOrder = workOrderService.getWorkOrderById(req.params.id);
     if (!workOrder) {
       sendApiError(res, notFoundError("Work order"));
       return;
     }
 
+    const expectedDurationMin = deriveQueueDurationMinutes(dispatchValidation.value, 60);
     const payload = {
-      plannedStartLocal: toOptionalStringOrNull(req.body?.plannedStartLocal),
+      plannedStartLocal: dispatchValidation.value.plannedStartLocal,
       customerId: workOrder.customerId,
       vehicleId: workOrder.vehicleId,
       complaint: workOrder.complaint ?? "Запрос из очереди walk-in",
-      bayId: toOptionalStringOrNull(req.body?.bayId),
-      primaryAssignee: toOptionalStringOrNull(req.body?.primaryAssignee),
-      expectedDurationMin: toOptionalIntegerOrRaw(req.body?.expectedDurationMin),
-      source: "dispatch_board_walkin_schedule",
+      bayId: dispatchValidation.value.bayId,
+      primaryAssignee: dispatchValidation.value.primaryAssignee,
+      expectedDurationMin,
+      source: "dispatch_board_queue_walkin_schedule",
     };
 
     const validation = validateAppointmentCreate(payload);
@@ -271,6 +477,8 @@ export function registerDispatchBoardPageRoutes(app, {
       res.status(201).json({
         item,
         createdFromWorkOrderId: workOrder.id,
+        day: boardPayload.dayLocal,
+        laneMode: boardPayload.laneMode,
       });
     } catch (error) {
       if (mapAppointmentDomainError(res, error)) {

@@ -79,6 +79,8 @@ Must make it easy to answer:
 - owner-facing dispatch board should avoid duplicate control surfaces:
   - no duplicate metric strips above the board when lane context is already visible in calendar rows,
   - no secondary manual scheduling controls outside the calendar for slot/duration changes.
+  - scheduling board should use vertical resource time-grid (time top-to-bottom, resources as lanes),
+  - queue assignment should be drag-and-drop into the calendar only (no fallback manual assign buttons).
 
 ## Language rule
 

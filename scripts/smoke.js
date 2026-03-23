@@ -309,21 +309,25 @@ async function main() {
     path: "/api/v1/dispatch/board",
   });
   expectStatus(dispatchBoardApi, 200, "dispatch_board_api");
-  assertHarness(Array.isArray(dispatchBoardApi.payload?.lanes), "dispatch board lanes must be an array", {
+  assertHarness(Array.isArray(dispatchBoardApi.payload?.resources), "dispatch board resources must be an array", {
     step: "dispatch_board_api",
     responseStatus: dispatchBoardApi.status,
     responsePayload: dispatchBoardApi.payload,
   });
-  assertHarness(Array.isArray(dispatchBoardApi.payload?.appointments), "dispatch board appointments must be an array", {
+  assertHarness(Array.isArray(dispatchBoardApi.payload?.events), "dispatch board events must be an array", {
     step: "dispatch_board_api",
     responseStatus: dispatchBoardApi.status,
     responsePayload: dispatchBoardApi.payload,
   });
-  assertHarness(Array.isArray(dispatchBoardApi.payload?.timeline?.slots), "dispatch board timeline slots must be an array", {
-    step: "dispatch_board_api",
-    responseStatus: dispatchBoardApi.status,
-    responsePayload: dispatchBoardApi.payload,
-  });
+  assertHarness(
+    dispatchBoardApi.payload?.calendar?.engine === "event_calendar",
+    "dispatch board calendar engine must be event_calendar",
+    {
+      step: "dispatch_board_api",
+      responseStatus: dispatchBoardApi.status,
+      responsePayload: dispatchBoardApi.payload,
+    },
+  );
 
   const dispatchBoardUi = await requestText(baseUrl, {
     step: "dispatch_board_ui",
@@ -342,7 +346,7 @@ async function main() {
   assertHarness(
     dispatchBoardUi.text.includes("Диспетчерская доска") &&
       dispatchBoardUi.text.includes("Очередь переносов") &&
-      dispatchBoardUi.text.includes('id="dispatch-timeline"'),
+      dispatchBoardUi.text.includes('id="dispatch-calendar"'),
     "dispatch board UI content missing",
     {
       step: "dispatch_board_ui",

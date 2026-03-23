@@ -20,6 +20,8 @@ const DISPATCH_DAY_END_MINUTES = 20 * 60;
 const DISPATCH_SLOT_STEP_MINUTES = 15;
 const DISPATCH_DEFAULT_DURATION_MIN = 60;
 const DISPATCH_DATE_RE = /^\d{4}-\d{2}-\d{2}$/u;
+const DISPATCH_CALENDAR_ENGINE = "event_calendar";
+const DISPATCH_CALENDAR_ENGINE_VERSION = "5.5.1";
 
 const ABSOLUTE_SLOT_RE = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$/;
 const RELATIVE_SLOT_RE = /^(Сегодня|Завтра)\s+(\d{1,2}):(\d{2})$/i;
@@ -295,17 +297,22 @@ function normalizeDispatchDuration(value) {
   return Math.min(720, Math.max(15, value));
 }
 
-function buildDispatchTimeSlots() {
-  const slots = [];
-  for (let minute = DISPATCH_DAY_START_MINUTES; minute < DISPATCH_DAY_END_MINUTES; minute += DISPATCH_SLOT_STEP_MINUTES) {
-    const hour = String(Math.floor(minute / 60)).padStart(2, "0");
-    const min = String(minute % 60).padStart(2, "0");
-    slots.push({
-      minuteOfDay: minute,
-      label: `${hour}:${min}`,
-    });
+function formatMinuteLabel(minuteOfDay) {
+  const hour = String(Math.floor(minuteOfDay / 60)).padStart(2, "0");
+  const minute = String(minuteOfDay % 60).padStart(2, "0");
+  return `${hour}:${minute}`;
+}
+
+function formatLocalDateTime(dayLocal, minuteOfDay) {
+  return `${dayLocal} ${formatMinuteLabel(minuteOfDay)}:00`;
+}
+
+function normalizeDispatchStatusClass(status) {
+  const normalized = String(status ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/gu, "");
+  if (normalized.length === 0) {
+    return "status-booked";
   }
-  return slots;
+  return `status-${normalized}`;
 }
 
 function resolveAppointmentLaneKey(appointment, laneMode) {
@@ -803,25 +810,21 @@ export class DashboardService {
 
     const laneByKey = new Map(lanes.map((lane) => [lane.key, lane]));
     const appointmentCards = [];
-    const unscheduledAppointments = [];
 
     for (const appointment of dayAppointments) {
       const slot = parseWeekSlot(appointment.plannedStartLocal, now);
       if (slot.kind !== "scheduled" || slot.dayKey !== dayLocal) {
-        unscheduledAppointments.push(appointment);
         continue;
       }
 
       const startMinute = parseMinutesFromTimeLabel(slot.timeLabel);
       if (!Number.isInteger(startMinute)) {
-        unscheduledAppointments.push(appointment);
         continue;
       }
 
       const durationMin = normalizeDispatchDuration(appointment.expectedDurationMin);
       const laneKey = resolveAppointmentLaneKey(appointment, normalizedLaneMode);
       if (!laneByKey.has(laneKey)) {
-        unscheduledAppointments.push(appointment);
         continue;
       }
 
@@ -864,6 +867,7 @@ export class DashboardService {
         vehicleLabel: appointment.vehicleLabel,
         complaint: appointment.complaint,
         plannedStartLocal: appointment.plannedStartLocal,
+        expectedDurationMin: appointment.expectedDurationMin ?? DISPATCH_DEFAULT_DURATION_MIN,
         status: appointment.status,
       }));
 
@@ -895,29 +899,69 @@ export class DashboardService {
       };
     });
 
+    const resources = lanes.map((lane) => {
+      const load = laneLoad.find((entry) => entry.laneKey === lane.key) ?? {
+        appointmentsCount: 0,
+        bookedMinutes: 0,
+        utilizationRatio: 0,
+      };
+      return {
+        id: lane.key,
+        title: lane.label,
+        type: lane.type,
+        value: lane.value,
+        extendedProps: {
+          laneType: lane.type,
+          laneValue: lane.value,
+          appointmentsCount: load.appointmentsCount,
+          bookedMinutes: load.bookedMinutes,
+          utilizationRatio: load.utilizationRatio,
+        },
+      };
+    });
+
+    const events = appointmentCards.map((card) => ({
+      id: card.id,
+      start: formatLocalDateTime(dayLocal, card.startMinute),
+      end: formatLocalDateTime(dayLocal, card.endMinute),
+      resourceId: card.laneKey,
+      title: `${card.code} · ${card.customerName} · ${card.vehicleLabel}`,
+      classNames: [normalizeDispatchStatusClass(card.status)],
+      extendedProps: {
+        code: card.code,
+        customerName: card.customerName,
+        vehicleLabel: card.vehicleLabel,
+        complaint: card.complaint,
+        status: card.status,
+        plannedStartLocal: card.plannedStartLocal,
+        durationMin: card.durationMin,
+        expectedDurationMin: card.expectedDurationMin,
+        bayId: card.bayId,
+        bayName: card.bayName,
+        primaryAssignee: card.primaryAssignee,
+      },
+    }));
+
     return {
       generatedAt: now.toISOString(),
       dayLocal,
       laneMode: normalizedLaneMode,
-      timeline: {
-        startMinute: DISPATCH_DAY_START_MINUTES,
-        endMinute: DISPATCH_DAY_END_MINUTES,
-        stepMinutes: DISPATCH_SLOT_STEP_MINUTES,
-        slots: buildDispatchTimeSlots(),
+      calendar: {
+        engine: DISPATCH_CALENDAR_ENGINE,
+        engineVersion: DISPATCH_CALENDAR_ENGINE_VERSION,
+        view: "resourceTimeGridDay",
+        dayLocal,
+        slotMinTime: `${formatMinuteLabel(DISPATCH_DAY_START_MINUTES)}:00`,
+        slotMaxTime: `${formatMinuteLabel(DISPATCH_DAY_END_MINUTES)}:00`,
+        slotDuration: "00:15:00",
+        snapDuration: "00:15:00",
+        locale: "ru-RU",
       },
-      lanes,
-      laneLoad,
-      appointments: appointmentCards,
+      resources,
+      events,
       queues: {
         unscheduledAppointments: outsideOfDayQueue,
         walkIn: walkInQueueItems,
-      },
-      summary: {
-        scheduledAppointmentsCount: appointmentCards.length,
-        unscheduledDayCount: unscheduledAppointments.length,
-        carryOverQueueCount: outsideOfDayQueue.length,
-        walkInQueueCount: walkInQueueItems.length,
-        overloadedLanesCount: laneLoad.filter((lane) => lane.isOverloaded).length,
       },
       actions: {
         backHref: "/",

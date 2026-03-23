@@ -1,6 +1,6 @@
 {
-  "status": "pass",
-  "generatedAt": "2026-03-23T13:04:38.003Z",
+  "status": "fail",
+  "generatedAt": "2026-03-23T16:42:29.318Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,20 +23,20 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 895348,
+      "totalBytes": 1017815,
       "byArea": {
-        "src": 421827,
-        "tests": 134805,
-        "scripts": 178494,
-        "docs": 74595,
-        "evidence": 7435,
-        "other": 78192
+        "src": 497686,
+        "tests": 147167,
+        "scripts": 205937,
+        "docs": 77278,
+        "evidence": 7991,
+        "other": 81756
       }
     },
     "topTrackedFiles": [
       {
         "path": "src/repositories/sqliteRepository.js",
-        "bytes": 54025
+        "bytes": 54037
       },
       {
         "path": "src/ui/workOrderLifecyclePage.js",
@@ -48,7 +48,7 @@
       },
       {
         "path": "src/services/dashboardService.js",
-        "bytes": 30001
+        "bytes": 31427
       },
       {
         "path": "package-lock.json",
@@ -56,11 +56,15 @@
       },
       {
         "path": "src/ui/dashboardPage.js",
-        "bytes": 26181
+        "bytes": 26193
       },
       {
         "path": "scripts/linear-harness.js",
         "bytes": 25720
+      },
+      {
+        "path": "src/ui/dispatchBoardPage.js",
+        "bytes": 25465
       },
       {
         "path": "src/http/workOrderPageRoutes.js",
@@ -75,6 +79,14 @@
         "bytes": 22874
       },
       {
+        "path": "src/repositories/sqliteRepositoryReferenceCustomerVehicle.js",
+        "bytes": 19482
+      },
+      {
+        "path": "src/ui/pageFormShared.js",
+        "bytes": 17998
+      },
+      {
         "path": "src/http/workOrderValidators.js",
         "bytes": 17812
       },
@@ -83,62 +95,69 @@
         "bytes": 16978
       },
       {
-        "path": "src/ui/pageFormShared.js",
-        "bytes": 16583
-      },
-      {
         "path": "scripts/scheduling-walkin-scenario.js",
         "bytes": 16077
       },
       {
+        "path": "src/http/dispatchBoardPageRoutes.js",
+        "bytes": 14981
+      },
+      {
         "path": "docs/23_LOCAL_AND_RENDER_RUNBOOK.md",
-        "bytes": 13988
+        "bytes": 14276
       },
       {
         "path": "scripts/smoke.js",
-        "bytes": 13919
+        "bytes": 14037
       },
       {
         "path": "src/services/appointmentService.js",
         "bytes": 13649
-      },
-      {
-        "path": "README.md",
-        "bytes": 12458
-      },
-      {
-        "path": "src/http/workOrderRoutes.js",
-        "bytes": 12245
-      },
-      {
-        "path": "src/http/pageFlowUtils.js",
-        "bytes": 12201
       }
     ],
     "evidence": {
       "trackedFileCount": 3,
-      "totalBytes": 7435,
+      "totalBytes": 7991,
       "largestFile": {
-        "path": "evidence/linear-aut73-81-done-sync.json",
-        "bytes": 3567
+        "path": "evidence/bloat-audit-latest.json",
+        "bytes": 3776
       },
       "rawLikeTracked": []
     },
     "docs": {
       "lineCounts": {
         "README": 319,
-        "STATUS": 134,
-        "PLANS": 198
+        "STATUS": 137,
+        "PLANS": 231
       }
     },
     "duplication": {
-      "percentage": 7.6,
-      "duplicatedLines": 1783,
-      "clones": 139,
+      "percentage": 7.65,
+      "duplicatedLines": 1831,
+      "clones": 143,
       "sources": 113,
-      "lines": 23454,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-Fh0b26/report/jscpd-report.json"
+      "lines": 23930,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-qydcGG/report/jscpd-report.json"
     }
   },
-  "violations": []
+  "violations": [
+    {
+      "code": "tracked_bytes_area_src",
+      "message": "Tracked bytes exceeded src area budget",
+      "actual": 497686,
+      "threshold": 430000
+    },
+    {
+      "code": "tracked_bytes_area_tests",
+      "message": "Tracked bytes exceeded tests area budget",
+      "actual": 147167,
+      "threshold": 135000
+    },
+    {
+      "code": "tracked_bytes_area_scripts",
+      "message": "Tracked bytes exceeded scripts area budget",
+      "actual": 205937,
+      "threshold": 180000
+    }
+  ]
 }

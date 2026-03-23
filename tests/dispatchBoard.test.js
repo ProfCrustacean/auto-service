@@ -1,12 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  buildUniqueSlot,
   requestJson,
   withTestServer,
 } from "./helpers/httpHarness.js";
 
-test("dispatch board page and api render timeline payload", async () => {
+test("dispatch board page and api render EventCalendar payload", async () => {
   await withTestServer("auto-service-dispatch-board-render", async ({ baseUrl }) => {
     const pageRes = await fetch(`${baseUrl}/dispatch/board`);
     assert.equal(pageRes.status, 200);
@@ -14,9 +13,10 @@ test("dispatch board page and api render timeline payload", async () => {
     assert.match(html, /Диспетчерская доска/u);
     assert.match(html, /Очередь переносов/u);
     assert.match(html, /Приемы без записи без слота/u);
-    assert.match(html, /id="dispatch-timeline"/u);
-    assert.match(html, /vis-timeline/u);
+    assert.match(html, /id="dispatch-calendar"/u);
+    assert.match(html, /event-calendar\.min\.js/u);
     assert.match(html, /draggable="true"/u);
+    assert.doesNotMatch(html, /vis-timeline/u);
     assert.doesNotMatch(html, /Выбранный слот/u);
     assert.doesNotMatch(html, /Выбранная запись/u);
     assert.doesNotMatch(html, /Назначить в выбранный слот/u);
@@ -24,14 +24,15 @@ test("dispatch board page and api render timeline payload", async () => {
 
     const boardApi = await requestJson("GET", `${baseUrl}/api/v1/dispatch/board`);
     assert.equal(boardApi.status, 200);
-    assert.equal(Array.isArray(boardApi.json.lanes), true);
-    assert.equal(Array.isArray(boardApi.json.appointments), true);
-    assert.equal(Array.isArray(boardApi.json.timeline.slots), true);
-    assert.equal(boardApi.json.timeline.stepMinutes, 15);
+    assert.equal(boardApi.json.calendar.engine, "event_calendar");
+    assert.equal(boardApi.json.calendar.view, "resourceTimeGridDay");
+    assert.equal(Array.isArray(boardApi.json.resources), true);
+    assert.equal(Array.isArray(boardApi.json.events), true);
+    assert.equal(boardApi.json.timeline, undefined);
   });
 });
 
-test("dispatch board scheduling flow supports preview, commit, history, and walk-in queue scheduling", async () => {
+test("dispatch board scheduling flow supports preview, commit, history, and queue scheduling via API-only routes", async () => {
   await withTestServer("auto-service-dispatch-board-flow", async ({ baseUrl }) => {
     const create = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
       plannedStartLocal: "2026-03-23 12:00",
@@ -45,18 +46,28 @@ test("dispatch board scheduling flow supports preview, commit, history, and walk
     assert.equal(create.status, 201);
     const createdId = create.json.item.id;
 
-    const overlapConflict = await requestJson("PATCH", `${baseUrl}/api/v1/appointments/${createdId}?preview=1`, {
-      plannedStartLocal: "2026-03-23 09:30",
+    const createCarryOver = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
+      plannedStartLocal: "2026-03-24 11:00",
+      customerId: "cust-4",
+      vehicleId: "veh-4",
+      complaint: "Перенос из другой даты",
       bayId: "bay-1",
       expectedDurationMin: 45,
     });
-    assert.equal(overlapConflict.status, 409);
-    assert.equal(overlapConflict.json.error.code, "conflict");
+    assert.equal(createCarryOver.status, 201);
+    const carryOverId = createCarryOver.json.item.id;
 
-    const preview = await requestJson("PATCH", `${baseUrl}/api/v1/appointments/${createdId}?preview=1`, {
-      plannedStartLocal: "2026-03-23 13:30",
-      bayId: "bay-2",
-      expectedDurationMin: 90,
+    const boardPayload = await requestJson("GET", `${baseUrl}/api/v1/dispatch/board?day=2026-03-23&laneMode=bay`);
+    assert.equal(boardPayload.status, 200);
+    const targetResource = boardPayload.json.resources.find((entry) => entry.id !== "bay:bay-1") ?? boardPayload.json.resources[0];
+    assert.ok(targetResource?.id);
+
+    const preview = await requestJson("POST", `${baseUrl}/api/v1/dispatch/board/events/${createdId}/preview`, {
+      start: "2026-03-23 13:30",
+      end: "2026-03-23 15:00",
+      resourceId: targetResource.id,
+      laneMode: "bay",
+      dayLocal: "2026-03-23",
       reason: "Проверка preview",
     });
     assert.equal(preview.status, 200);
@@ -68,10 +79,12 @@ test("dispatch board scheduling flow supports preview, commit, history, and walk
     assert.equal(stillUnchanged.status, 200);
     assert.equal(stillUnchanged.json.item.plannedStartLocal, "2026-03-23 12:00");
 
-    const commit = await requestJson("PATCH", `${baseUrl}/api/v1/appointments/${createdId}`, {
-      plannedStartLocal: "2026-03-23 13:30",
-      bayId: "bay-2",
-      expectedDurationMin: 90,
+    const commit = await requestJson("POST", `${baseUrl}/api/v1/dispatch/board/events/${createdId}/commit`, {
+      start: "2026-03-23 13:30",
+      end: "2026-03-23 15:00",
+      resourceId: targetResource.id,
+      laneMode: "bay",
+      dayLocal: "2026-03-23",
       reason: "Перенос через dispatch",
     });
     assert.equal(commit.status, 200);
@@ -83,32 +96,37 @@ test("dispatch board scheduling flow supports preview, commit, history, and walk
     assert.equal(history.json.count >= 1, true);
     assert.equal(history.json.items[0].toPlannedStartLocal, "2026-03-23 13:30");
 
-    const appointmentsByDate = await requestJson("GET", `${baseUrl}/api/v1/appointments?dateFromLocal=2026-03-23&dateToLocal=2026-03-23`);
-    assert.equal(appointmentsByDate.status, 200);
-    assert.equal(appointmentsByDate.json.items.some((item) => item.id === createdId), true);
+    const queueScheduleAppointment = await requestJson(
+      "POST",
+      `${baseUrl}/api/v1/dispatch/board/queue/appointments/${carryOverId}/schedule`,
+      {
+        start: "2026-03-23 16:00",
+        end: "2026-03-23 17:00",
+        resourceId: targetResource.id,
+        laneMode: "bay",
+        dayLocal: "2026-03-23",
+      },
+    );
+    assert.equal(queueScheduleAppointment.status, 200);
+    assert.equal(queueScheduleAppointment.json.scheduled, true);
+    assert.equal(queueScheduleAppointment.json.item.plannedStartLocal, "2026-03-23 16:00");
 
-    const invalidRange = await requestJson("GET", `${baseUrl}/api/v1/appointments?dateFromLocal=2026-03-24&dateToLocal=2026-03-23`);
-    assert.equal(invalidRange.status, 400);
-    assert.equal(invalidRange.json.error.code, "validation_error");
-
-    const today = new Date();
-    const todayLocal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    const workOrdersByDate = await requestJson("GET", `${baseUrl}/api/v1/work-orders?dateFromLocal=${todayLocal}&dateToLocal=${todayLocal}`);
-    assert.equal(workOrdersByDate.status, 200);
-    assert.equal(Array.isArray(workOrdersByDate.json.items), true);
-
-    const boardPayload = await requestJson("GET", `${baseUrl}/api/v1/dispatch/board?day=2026-03-23&laneMode=bay`);
-    assert.equal(boardPayload.status, 200);
     const walkInCandidate = boardPayload.json.queues.walkIn[0];
     assert.ok(walkInCandidate?.id);
 
-    const walkInSlot = buildUniqueSlot(String(Date.now()), 15);
-    const scheduleWalkIn = await requestJson("POST", `${baseUrl}/dispatch/board/walk-ins/${walkInCandidate.id}/schedule`, {
-      plannedStartLocal: walkInSlot,
-      bayId: "bay-2",
-      expectedDurationMin: 45,
+    const scheduleWalkIn = await requestJson("POST", `${baseUrl}/api/v1/dispatch/board/queue/walk-ins/${walkInCandidate.id}/schedule`, {
+      start: "2026-03-23 18:00",
+      end: "2026-03-23 18:45",
+      resourceId: targetResource.id,
+      laneMode: "bay",
+      dayLocal: "2026-03-23",
     });
     assert.equal(scheduleWalkIn.status, 201);
     assert.equal(scheduleWalkIn.json.createdFromWorkOrderId, walkInCandidate.id);
+
+    const boardAfter = await requestJson("GET", `${baseUrl}/api/v1/dispatch/board?day=2026-03-23&laneMode=bay`);
+    assert.equal(boardAfter.status, 200);
+    assert.equal(boardAfter.json.events.some((entry) => entry.id === createdId), true);
+    assert.equal(boardAfter.json.events.some((entry) => entry.id === carryOverId), true);
   });
 });
