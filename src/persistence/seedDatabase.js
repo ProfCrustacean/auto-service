@@ -39,6 +39,121 @@ function getSummaryCounts(database) {
   };
 }
 
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function validateCollection(fixtures, field, errors) {
+  const items = fixtures[field];
+  if (items === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(items)) {
+    errors.push(`${field} must be an array`);
+    return [];
+  }
+
+  const ids = new Set();
+  for (const [index, item] of items.entries()) {
+    const id = item?.id;
+    if (!isNonEmptyString(id)) {
+      errors.push(`${field}[${index}].id must be a non-empty string`);
+      continue;
+    }
+    if (ids.has(id)) {
+      errors.push(`${field} contains duplicate id '${id}'`);
+      continue;
+    }
+    ids.add(id);
+  }
+
+  return items;
+}
+
+export function validateSeedFixtures(fixtures) {
+  const errors = [];
+  if (!fixtures || typeof fixtures !== "object" || Array.isArray(fixtures)) {
+    errors.push("seed fixtures must be a JSON object");
+  }
+
+  const service = fixtures?.service;
+  if (!service || typeof service !== "object" || Array.isArray(service)) {
+    errors.push("service must be an object");
+  } else {
+    if (!isNonEmptyString(service.id)) {
+      errors.push("service.id must be a non-empty string");
+    }
+    if (!isNonEmptyString(service.displayNameRu)) {
+      errors.push("service.displayNameRu must be a non-empty string");
+    }
+    if (!isNonEmptyString(service.cityRu)) {
+      errors.push("service.cityRu must be a non-empty string");
+    }
+    if (!Array.isArray(service.bays) || service.bays.length === 0) {
+      errors.push("service.bays must be a non-empty array");
+    }
+  }
+
+  const employees = validateCollection(fixtures ?? {}, "employees", errors);
+  const customers = validateCollection(fixtures ?? {}, "customers", errors);
+  const vehicles = validateCollection(fixtures ?? {}, "vehicles", errors);
+  const appointments = validateCollection(fixtures ?? {}, "appointments", errors);
+  const intakeEvents = validateCollection(fixtures ?? {}, "intakeEvents", errors);
+  const workOrders = validateCollection(fixtures ?? {}, "workOrders", errors);
+
+  const customerIds = new Set(customers.map((item) => item.id));
+  const vehicleIds = new Set(vehicles.map((item) => item.id));
+  const appointmentIds = new Set(appointments.map((item) => item.id));
+
+  for (const [index, vehicle] of vehicles.entries()) {
+    if (!isNonEmptyString(vehicle.customerId)) {
+      errors.push(`vehicles[${index}].customerId must be a non-empty string`);
+      continue;
+    }
+    if (!customerIds.has(vehicle.customerId)) {
+      errors.push(`vehicles[${index}] references unknown customerId '${vehicle.customerId}'`);
+    }
+  }
+
+  for (const [index, appointment] of appointments.entries()) {
+    if (!customerIds.has(appointment.customerId)) {
+      errors.push(`appointments[${index}] references unknown customerId '${appointment.customerId}'`);
+    }
+    if (!vehicleIds.has(appointment.vehicleId)) {
+      errors.push(`appointments[${index}] references unknown vehicleId '${appointment.vehicleId}'`);
+    }
+  }
+
+  for (const [index, intake] of intakeEvents.entries()) {
+    if (!customerIds.has(intake.customerId)) {
+      errors.push(`intakeEvents[${index}] references unknown customerId '${intake.customerId}'`);
+    }
+    if (!vehicleIds.has(intake.vehicleId)) {
+      errors.push(`intakeEvents[${index}] references unknown vehicleId '${intake.vehicleId}'`);
+    }
+    if (intake.sourceAppointmentId && !appointmentIds.has(intake.sourceAppointmentId)) {
+      errors.push(
+        `intakeEvents[${index}] references unknown sourceAppointmentId '${intake.sourceAppointmentId}'`,
+      );
+    }
+  }
+
+  for (const [index, workOrder] of workOrders.entries()) {
+    if (!customerIds.has(workOrder.customerId)) {
+      errors.push(`workOrders[${index}] references unknown customerId '${workOrder.customerId}'`);
+    }
+    if (!vehicleIds.has(workOrder.vehicleId)) {
+      errors.push(`workOrders[${index}] references unknown vehicleId '${workOrder.vehicleId}'`);
+    }
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors,
+  };
+}
+
 function clearAllData(database) {
   database.exec("DELETE FROM work_order_parts_history;");
   database.exec("DELETE FROM parts_purchase_actions;");
@@ -110,6 +225,10 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
 
   const raw = fs.readFileSync(seedPath, "utf8");
   const fixtures = JSON.parse(raw);
+  const seedValidation = validateSeedFixtures(fixtures);
+  if (!seedValidation.ok) {
+    throw new Error(`Seed fixtures integrity check failed: ${seedValidation.errors.join("; ")}`);
+  }
   const nowIso = new Date().toISOString();
 
   const bayIdByName = new Map((fixtures.service.bays ?? []).map((bay) => [bay.name, bay.id]));

@@ -15,6 +15,11 @@ const BAY_DAILY_CAPACITY_BASELINE = 4;
 const ASSIGNEE_DAILY_CAPACITY_BASELINE = 3;
 const SEARCH_RESULTS_LIMIT = 8;
 const SEARCH_TIMING_BASELINE_MS = 200;
+const DISPATCH_DAY_START_MINUTES = 8 * 60;
+const DISPATCH_DAY_END_MINUTES = 20 * 60;
+const DISPATCH_SLOT_STEP_MINUTES = 15;
+const DISPATCH_DEFAULT_DURATION_MIN = 60;
+const DISPATCH_DATE_RE = /^\d{4}-\d{2}-\d{2}$/u;
 
 const ABSOLUTE_SLOT_RE = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$/;
 const RELATIVE_SLOT_RE = /^(Сегодня|Завтра)\s+(\d{1,2}):(\d{2})$/i;
@@ -249,6 +254,74 @@ function parseWeekSlot(value, now) {
   }
 
   return { kind: "unscheduled" };
+}
+
+function normalizeDispatchDay(value, now) {
+  if (typeof value === "string" && DISPATCH_DATE_RE.test(value.trim())) {
+    return value.trim();
+  }
+  return toDayKey(startOfLocalDay(now));
+}
+
+function normalizeLaneMode(value) {
+  return value === "technician" ? "technician" : "bay";
+}
+
+function parseMinutesFromTimeLabel(label) {
+  if (typeof label !== "string") {
+    return null;
+  }
+
+  const match = /^(\d{2}):(\d{2})$/u.exec(label.trim());
+  if (!match) {
+    return null;
+  }
+
+  const hour = Number.parseInt(match[1], 10);
+  const minute = Number.parseInt(match[2], 10);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
+    return null;
+  }
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    return null;
+  }
+  return (hour * 60) + minute;
+}
+
+function normalizeDispatchDuration(value) {
+  if (!Number.isInteger(value)) {
+    return DISPATCH_DEFAULT_DURATION_MIN;
+  }
+  return Math.min(720, Math.max(15, value));
+}
+
+function buildDispatchTimeSlots() {
+  const slots = [];
+  for (let minute = DISPATCH_DAY_START_MINUTES; minute < DISPATCH_DAY_END_MINUTES; minute += DISPATCH_SLOT_STEP_MINUTES) {
+    const hour = String(Math.floor(minute / 60)).padStart(2, "0");
+    const min = String(minute % 60).padStart(2, "0");
+    slots.push({
+      minuteOfDay: minute,
+      label: `${hour}:${min}`,
+    });
+  }
+  return slots;
+}
+
+function resolveAppointmentLaneKey(appointment, laneMode) {
+  if (laneMode === "technician") {
+    const assignee = String(appointment.primaryAssignee ?? "").trim();
+    return assignee.length > 0 && assignee !== "Без ответственного"
+      ? `tech:${assignee}`
+      : "tech:none";
+  }
+
+  const bayId = String(appointment.bayId ?? "").trim();
+  return bayId.length > 0 ? `bay:${bayId}` : "bay:none";
+}
+
+function sortByCodeAscending(left, right) {
+  return String(left.code ?? "").localeCompare(String(right.code ?? ""), "ru-RU");
 }
 
 function createWeekResourceRow(key) {
@@ -656,6 +729,7 @@ export class DashboardService {
         newAppointmentHref: "/appointments/new",
         newWalkInHref: "/intake/walk-in",
         openActiveQueueHref: "/work-orders/active",
+        openDispatchBoardHref: "/dispatch/board",
       },
       appointments: appointmentRows,
       load: {
@@ -673,6 +747,182 @@ export class DashboardService {
         paused,
         readyPickup,
         active: activeWorkOrders,
+      },
+    };
+  }
+
+  getDispatchBoard({ day = null, laneMode = "bay" } = {}) {
+    const now = new Date();
+    const dayLocal = normalizeDispatchDay(day, now);
+    const normalizedLaneMode = normalizeLaneMode(laneMode);
+    const serviceMeta = this.repository.getServiceMeta();
+    const employees = this.repository.listEmployees({ includeInactive: false });
+    const dayAppointments = this.repository.listAppointmentRecords({
+      dateFromLocal: dayLocal,
+      dateToLocal: dayLocal,
+      limit: null,
+      offset: 0,
+    });
+    const allAppointments = this.repository.listAppointmentRecords({
+      limit: 200,
+      offset: 0,
+    });
+    const walkInQueue = this.repository
+      .listUnscheduledWalkInWorkOrders({ limit: 40 })
+      .filter((item) => item.status === "waiting_diagnosis" || item.status === "waiting_approval");
+
+    const lanes = normalizedLaneMode === "technician"
+      ? [
+        ...employees.map((employee) => ({
+          key: `tech:${employee.name}`,
+          label: employee.name,
+          type: "technician",
+          value: employee.name,
+        })),
+        {
+          key: "tech:none",
+          label: "Без ответственного",
+          type: "technician",
+          value: null,
+        },
+      ]
+      : [
+        ...serviceMeta.bays.map((bay) => ({
+          key: `bay:${bay.id}`,
+          label: bay.name,
+          type: "bay",
+          value: bay.id,
+        })),
+        {
+          key: "bay:none",
+          label: "Без поста",
+          type: "bay",
+          value: null,
+        },
+      ];
+
+    const laneByKey = new Map(lanes.map((lane) => [lane.key, lane]));
+    const appointmentCards = [];
+    const unscheduledAppointments = [];
+
+    for (const appointment of dayAppointments) {
+      const slot = parseWeekSlot(appointment.plannedStartLocal, now);
+      if (slot.kind !== "scheduled" || slot.dayKey !== dayLocal) {
+        unscheduledAppointments.push(appointment);
+        continue;
+      }
+
+      const startMinute = parseMinutesFromTimeLabel(slot.timeLabel);
+      if (!Number.isInteger(startMinute)) {
+        unscheduledAppointments.push(appointment);
+        continue;
+      }
+
+      const durationMin = normalizeDispatchDuration(appointment.expectedDurationMin);
+      const laneKey = resolveAppointmentLaneKey(appointment, normalizedLaneMode);
+      if (!laneByKey.has(laneKey)) {
+        unscheduledAppointments.push(appointment);
+        continue;
+      }
+
+      appointmentCards.push({
+        id: appointment.id,
+        code: appointment.code,
+        customerName: appointment.customerName,
+        vehicleLabel: appointment.vehicleLabel,
+        complaint: appointment.complaint,
+        status: appointment.status,
+        laneKey,
+        plannedStartLocal: appointment.plannedStartLocal,
+        startMinute,
+        endMinute: Math.min(DISPATCH_DAY_END_MINUTES, startMinute + durationMin),
+        durationMin,
+        expectedDurationMin: appointment.expectedDurationMin ?? null,
+        bayId: appointment.bayId ?? null,
+        bayName: appointment.bayName ?? "Без поста",
+        primaryAssignee: appointment.primaryAssignee ?? "Без ответственного",
+      });
+    }
+
+    appointmentCards.sort((left, right) => left.startMinute - right.startMinute || sortByCodeAscending(left, right));
+
+    const outsideOfDayQueue = allAppointments
+      .filter((appointment) => {
+        if (!WEEK_PLANNED_STATUSES.has(appointment.status)) {
+          return false;
+        }
+        const slot = parseWeekSlot(appointment.plannedStartLocal, now);
+        return slot.kind === "scheduled" && slot.dayKey !== dayLocal;
+      })
+      .slice(0, 40)
+      .sort((left, right) => String(left.plannedStartLocal).localeCompare(String(right.plannedStartLocal), "ru-RU"))
+      .map((appointment) => ({
+        kind: "appointment",
+        id: appointment.id,
+        code: appointment.code,
+        customerName: appointment.customerName,
+        vehicleLabel: appointment.vehicleLabel,
+        complaint: appointment.complaint,
+        plannedStartLocal: appointment.plannedStartLocal,
+        status: appointment.status,
+      }));
+
+    const walkInQueueItems = walkInQueue.map((workOrder) => ({
+      kind: "walkin",
+      id: workOrder.id,
+      code: workOrder.code,
+      customerId: workOrder.customerId,
+      vehicleId: workOrder.vehicleId,
+      customerName: workOrder.customerName,
+      vehicleLabel: workOrder.vehicleLabel,
+      complaint: workOrder.complaint ?? "Без уточнений",
+      status: workOrder.status,
+      statusLabelRu: workOrder.statusLabelRu,
+      createdAt: workOrder.createdAt,
+    }));
+
+    const laneLoad = lanes.map((lane) => {
+      const cards = appointmentCards.filter((card) => card.laneKey === lane.key);
+      const bookedMinutes = cards.reduce((acc, card) => acc + Math.max(0, card.endMinute - card.startMinute), 0);
+      const capacityMinutes = DISPATCH_DAY_END_MINUTES - DISPATCH_DAY_START_MINUTES;
+      const utilizationRatio = capacityMinutes > 0 ? bookedMinutes / capacityMinutes : 0;
+      return {
+        laneKey: lane.key,
+        appointmentsCount: cards.length,
+        bookedMinutes,
+        utilizationRatio,
+        isOverloaded: utilizationRatio > 1,
+      };
+    });
+
+    return {
+      generatedAt: now.toISOString(),
+      dayLocal,
+      laneMode: normalizedLaneMode,
+      timeline: {
+        startMinute: DISPATCH_DAY_START_MINUTES,
+        endMinute: DISPATCH_DAY_END_MINUTES,
+        stepMinutes: DISPATCH_SLOT_STEP_MINUTES,
+        slots: buildDispatchTimeSlots(),
+      },
+      lanes,
+      laneLoad,
+      appointments: appointmentCards,
+      queues: {
+        unscheduledAppointments: outsideOfDayQueue,
+        walkIn: walkInQueueItems,
+      },
+      summary: {
+        scheduledAppointmentsCount: appointmentCards.length,
+        unscheduledDayCount: unscheduledAppointments.length,
+        carryOverQueueCount: outsideOfDayQueue.length,
+        walkInQueueCount: walkInQueueItems.length,
+        overloadedLanesCount: laneLoad.filter((lane) => lane.isOverloaded).length,
+      },
+      actions: {
+        backHref: "/",
+        createAppointmentHref: "/appointments/new",
+        createWalkInHref: "/intake/walk-in",
       },
     };
   }

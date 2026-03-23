@@ -7,17 +7,17 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 import { redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
+import {
+  assertPositiveInteger,
+  runProcess as runProcessBase,
+  wait,
+  withTimeout,
+} from "./harness-process.js";
 
 loadDotenvIntoProcessSync();
 const READY_TIMEOUT_MS = Number.parseInt(process.env.VERIFY_READY_TIMEOUT_MS ?? "30000", 10);
 const READY_POLL_MS = 500;
 const SERVER_STOP_TIMEOUT_MS = 10000;
-
-function assertPositiveInteger(value, fieldName) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${fieldName} must be a positive integer`);
-  }
-}
 
 function logJson(payload) {
   process.stdout.write(`${stringifyRedacted(payload)}\n`);
@@ -32,32 +32,7 @@ function getLastLogLines(chunks, maxBytes = 4000) {
 }
 
 function runProcess(command, args, { env, label }) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      env,
-      stdio: "inherit",
-    });
-
-    child.once("error", (error) => {
-      reject(new Error(`${label} failed to start: ${error.message}`));
-    });
-
-    child.once("exit", (code, signal) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-
-      const detail = signal ? `signal ${signal}` : `exit code ${code}`;
-      reject(new Error(`${label} failed with ${detail}`));
-    });
-  });
-}
-
-function wait(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
+  return runProcessBase(command, args, { env, label });
 }
 
 function waitForExit(child) {
@@ -66,19 +41,6 @@ function waitForExit(child) {
       resolve({ code, signal });
     });
   });
-}
-
-async function withTimeout(promise, timeoutMs, timeoutMessage) {
-  let timeoutId;
-  const timeoutPromise = new Promise((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
-  });
-
-  try {
-    return await Promise.race([promise, timeoutPromise]);
-  } finally {
-    clearTimeout(timeoutId);
-  }
 }
 
 async function findAvailablePort() {
@@ -163,6 +125,7 @@ async function main() {
   const includeBookingScenario = process.env.VERIFY_INCLUDE_BOOKING_SCENARIO !== "0";
   const includeWalkInPageScenario = process.env.VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO !== "0";
   const includePartsScenario = process.env.VERIFY_INCLUDE_PARTS_SCENARIO !== "0";
+  const includeDispatchBoardScenario = process.env.VERIFY_INCLUDE_DISPATCH_BOARD_SCENARIO !== "0";
   const includeRender = process.env.VERIFY_RENDER === "1";
   const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "auto-service-verify-"));
   const dbPath = path.join(tmpRoot, "verify.sqlite");
@@ -266,6 +229,17 @@ async function main() {
       });
     }
 
+    if (includeDispatchBoardScenario) {
+      logJson({ status: "verify_step_started", step: "scenario_dispatch_board", baseUrl });
+      await runProcess(process.execPath, ["scripts/dispatch-board-scenario.js"], {
+        env: {
+          ...process.env,
+          APP_BASE_URL: baseUrl,
+        },
+        label: "scenario:dispatch-board",
+      });
+    }
+
     if (includeRender) {
       logJson({ status: "verify_step_started", step: "render_verify" });
       await runProcess(process.execPath, ["scripts/verify-render.js"], {
@@ -281,6 +255,7 @@ async function main() {
       includeWalkInPageScenario,
       includeScenario,
       includePartsScenario,
+      includeDispatchBoardScenario,
       includeRender,
       serverLogPath,
       dbPath,
@@ -294,6 +269,7 @@ async function main() {
       includeWalkInPageScenario,
       includeScenario,
       includePartsScenario,
+      includeDispatchBoardScenario,
       includeRender,
       serverLogPath,
     });

@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { openDatabase } from "../src/persistence/database.js";
 import { runMigrations } from "../src/persistence/runMigrations.js";
-import { seedDatabase } from "../src/persistence/seedDatabase.js";
+import { seedDatabase, validateSeedFixtures } from "../src/persistence/seedDatabase.js";
 import { createSilentLogger, createTempDatabase } from "./helpers/httpHarness.js";
 
 test("migrations are idempotent and seed runs only once by default", () => {
@@ -13,9 +16,9 @@ test("migrations are idempotent and seed runs only once by default", () => {
 
   try {
     const firstMigration = runMigrations({ database, logger });
-    assert.equal(firstMigration.appliedVersions.length, 8);
-    assert.deepEqual(firstMigration.appliedVersions, ["001", "002", "003", "004", "005", "006", "007", "008"]);
-    assert.equal(firstMigration.currentVersion, "008");
+    assert.equal(firstMigration.appliedVersions.length, 9);
+    assert.deepEqual(firstMigration.appliedVersions, ["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
+    assert.equal(firstMigration.currentVersion, "009");
 
     const secondMigration = runMigrations({ database, logger });
     assert.equal(secondMigration.appliedVersions.length, 0);
@@ -55,5 +58,44 @@ test("migrations are idempotent and seed runs only once by default", () => {
   } finally {
     database.close();
     cleanup();
+  }
+});
+
+test("seed fixture integrity validation catches broken references before write", () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "auto-service-seed-integrity-"));
+  const seedPath = path.join(tempRoot, "invalid-seed.json");
+  const tempDb = createTempDatabase("auto-service-persistence-invalid-seed");
+  const { databasePath, cleanup } = tempDb;
+  const database = openDatabase(databasePath);
+  const logger = createSilentLogger();
+
+  try {
+    const brokenFixtures = {
+      ...JSON.parse(fs.readFileSync("./data/seed-fixtures.json", "utf8")),
+      vehicles: [
+        {
+          id: "veh-bad-1",
+          customerId: "missing-customer",
+          label: "Broken Vehicle",
+          vin: null,
+        },
+      ],
+    };
+
+    const validation = validateSeedFixtures(brokenFixtures);
+    assert.equal(validation.ok, false);
+    assert.match(validation.errors.join(" | "), /unknown customerId/u);
+
+    fs.writeFileSync(seedPath, JSON.stringify(brokenFixtures, null, 2));
+
+    runMigrations({ database, logger });
+    assert.throws(
+      () => seedDatabase({ database, seedPath, logger }),
+      /Seed fixtures integrity check failed/u,
+    );
+  } finally {
+    database.close();
+    cleanup();
+    fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 });

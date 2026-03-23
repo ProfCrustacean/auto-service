@@ -88,16 +88,32 @@ export class WorkOrderService {
     }));
   }
 
-  listWorkOrders({ status = null, bayId = null, primaryAssignee = null, query = "", includeClosed = true, limit = null, offset = 0 } = {}) {
+  listWorkOrders({
+    status = null,
+    bayId = null,
+    primaryAssignee = null,
+    dateFromLocal = null,
+    dateToLocal = null,
+    query = "",
+    includeClosed = true,
+    limit = null,
+    offset = 0,
+  } = {}) {
     return this.repository.listWorkOrderRecords({
       status,
       bayId,
       primaryAssignee,
+      dateFromLocal,
+      dateToLocal,
       query,
       includeClosed,
       limit,
       offset,
     });
+  }
+
+  listUnscheduledWalkInWorkOrders({ limit = 50 } = {}) {
+    return this.repository.listUnscheduledWalkInWorkOrders({ limit });
   }
 
   getWorkOrderById(id) {

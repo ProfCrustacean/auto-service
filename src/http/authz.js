@@ -1,45 +1,5 @@
 import { sendApiError } from "./apiErrors.js";
-
-const MUTATING_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
-
-const WRITE_POLICIES = [
-  {
-    pattern: /^\/api\/v1\/employees(?:\/[^/]+)?$/u,
-    allowedRoles: new Set(["owner"]),
-  },
-  {
-    pattern: /^\/api\/v1\/bays(?:\/[^/]+)?$/u,
-    allowedRoles: new Set(["owner"]),
-  },
-  {
-    pattern: /^\/api\/v1\/customers(?:\/[^/]+)?$/u,
-    allowedRoles: new Set(["owner", "front_desk"]),
-  },
-  {
-    pattern: /^\/api\/v1\/vehicles(?:\/[^/]+)?$/u,
-    allowedRoles: new Set(["owner", "front_desk"]),
-  },
-  {
-    pattern: /^\/api\/v1\/appointments(?:\/[^/]+)?$/u,
-    allowedRoles: new Set(["owner", "front_desk"]),
-  },
-  {
-    pattern: /^\/api\/v1\/appointments\/[^/]+\/convert-to-work-order$/u,
-    allowedRoles: new Set(["owner", "front_desk"]),
-  },
-  {
-    pattern: /^\/api\/v1\/intake\/walk-ins$/u,
-    allowedRoles: new Set(["owner", "front_desk"]),
-  },
-  {
-    pattern: /^\/api\/v1\/work-orders(?:\/.*)?$/u,
-    allowedRoles: new Set(["owner", "front_desk", "technician"]),
-  },
-];
-
-function isMutatingApiRequest(req) {
-  return req.path.startsWith("/api/v1/") && MUTATING_METHODS.has(req.method);
-}
+import { isMutatingMethod, resolveMutationPolicy } from "./mutationPolicy.js";
 
 function extractBearerToken(req) {
   const authHeader = req.headers.authorization;
@@ -58,50 +18,114 @@ function extractBearerToken(req) {
   return null;
 }
 
-function resolveAllowedRoles(path) {
-  const policy = WRITE_POLICIES.find((entry) => entry.pattern.test(path));
-  if (!policy) {
-    return new Set(["owner"]);
+function resolveBodyToken(req) {
+  if (!req.body || typeof req.body !== "object") {
+    return null;
   }
-  return policy.allowedRoles;
+
+  const bodyToken = req.body.authToken;
+  if (typeof bodyToken === "string" && bodyToken.trim().length > 0) {
+    return bodyToken.trim();
+  }
+
+  return null;
+}
+
+function resolveQueryToken(req) {
+  const queryToken = req.query?.authToken;
+  if (typeof queryToken === "string" && queryToken.trim().length > 0) {
+    return queryToken.trim();
+  }
+
+  return null;
+}
+
+function resolveRequestToken(req) {
+  return extractBearerToken(req) ?? resolveBodyToken(req) ?? resolveQueryToken(req);
+}
+
+function resolveActorRole({
+  req,
+  policy,
+  roleByToken,
+  implicitUiRole,
+}) {
+  const token = resolveRequestToken(req);
+  if (token) {
+    const role = roleByToken.get(token);
+    if (!role) {
+      return {
+        error: {
+          status: 401,
+          code: "unauthorized",
+          message: "Authentication token is invalid",
+        },
+      };
+    }
+
+    return {
+      role,
+      source: "token",
+    };
+  }
+
+  if (policy.channel === "ui" && implicitUiRole) {
+    return {
+      role: implicitUiRole,
+      source: "implicit_ui",
+    };
+  }
+
+  return {
+    error: {
+      status: 401,
+      code: "unauthorized",
+      message: "Authentication token is required for this mutation",
+    },
+  };
 }
 
 export function createApiAuthMiddleware({ logger, authConfig }) {
   const roleByToken = new Map((authConfig?.tokens ?? []).map((entry) => [entry.token, entry.role]));
+  const implicitUiRole = authConfig?.implicitUiRole ?? null;
 
   return function apiAuthMiddleware(req, res, next) {
-    if (!authConfig?.enabled || !isMutatingApiRequest(req)) {
+    if (!authConfig?.enabled) {
       next();
       return;
     }
 
-    const token = extractBearerToken(req);
-    if (!token) {
-      sendApiError(res, {
-        status: 401,
-        code: "unauthorized",
-        message: "Authentication token is required for mutating API requests",
-      });
+    const policy = resolveMutationPolicy({ method: req.method, path: req.path });
+    if (!policy && !(req.path.startsWith("/api/v1/") && isMutatingMethod(req.method))) {
+      next();
       return;
     }
 
-    const role = roleByToken.get(token);
-    if (!role) {
-      sendApiError(res, {
-        status: 401,
-        code: "unauthorized",
-        message: "Authentication token is invalid",
-      });
+    const effectivePolicy = policy ?? {
+      id: "api.default_owner_fallback",
+      channel: "api",
+      allowedRoles: new Set(["owner"]),
+    };
+
+    const authResolution = resolveActorRole({
+      req,
+      policy: effectivePolicy,
+      roleByToken,
+      implicitUiRole,
+    });
+    if (authResolution.error) {
+      sendApiError(res, authResolution.error);
       return;
     }
 
-    const allowedRoles = resolveAllowedRoles(req.path);
-    if (!allowedRoles.has(role)) {
+    if (!effectivePolicy.allowedRoles.has(authResolution.role)) {
       logger.warn("auth_forbidden", {
         method: req.method,
         path: req.path,
         requestId: req.requestId ?? null,
-        role,
+        role: authResolution.role,
+        policyId: effectivePolicy.id,
+        authSource: authResolution.source,
       });
       sendApiError(res, {
         status: 403,
@@ -111,7 +135,11 @@ export function createApiAuthMiddleware({ logger, authConfig }) {
       return;
     }
 
-    req.auth = { role };
+    req.auth = {
+      role: authResolution.role,
+      source: authResolution.source,
+      policyId: effectivePolicy.id,
+    };
     next();
   };
 }

@@ -44,9 +44,11 @@ Before making any meaningful product, architecture, verification, deployment, or
 22. `docs/20_ENVIRONMENT_DEPLOYMENT_AND_OPERATIONS.md`
 23. `docs/21_EXECUTION_PLANS_STATUS_AND_EVIDENCE.md`
 24. `docs/22_REPOSITORY_HYGIENE_AND_CONTINUOUS_IMPROVEMENT.md`
+25. `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`
+26. `docs/24_PERSISTENCE_TRANSITION_AND_RECOVERY.md`
 
 For any non-trivial change, also read and then update:
-25. `PLANS.md`
+27. `PLANS.md`
 
 `MASTER_CONTEXT_PACKET.md` is an index-only pointer document. It is not a canonical source of packet content.
 

@@ -52,6 +52,8 @@ Planning files are included in this rule:
 
 Repository budget governance is part of hygiene:
 - run `npm run audit:bloat` to enforce tracked-size, duplication, and hot-path doc budgets,
+- run `npm run lint` to enforce syntax + mutation-policy static contracts,
+- run `npm run hygiene:check` to enforce branch/artifact hygiene policy,
 - keep thresholds in `data/bloat/budgets.json`,
 - and allow temporary budget regressions only with explicit override (`BLOAT_ALLOW_REGRESSION=1`) plus documented follow-up.
 
@@ -60,6 +62,7 @@ Evidence retention is governed explicitly:
 - tracked `evidence/*` must match that allowlist exactly,
 - run `npm run cleanup:spring` to inspect drift (dry-run),
 - run `npm run cleanup:spring:apply` to prune tracked legacy artifacts and stale untracked evidence files.
+- generated browser/debug artifacts must remain untracked (`.playwright-cli/*`, `output/playwright/*`, raw screenshots unless explicitly allowlisted).
 
 ## State coherence rule
 

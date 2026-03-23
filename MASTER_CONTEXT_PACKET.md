@@ -40,7 +40,8 @@ If this file and canonical docs disagree, canonical docs win.
 23. `docs/21_EXECUTION_PLANS_STATUS_AND_EVIDENCE.md`
 24. `docs/22_REPOSITORY_HYGIENE_AND_CONTINUOUS_IMPROVEMENT.md`
 25. `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`
-26. `PLANS.md`
+26. `docs/24_PERSISTENCE_TRANSITION_AND_RECOVERY.md`
+27. `PLANS.md`
 
 ## Operational Shortcuts
 

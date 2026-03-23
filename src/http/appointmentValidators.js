@@ -1,4 +1,9 @@
-import { collectUnknownFields, isNonEmptyString, normalizePaginationQuery } from "./validatorUtils.js";
+import {
+  collectUnknownFields,
+  isNonEmptyString,
+  normalizeLocalDateQuery,
+  normalizePaginationQuery,
+} from "./validatorUtils.js";
 import { normalizePlannedStartLocal } from "./plannedStartLocal.js";
 
 const APPOINTMENT_STATUSES = new Set(["booked", "confirmed", "arrived", "cancelled", "no-show"]);
@@ -110,9 +115,25 @@ export function validateListAppointmentsQuery(query) {
   const customerId = normalizeOptionalId(query.customerId, "customerId", errors) ?? null;
   const vehicleId = normalizeOptionalId(query.vehicleId, "vehicleId", errors) ?? null;
   const bayId = normalizeOptionalId(query.bayId, "bayId", errors) ?? null;
+  const dateFromLocal = normalizeLocalDateQuery(query.dateFromLocal, "dateFromLocal", errors) ?? null;
+  const dateToLocal = normalizeLocalDateQuery(query.dateToLocal, "dateToLocal", errors) ?? null;
   const search = normalizeQueryString(query.q, "q", errors);
 
-  const unknownFields = collectUnknownFields(query, ["status", "customerId", "vehicleId", "bayId", "q", "limit", "offset"]);
+  if (dateFromLocal && dateToLocal && dateFromLocal > dateToLocal) {
+    errors.push({ field: "dateFromLocal", message: "dateFromLocal must be <= dateToLocal" });
+  }
+
+  const unknownFields = collectUnknownFields(query, [
+    "status",
+    "customerId",
+    "vehicleId",
+    "bayId",
+    "dateFromLocal",
+    "dateToLocal",
+    "q",
+    "limit",
+    "offset",
+  ]);
   for (const field of unknownFields) {
     errors.push({ field, message: "unknown query parameter" });
   }
@@ -128,6 +149,8 @@ export function validateListAppointmentsQuery(query) {
       customerId,
       vehicleId,
       bayId,
+      dateFromLocal,
+      dateToLocal,
       query: search,
       limit: pagination.limit,
       offset: pagination.offset,
@@ -274,6 +297,16 @@ export function validateAppointmentUpdate(body) {
     value.notes = notes;
   }
 
+  const reason = normalizeOptionalString(body.reason, "reason", errors);
+  if (reason !== undefined) {
+    value.reason = reason;
+  }
+
+  const changedBy = normalizeOptionalString(body.changedBy, "changedBy", errors);
+  if (changedBy !== undefined) {
+    value.changedBy = changedBy;
+  }
+
   const unknownFields = collectUnknownFields(body, [
     "plannedStartLocal",
     "customerId",
@@ -284,6 +317,8 @@ export function validateAppointmentUpdate(body) {
     "primaryAssignee",
     "expectedDurationMin",
     "notes",
+    "reason",
+    "changedBy",
   ]);
   for (const field of unknownFields) {
     errors.push({ field, message: "unknown field" });

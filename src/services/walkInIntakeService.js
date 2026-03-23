@@ -1,21 +1,12 @@
-import { randomUUID } from "node:crypto";
 import { getWorkOrderStatusLabel } from "../domain/workOrderLifecycle.js";
+import {
+  resolveCustomerVehicleAndBay,
+  resolveInlineCustomerVehicle,
+  toId,
+} from "./customerVehicleFlow.js";
 
 const WALK_IN_STATUS = "waiting_diagnosis";
 const WALK_IN_STATUS_LABEL_RU = getWorkOrderStatusLabel(WALK_IN_STATUS);
-
-function toId(prefix) {
-  return `${prefix}-${randomUUID().split("-")[0]}`;
-}
-
-function makeDomainError(code, message, details = undefined) {
-  const error = new Error(message);
-  error.code = code;
-  if (details !== undefined) {
-    error.details = details;
-  }
-  return error;
-}
 
 export class WalkInIntakeService {
   constructor(repository) {
@@ -23,30 +14,11 @@ export class WalkInIntakeService {
   }
 
   createWalkInIntake({ customerId, vehicleId, complaint, bayId = null, primaryAssignee = null }) {
-    const customer = this.repository.getCustomerById(customerId);
-    if (!customer) {
-      throw makeDomainError("customer_not_found", "Customer not found");
-    }
-
-    const vehicle = this.repository.getVehicleById(vehicleId);
-    if (!vehicle) {
-      throw makeDomainError("vehicle_not_found", "Vehicle not found");
-    }
-
-    if (vehicle.customerId !== customer.id) {
-      throw makeDomainError("vehicle_customer_mismatch", "Vehicle does not belong to customer", {
-        customerId: customer.id,
-        vehicleId: vehicle.id,
-      });
-    }
-
-    let bay = null;
-    if (bayId) {
-      bay = this.repository.getBayById(bayId);
-      if (!bay) {
-        throw makeDomainError("bay_not_found", "Bay not found");
-      }
-    }
+    const { customer, vehicle, bay } = resolveCustomerVehicleAndBay(this.repository, {
+      customerId,
+      vehicleId,
+      bayId,
+    });
 
     const workOrderCode = this.repository.allocateNextWorkOrderCode();
 
@@ -75,34 +47,18 @@ export class WalkInIntakeService {
     inlineVehiclePayload = null,
   }) {
     return this.repository.runInTransaction(() => {
-      let customerId = selectedCustomerId;
-      let createdCustomer = null;
-
-      if (!customerId && inlineCustomerPayload) {
-        createdCustomer = this.repository.createCustomer({
-          id: toId("cust"),
-          ...inlineCustomerPayload,
-          isActive: true,
-        });
-        customerId = createdCustomer.id;
-      }
-
-      let vehicleId = selectedVehicleId;
-      let createdVehicle = null;
-
-      if (!vehicleId && inlineVehiclePayload) {
-        if (!customerId) {
-          throw makeDomainError("customer_not_found", "Customer not found");
-        }
-
-        createdVehicle = this.repository.createVehicle({
-          id: toId("veh"),
-          ...inlineVehiclePayload,
-          customerId,
-          isActive: true,
-        });
-        vehicleId = createdVehicle.id;
-      }
+      const {
+        customerId,
+        vehicleId,
+        createdCustomer,
+        createdVehicle,
+      } = resolveInlineCustomerVehicle({
+        repository: this.repository,
+        selectedCustomerId,
+        selectedVehicleId,
+        inlineCustomerPayload,
+        inlineVehiclePayload,
+      });
 
       const bundle = this.createWalkInIntake({
         ...intakePayload,

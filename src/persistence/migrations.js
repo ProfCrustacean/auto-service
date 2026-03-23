@@ -417,4 +417,33 @@ export const MIGRATIONS = [
       DROP TABLE IF EXISTS work_order_parts_requests;
     `,
   },
+  {
+    version: "009",
+    name: "add_appointment_schedule_history",
+    up: `
+      CREATE TABLE IF NOT EXISTS appointment_schedule_history (
+        id TEXT PRIMARY KEY,
+        appointment_id TEXT NOT NULL REFERENCES appointments(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        from_planned_start_local TEXT NOT NULL,
+        to_planned_start_local TEXT NOT NULL,
+        from_expected_duration_min INTEGER,
+        to_expected_duration_min INTEGER,
+        from_bay_id TEXT,
+        to_bay_id TEXT,
+        from_primary_assignee TEXT,
+        to_primary_assignee TEXT,
+        changed_at TEXT NOT NULL,
+        changed_by TEXT,
+        reason TEXT,
+        source TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_appointment_schedule_history_appointment_changed
+      ON appointment_schedule_history(appointment_id, changed_at DESC);
+    `,
+    down: `
+      DROP INDEX IF EXISTS idx_appointment_schedule_history_appointment_changed;
+      DROP TABLE IF EXISTS appointment_schedule_history;
+    `,
+  },
 ];

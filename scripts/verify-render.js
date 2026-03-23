@@ -1,10 +1,17 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { spawn } from "node:child_process";
 import { gzipSync } from "node:zlib";
 import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 import { redactSecrets, redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
+import {
+  assertNonNegativeInteger,
+  assertPositiveInteger,
+  runCommandCapture as runCommandCaptureBase,
+  runProcess as runProcessBase,
+  runProcessWithRetries as runProcessWithRetriesBase,
+  wait,
+} from "./harness-process.js";
 import { parseRenderVerifyCliArgs, resolveSkipDeployFromInputs } from "./verify-render-cli.js";
 
 loadDotenvIntoProcessSync();
@@ -34,88 +41,20 @@ const LOG_SEVERITY_RANK = {
   fatal: 3,
 };
 
-function assertPositiveInteger(value, fieldName) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${fieldName} must be a positive integer`);
-  }
-}
-
-function assertNonNegativeInteger(value, fieldName) {
-  if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`${fieldName} must be a non-negative integer`);
-  }
-}
-
 function logJson(payload) {
   process.stdout.write(`${stringifyRedacted(payload)}\n`);
 }
 
-function wait(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-function runCommandCapture(command, args, { env, label }) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      env,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-
-    const stdoutChunks = [];
-    const stderrChunks = [];
-
-    child.stdout.on("data", (chunk) => {
-      stdoutChunks.push(chunk.toString());
-    });
-
-    child.stderr.on("data", (chunk) => {
-      stderrChunks.push(chunk.toString());
-    });
-
-    child.once("error", (error) => {
-      reject(new Error(`${label} failed to start: ${error.message}`));
-    });
-
-    child.once("exit", (code, signal) => {
-      const stdout = stdoutChunks.join("");
-      const stderr = stderrChunks.join("");
-
-      if (code === 0) {
-        resolve({ stdout, stderr });
-        return;
-      }
-
-      const detail = signal ? `signal ${signal}` : `exit code ${code}`;
-      reject(new Error(redactSecretsInText(
-        `${label} failed with ${detail}; stderr: ${stderr.trim() || "n/a"}; stdout: ${stdout.trim() || "n/a"}`,
-      )));
-    });
-  });
+async function runCommandCapture(command, args, { env, label }) {
+  try {
+    return await runCommandCaptureBase(command, args, { env, label });
+  } catch (error) {
+    throw new Error(redactSecretsInText(error.message));
+  }
 }
 
 function runProcess(command, args, { env, label }) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      env,
-      stdio: "inherit",
-    });
-
-    child.once("error", (error) => {
-      reject(new Error(`${label} failed to start: ${error.message}`));
-    });
-
-    child.once("exit", (code, signal) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-
-      const detail = signal ? `signal ${signal}` : `exit code ${code}`;
-      reject(new Error(`${label} failed with ${detail}`));
-    });
-  });
+  return runProcessBase(command, args, { env, label });
 }
 
 async function runProcessWithRetries({
@@ -127,51 +66,44 @@ async function runProcessWithRetries({
   maxAttempts,
   retryDelayMs,
 }) {
-  let lastError = null;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      if (attempt > 1) {
+  return runProcessWithRetriesBase({
+    command,
+    args,
+    env,
+    label,
+    step,
+    maxAttempts,
+    retryDelayMs,
+    onRetry: (payload) => {
+      if (payload.phase === "retry_started") {
         logJson({
           status: "render_verify_step_retry_started",
-          step,
-          attempt,
-          maxAttempts,
-          retryDelayMs,
+          step: payload.step,
+          attempt: payload.attempt,
+          maxAttempts: payload.maxAttempts,
+          retryDelayMs: payload.retryDelayMs,
         });
-      }
-
-      await runProcess(command, args, { env, label });
-
-      if (attempt > 1) {
-        logJson({
-          status: "render_verify_step_retry_recovered",
-          step,
-          attempt,
-          maxAttempts,
-        });
-      }
-      return;
-    } catch (error) {
-      lastError = error;
-
-      if (attempt >= maxAttempts) {
-        break;
+        return;
       }
 
       logJson({
         status: "render_verify_step_retry_scheduled",
-        step,
-        attempt,
-        maxAttempts,
-        retryDelayMs,
-        message: error.message,
+        step: payload.step,
+        attempt: payload.attempt,
+        maxAttempts: payload.maxAttempts,
+        retryDelayMs: payload.retryDelayMs,
+        message: payload.message,
       });
-      await wait(retryDelayMs);
-    }
-  }
-
-  throw lastError;
+    },
+    onRecovered: (payload) => {
+      logJson({
+        status: "render_verify_step_retry_recovered",
+        step: payload.step,
+        attempt: payload.attempt,
+        maxAttempts: payload.maxAttempts,
+      });
+    },
+  });
 }
 
 function trimTrailingSlash(value) {
@@ -801,6 +733,11 @@ async function main() {
     "RENDER_VERIFY_INCLUDE_PARTS_SCENARIO",
     true,
   );
+  const includeDispatchBoardScenario = normalizeFlag(
+    process.env.RENDER_VERIFY_INCLUDE_DISPATCH_BOARD_SCENARIO,
+    "RENDER_VERIFY_INCLUDE_DISPATCH_BOARD_SCENARIO",
+    true,
+  );
   const verifyCommitParity = normalizeFlag(process.env.RENDER_VERIFY_COMMIT_PARITY, "RENDER_VERIFY_COMMIT_PARITY", true);
   const enableLogAudit = normalizeFlag(process.env.RENDER_VERIFY_LOG_AUDIT, "RENDER_VERIFY_LOG_AUDIT", true);
   const writeRawAuditLogs = normalizeFlag(
@@ -878,6 +815,7 @@ async function main() {
     includeBookingScenario,
     includeWalkInPageScenario,
     includePartsScenario,
+    includeDispatchBoardScenario,
     verifyCommitParity,
     enableLogAudit,
     writeRawAuditLogs,
@@ -1111,6 +1049,29 @@ async function main() {
     });
   }
 
+  if (includeDispatchBoardScenario) {
+    logJson({
+      status: "render_verify_step_started",
+      step: "scenario_dispatch_board_non_destructive",
+      baseUrl,
+      skipDeploy,
+    });
+
+    await runProcessWithRetries({
+      command: process.execPath,
+      args: ["scripts/dispatch-board-scenario.js", "--non-destructive"],
+      env: {
+        ...process.env,
+        APP_BASE_URL: baseUrl,
+        SCENARIO_NON_DESTRUCTIVE: "1",
+      },
+      label: "render scenario:dispatch-board",
+      step: "scenario_dispatch_board_non_destructive",
+      maxAttempts: smokeMaxAttempts,
+      retryDelayMs: smokeRetryDelayMs,
+    });
+  }
+
   if (!skipDeploy && enableLogAudit) {
     const ownerId = servicePayload?.ownerId;
     if (typeof ownerId !== "string" || ownerId.trim().length === 0) {
@@ -1160,6 +1121,7 @@ async function main() {
     includeBookingScenario,
     includeWalkInPageScenario,
     includePartsScenario,
+    includeDispatchBoardScenario,
     verifyCommitParity,
     enableLogAudit,
     deployId: deployPayload?.id ?? null,

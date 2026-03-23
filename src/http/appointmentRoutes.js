@@ -9,31 +9,23 @@ import {
   validateAppointmentUpdate,
   validateListAppointmentsQuery,
 } from "./appointmentValidators.js";
+import { handleSharedCustomerVehicleDomainApiError } from "./customerVehicleDomainApiErrors.js";
 import { handleUnexpectedError } from "./routeUtils.js";
+import { normalizeBooleanLike } from "./validatorUtils.js";
+
+function parsePreviewFlag(value) {
+  if (value === undefined) {
+    return false;
+  }
+  const parsed = normalizeBooleanLike(value);
+  if (parsed === null) {
+    return null;
+  }
+  return parsed;
+}
 
 function handleDomainError(res, error) {
-  if (error.code === "customer_not_found") {
-    sendApiError(res, notFoundError("Customer"));
-    return true;
-  }
-
-  if (error.code === "vehicle_not_found") {
-    sendApiError(res, notFoundError("Vehicle"));
-    return true;
-  }
-
-  if (error.code === "bay_not_found") {
-    sendApiError(res, notFoundError("Bay"));
-    return true;
-  }
-
-  if (error.code === "vehicle_customer_mismatch") {
-    sendApiError(
-      res,
-      conflictError("Vehicle does not belong to customer", [
-        { field: "vehicleId", message: "must belong to selected customer" },
-      ]),
-    );
+  if (handleSharedCustomerVehicleDomainApiError(res, error)) {
     return true;
   }
 
@@ -104,6 +96,36 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
     }
   });
 
+  app.get("/api/v1/appointments/:id/schedule-history", (req, res) => {
+    const limitRaw = req.query?.limit;
+    let limit = 25;
+
+    if (limitRaw !== undefined) {
+      if (typeof limitRaw !== "string" || !/^\d+$/u.test(limitRaw.trim())) {
+        sendApiError(res, validationError([{ field: "limit", message: "limit must be an integer" }]));
+        return;
+      }
+      limit = Number.parseInt(limitRaw.trim(), 10);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 200) {
+        sendApiError(res, validationError([{ field: "limit", message: "limit must be between 1 and 200" }]));
+        return;
+      }
+    }
+
+    try {
+      const item = appointmentService.getAppointmentById(req.params.id);
+      if (!item) {
+        sendApiError(res, notFoundError("Appointment"));
+        return;
+      }
+
+      const items = appointmentService.listAppointmentScheduleHistory(req.params.id, { limit });
+      res.status(200).json({ items, count: items.length, limit });
+    } catch (error) {
+      handleUnexpectedError(logger, req, res, error, "appointments_schedule_history_list_failed");
+    }
+  });
+
   app.post("/api/v1/appointments", (req, res) => {
     const validation = validateAppointmentCreate(req.body ?? {});
     if (!validation.ok) {
@@ -124,14 +146,42 @@ export function registerAppointmentRoutes(app, { logger, appointmentService }) {
   });
 
   app.patch("/api/v1/appointments/:id", (req, res) => {
+    const preview = parsePreviewFlag(req.query?.preview);
+    if (preview === null) {
+      sendApiError(res, validationError([{ field: "preview", message: "preview must be boolean-like (true/false/1/0)" }]));
+      return;
+    }
+
     const validation = validateAppointmentUpdate(req.body ?? {});
     if (!validation.ok) {
       sendApiError(res, validationError(validation.errors));
       return;
     }
 
+    const { changedBy, reason, ...updates } = validation.value;
+    const actor = changedBy ?? req.auth?.role ?? "api";
+
     try {
-      const item = appointmentService.updateAppointmentById(req.params.id, validation.value);
+      if (preview) {
+        const item = appointmentService.previewAppointmentUpdate(req.params.id, updates);
+        if (!item) {
+          sendApiError(res, notFoundError("Appointment"));
+          return;
+        }
+
+        res.status(200).json({
+          preview: true,
+          canCommit: true,
+          item,
+        });
+        return;
+      }
+
+      const item = appointmentService.updateAppointmentById(req.params.id, updates, {
+        changedBy: actor,
+        reason: reason ?? null,
+        source: "api_patch_appointment",
+      });
       if (!item) {
         sendApiError(res, notFoundError("Appointment"));
         return;

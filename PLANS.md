@@ -33,6 +33,40 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-21 — Linear Playwright workflow integrated into harness
 - 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
 - 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
+- 2026-03-22 — Bloat audit execution (`AUT-55..AUT-60`)
+
+## Completed Plan — Foundation hardening (`AUT-89..AUT-96`) (2026-03-23)
+
+### Objective
+
+Reduce future delivery friction by hardening auth boundaries, decomposing repository hotspots, codifying persistence transition/recovery paths, and enforcing stronger harness/static hygiene contracts.
+
+### Delivered
+
+- Unified mutation auth policy across API/page write paths (`src/http/mutationPolicy.js`, `src/http/authz.js`) with role parity tests.
+- Split `SqliteRepository` hotspot into bounded modules (`sqliteRepositoryMappers`, `sqliteRepositoryReferenceCustomerVehicle`) while keeping repository interface stable.
+- Added persistence transition/recovery deliverables:
+  - `docs/24_PERSISTENCE_TRANSITION_AND_RECOVERY.md`,
+  - fixture-integrity validation in seeding flow,
+  - `scripts/db-backup-restore-drill.js`.
+- Modularized harness process orchestration (`scripts/harness-process.js`) and applied it in `verify`/`verify:render`.
+- Added and wired static + hygiene gates:
+  - `npm run lint` (`scripts/static-guardrails.js`),
+  - `npm run hygiene:check` (`scripts/hygiene-check.js`).
+
+### Verification
+
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run lint`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:render -- --skip-deploy`: passed
+
+### Linear sync
+
+- Epic and subtasks `AUT-89..AUT-96` transitioned to `Done` via harness sync.
+- Sync log: `/tmp/linear-aut89-96-sync-result.json`
 
 ## Completed Plan — Spring cleanup wave (`AUT-82..AUT-88`) (2026-03-22)
 
@@ -105,7 +139,7 @@ Deliver the next feature block after lifecycle core: explicit parts-request oper
 ### Linear sync
 
 - Epic and subtasks (`AUT-73..AUT-81`) are ready for Done sync through harness.
-- Sync command: `npm run linear:sync -- --spec data/linear/phase3-parts-flow-epic-2026-03-22.json --state Done`
+- Sync command: `npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done`
 
 ### Primary evidence
 
@@ -150,32 +184,6 @@ Deliver the first complete Phase 2 lifecycle slice so a vehicle can move from in
 
 - `evidence/render-log-audit-summary.json`
 - `evidence/bloat-audit-latest.json`
-
-## Completed Plan — Bloat audit execution (`AUT-55..AUT-60`) (2026-03-22)
-
-### Objective
-
-Reduce repository context/storage/duplication bloat while preserving Phase 1 behavior and gate reliability.
-
-### Delivered
-
-- packet index compaction (`MASTER_CONTEXT_PACKET.md`)
-- status/plans hot-path budget enforcement
-- evidence retention policy + summarization tooling
-- shared UI/page-flow utilities to remove duplication
-- automated bloat budget gate (`npm run audit:bloat`)
-
-### Verification
-
-- `npm test`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-- `npm run secrets:scan`: passed
-- `npm run verify:full`: passed
-
-### Linear sync
-
-`AUT-55..AUT-60` transitioned to `Done` via harness sync.
 
 ## Maintenance rule
 

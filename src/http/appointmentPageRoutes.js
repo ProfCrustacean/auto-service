@@ -1,14 +1,13 @@
 import { validateAppointmentCreate } from "./appointmentValidators.js";
 import { renderAppointmentBookingPage } from "../ui/appointmentBookingPage.js";
 import {
+  buildCustomerVehicleFormHelpers,
   buildCustomerVehiclePageModel,
   coerceIntegerOrRaw,
   createValidationLocalizer,
-  hasAnyInput,
   mapSharedCustomerVehicleDomainError,
-  mapValidationErrors,
-  normalizeFormValuesByFields,
-  resolveInlineCustomerVehicleCreation,
+  renderPageUnexpectedError,
+  validateCustomerVehicleSubmission,
 } from "./pageFlowUtils.js";
 
 const LOOKUP_RESULTS_LIMIT = 8;
@@ -91,18 +90,15 @@ const localizeValidationMessage = createValidationLocalizer({
   fieldLabels: FIELD_LABELS,
   exactTranslations: EXACT_VALIDATION_MESSAGE_TRANSLATIONS,
 });
-
-function normalizeFormValues(input = {}) {
-  return normalizeFormValuesByFields(input, FORM_FIELDS);
-}
-
-function hasInlineCustomerInput(values) {
-  return hasAnyInput(values, INLINE_CUSTOMER_FIELDS);
-}
-
-function hasInlineVehicleInput(values) {
-  return hasAnyInput(values, INLINE_VEHICLE_FIELDS);
-}
+const {
+  normalizeFormValues,
+  hasInlineCustomerInput,
+  hasInlineVehicleInput,
+} = buildCustomerVehicleFormHelpers({
+  formFields: FORM_FIELDS,
+  inlineCustomerFields: INLINE_CUSTOMER_FIELDS,
+  inlineVehicleFields: INLINE_VEHICLE_FIELDS,
+});
 
 function localizeConflictDetails(details) {
   if (!Array.isArray(details)) {
@@ -225,27 +221,6 @@ function mapDomainError(error) {
   return null;
 }
 
-function logAndRenderUnexpected({
-  logger,
-  error,
-  event,
-  res,
-  referenceDataService,
-  customerVehicleService,
-  appointmentService,
-  values,
-}) {
-  logger.error(event, { message: error.message });
-  const model = buildBookingPageModel({
-    referenceDataService,
-    customerVehicleService,
-    appointmentService,
-    values,
-    errors: [{ field: "form", message: "Не удалось выполнить операцию. Повторите попытку." }],
-  });
-  renderBookingPage(res, { statusCode: 500, model });
-}
-
 export function registerAppointmentPageRoutes(app, {
   logger,
   appointmentService,
@@ -264,14 +239,19 @@ export function registerAppointmentPageRoutes(app, {
       });
       renderBookingPage(res, { statusCode: 200, model });
     } catch (error) {
-      logAndRenderUnexpected({
+      renderPageUnexpectedError({
         logger,
         error,
         event: "appointments_new_page_load_failed",
         res,
-        referenceDataService,
-        customerVehicleService,
-        appointmentService,
+        buildModel: ({ values: currentValues, errors: currentErrors }) => buildBookingPageModel({
+          referenceDataService,
+          customerVehicleService,
+          appointmentService,
+          values: currentValues,
+          errors: currentErrors,
+        }),
+        renderPage: renderBookingPage,
         values,
       });
     }
@@ -284,49 +264,22 @@ export function registerAppointmentPageRoutes(app, {
     let conflictDetails = [];
 
     try {
-      // Fail fast on appointment-level shape errors before creating inline entities.
-      const preliminaryPayload = buildAppointmentPayload(values, {
-        customerId: values.customerId || "cust-temporary",
-        vehicleId: values.vehicleId || "veh-temporary",
+      const validationState = validateCustomerVehicleSubmission({
+        values,
+        buildPayload: buildAppointmentPayload,
+        validatePayload: validateAppointmentCreate,
+        hasInlineCustomerInput,
+        hasInlineVehicleInput,
+        localizeValidationMessage,
       });
-      const preliminaryValidation = validateAppointmentCreate(preliminaryPayload);
-      if (!preliminaryValidation.ok) {
-        errors.push(
-          ...mapValidationErrors(preliminaryValidation.errors.filter((error) => {
-            return error.field !== "customerId" && error.field !== "vehicleId";
-          }), localizeValidationMessage),
-        );
-      }
-
-      let customerId = values.customerId;
-      let vehicleId = values.vehicleId;
-      let inlineCustomerPayload = null;
-      let inlineVehiclePayload = null;
-      if (errors.length === 0) {
-        const inlineResolution = resolveInlineCustomerVehicleCreation({
-          values,
-          selectedCustomerId: customerId,
-          selectedVehicleId: vehicleId,
-          hasInlineCustomerInput,
-          hasInlineVehicleInput,
-          localizeValidationMessage,
-        });
-        errors.push(...inlineResolution.errors);
-        customerId = inlineResolution.customerId;
-        vehicleId = inlineResolution.vehicleId;
-        inlineCustomerPayload = inlineResolution.inlineCustomerPayload;
-        inlineVehiclePayload = inlineResolution.inlineVehiclePayload;
-      }
-
-      const appointmentPayload = buildAppointmentPayload(values, {
-        customerId: customerId || (inlineCustomerPayload ? "cust-inline" : ""),
-        vehicleId: vehicleId || (inlineVehiclePayload ? "veh-inline" : ""),
-      });
-
-      const appointmentValidation = validateAppointmentCreate(appointmentPayload);
-      if (!appointmentValidation.ok) {
-        errors.push(...mapValidationErrors(appointmentValidation.errors, localizeValidationMessage));
-      }
+      errors.push(...validationState.errors);
+      const {
+        customerId,
+        vehicleId,
+        inlineCustomerPayload,
+        inlineVehiclePayload,
+        validation: appointmentValidation,
+      } = validationState;
 
       if (errors.length > 0) {
         const model = buildBookingPageModel({
@@ -401,14 +354,19 @@ export function registerAppointmentPageRoutes(app, {
         return;
       }
 
-      logAndRenderUnexpected({
+      renderPageUnexpectedError({
         logger,
         error,
         event: "appointments_new_submit_failed",
         res,
-        referenceDataService,
-        customerVehicleService,
-        appointmentService,
+        buildModel: ({ values: currentValues, errors: currentErrors }) => buildBookingPageModel({
+          referenceDataService,
+          customerVehicleService,
+          appointmentService,
+          values: currentValues,
+          errors: currentErrors,
+        }),
+        renderPage: renderBookingPage,
         values,
       });
     }

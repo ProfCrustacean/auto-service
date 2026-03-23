@@ -101,6 +101,7 @@ After reading these files, Codex should understand:
 - `docs/21_EXECUTION_PLANS_STATUS_AND_EVIDENCE.md`
 - `docs/22_REPOSITORY_HYGIENE_AND_CONTINUOUS_IMPROVEMENT.md`
 - `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`
+- `docs/24_PERSISTENCE_TRANSITION_AND_RECOVERY.md`
 
 ## What this packet does not do
 
@@ -172,13 +173,15 @@ Phase 2/3 work-order UI:
 - `GET /work-orders/active`
 - `GET|POST /work-orders/:id`
 
-Mutating `/api/v1/**` endpoints require auth tokens:
+Mutating API/page endpoints use one shared policy matrix (`src/http/mutationPolicy.js`):
 - header: `Authorization: Bearer <token>` or `x-api-token`
+- fallback for HTML form posts: `authToken` in form/query payload
 - default local tokens: `owner-dev-token`, `frontdesk-dev-token`, `technician-dev-token`
+- optional UI implicit role: `AUTH_UI_IMPLICIT_ROLE` (`front_desk` default, set `none` to force token-only UI mutations)
 - role baseline:
   - `owner`: all mutations
   - `front_desk`: customers/vehicles/appointments/walk-ins mutations
-  - `technician`: work-order technical progress mutations (`PATCH /api/v1/work-orders/:id`) and read-only access elsewhere
+  - `technician`: work-order lifecycle/parts mutations (API + page work-order forms)
 
 Default local DB path:
 - `data/auto-service.sqlite` (override with `DB_PATH`)
@@ -187,10 +190,13 @@ Default local DB path:
 
 ```bash
 npm run secrets:scan
+npm run lint
+npm run hygiene:check
 npm test
 npm run smoke
 npm run verify
 npm run audit:bloat
+npm run db:backup-drill
 npm run verify:render
 npm run verify:full
 ```
@@ -200,7 +206,7 @@ Harness outputs written to stdout/stderr/files are redacted to avoid leaking API
 
 CI quality gate:
 - GitHub Actions workflow: `.github/workflows/ci.yml`
-- Runs `npm ci`, `npm run secrets:scan`, `npm test`, `npm run verify`, `npm run audit:bloat` on PRs and pushes to `main`.
+- Runs `npm ci`, `npm run secrets:scan`, `npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`, `npm run audit:bloat` on PRs and pushes to `main`.
 - Render deploy checks remain opt-in (`npm run verify:render`) and are intentionally excluded from default CI.
 
 `npm run verify` is self-contained:
@@ -228,28 +234,13 @@ Render stage commands:
   - runs the full local + deploy-aware verification sequence.
 - `RENDER_API_KEY` is required for deploy-triggering mode (`RENDER_SKIP_DEPLOY=0`, default).
 
-Render env defaults:
+Render defaults and toggles:
 - `RENDER_SERVICE_ID` default: `srv-d6vcmt7diees73d0j04g`
 - `APP_BASE_URL` default: `https://auto-service-foundation.onrender.com`
-- `RENDER_USE_RESOLVE=1` by default (uses `curl --resolve api.render.com:443:216.24.57.7` for API reliability in this environment)
-- `RENDER_SKIP_DEPLOY=1` to run deployed smoke without triggering a new deploy
-- `npm run verify:render -- --skip-deploy` explicitly skips deploy regardless of env defaults
-- `npm run verify:render -- --deploy` explicitly forces deploy mode regardless of env defaults
-- `RENDER_DEPLOY_TIMEOUT_MS`, `RENDER_DEPLOY_POLL_INTERVAL_MS` to tune wait behavior
-- `RENDER_VERIFY_COMMIT_PARITY=1` by default; set `RENDER_EXPECT_COMMIT=<sha>` to pin expected commit explicitly
-- `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=1` by default (runs deployed read-only booking-page scenario gate)
-- `RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=1` by default (runs deployed read-only walk-in-page scenario gate)
-- `RENDER_VERIFY_INCLUDE_SCENARIO=1` by default (runs deployed read-only scenario gate)
-- `RENDER_VERIFY_INCLUDE_PARTS_SCENARIO=1` by default (runs deployed read-only parts-flow scenario gate)
-- `RENDER_SMOKE_MAX_ATTEMPTS=3` and `RENDER_SMOKE_RETRY_DELAY_MS=10000` by default (retry smoke after deploy to absorb rollout lag)
-- `RENDER_VERIFY_LOG_AUDIT=1` by default (runs post-deploy log audit)
-- `RENDER_LOG_AUDIT_LIMIT=1000` per log type (`build` + `app`)
-- `RENDER_LOG_AUDIT_MAX_WARNINGS=0`, `RENDER_LOG_AUDIT_MAX_ERRORS=0`, `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=0`
-- `RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION=1` by default
-- `RENDER_LOG_AUDIT_SUMMARY_PATH` default: `evidence/render-log-audit-summary.json`
-- `RENDER_LOG_AUDIT_WRITE_RAW=0` by default (raw logs are debug-only)
-- `RENDER_LOG_AUDIT_GZIP_RAW=1` by default when raw logs are enabled
-- `RENDER_LOG_AUDIT_RAW_PATH` default: `evidence/render-log-audit.raw.ndjson` (writes `.gz` when gzip is enabled)
+- `npm run verify:render -- --skip-deploy` explicitly skips deploy (CLI override wins over env)
+- `npm run verify:render -- --deploy` explicitly forces deploy mode
+- scenario and log-audit gates are enabled by default in `verify:render`
+- for full env matrix and all tuning knobs, use `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`
 
 Scenario mode defaults:
 - local base URL (`127.0.0.1`/`localhost`) => write mode
@@ -280,15 +271,22 @@ npm run evidence:summary -- --input evidence/example.raw.ndjson --output evidenc
 - `npm run cleanup:spring` runs deterministic dry-run analysis for tracked and untracked `evidence/` files
 - `npm run cleanup:spring:apply` removes tracked evidence outside allowlist and prunes stale untracked `evidence/*`
 - both commands emit machine-readable JSON with candidate/pruned counts, bytes, and file lists
+### Persistence recovery drill
 
+- `npm run db:backup-drill` performs a copy-and-verify backup/restore drill for SQLite:
+  - copies DB to backup file,
+  - compares schema version and per-table row counts,
+  - fails fast when drift exceeds threshold.
+- Override paths/threshold:
+
+```bash
+npm run db:backup-drill -- --db data/auto-service.sqlite --backup evidence/db-backup-drill.sqlite --max-row-drift 0
+```
 ### Linear task harness commands
 
 The harness includes a Playwright-backed Linear workflow (default transport) for environments where direct GraphQL access can be geo-blocked.
 
-Required:
-- `LINEAR_API_KEY`
-- Harness auto-loads `.env` and `.env.local` (without overriding already-exported env vars).
-
+Required: `LINEAR_API_KEY` (harness auto-loads `.env` and `.env.local` without overriding already-exported env vars).
 Probe workspace/team/state connectivity:
 
 ```bash
@@ -304,11 +302,12 @@ LINEAR_API_KEY="<key>" npm run linear:create -- --spec data/linear/phase1-task-t
 Sync existing tasks from a spec file into a target state:
 
 ```bash
-LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/technical-audit-2026-03-22.json --state Done
+LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done
 ```
 
-Template spec:
+Retained sample specs:
 - `data/linear/phase1-task-template.json`
+- `data/linear/workorder-epic-aut61-2026-03-22.json`
 - `linear:create` is idempotent by normalized title (skips existing tasks).
 - `linear:sync` transitions matching tasks to the selected workflow state.
 

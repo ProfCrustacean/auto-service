@@ -440,6 +440,8 @@ export function registerWorkOrderPageRoutes(app, {
   workOrderService,
   referenceDataService,
 }) {
+  const resolveUiActor = (req) => req.auth?.role ?? "front_desk";
+
   app.get("/work-orders/active", (_req, res) => {
     try {
       const items = workOrderService.listWorkOrders({
@@ -508,8 +510,9 @@ export function registerWorkOrderPageRoutes(app, {
     }
 
     try {
+      const actor = resolveUiActor(req);
       const updated = workOrderService.updateWorkOrderById(req.params.id, validation.value, {
-        changedBy: "front_desk_ui",
+        changedBy: `${actor}_ui`,
         source: "ui_work_order_page",
       });
       if (!updated) {
@@ -572,8 +575,9 @@ export function registerWorkOrderPageRoutes(app, {
     }
 
     try {
+      const actor = resolveUiActor(req);
       const result = workOrderService.createWorkOrderPartsRequest(req.params.id, validation.value, {
-        changedBy: "front_desk_ui",
+        changedBy: `${actor}_ui`,
         source: "ui_work_order_parts_create",
       });
       if (!result) {
@@ -637,12 +641,13 @@ export function registerWorkOrderPageRoutes(app, {
     }
 
     try {
+      const actor = resolveUiActor(req);
       const result = workOrderService.updateWorkOrderPartsRequest(
         req.params.id,
         req.params.requestId,
         validation.value,
         {
-          changedBy: "front_desk_ui",
+          changedBy: `${actor}_ui`,
           source: "ui_work_order_parts_update",
         },
       );
@@ -709,12 +714,13 @@ export function registerWorkOrderPageRoutes(app, {
     }
 
     try {
+      const actor = resolveUiActor(req);
       const result = workOrderService.createWorkOrderPartsPurchaseAction(
         req.params.id,
         req.params.requestId,
         validation.value,
         {
-          changedBy: "front_desk_ui",
+          changedBy: `${actor}_ui`,
           source: "ui_work_order_parts_purchase_action",
         },
       );

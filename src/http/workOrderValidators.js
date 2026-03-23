@@ -1,4 +1,10 @@
-import { collectUnknownFields, isNonEmptyString, normalizeBooleanLike, normalizePaginationQuery } from "./validatorUtils.js";
+import {
+  collectUnknownFields,
+  isNonEmptyString,
+  normalizeBooleanLike,
+  normalizeLocalDateQuery,
+  normalizePaginationQuery,
+} from "./validatorUtils.js";
 import { isKnownWorkOrderStatus, WORK_ORDER_STATUS_CODES } from "../domain/workOrderLifecycle.js";
 import {
   isKnownPartsPurchaseActionStatus,
@@ -167,16 +173,24 @@ export function validateListWorkOrdersQuery(query) {
   const status = normalizeStatus(query.status, "status", errors) ?? null;
   const bayId = normalizeOptionalId(query.bayId, "bayId", errors) ?? null;
   const primaryAssignee = normalizeOptionalString(query.primaryAssignee, "primaryAssignee", errors) ?? null;
+  const dateFromLocal = normalizeLocalDateQuery(query.dateFromLocal, "dateFromLocal", errors) ?? null;
+  const dateToLocal = normalizeLocalDateQuery(query.dateToLocal, "dateToLocal", errors) ?? null;
   const search = normalizeQueryString(query.q, "q", errors);
   const includeClosedRaw = normalizeBooleanLike(query.includeClosed);
   if (query.includeClosed !== undefined && includeClosedRaw === null) {
     errors.push({ field: "includeClosed", message: "includeClosed must be boolean-like (true/false/1/0)" });
   }
 
+  if (dateFromLocal && dateToLocal && dateFromLocal > dateToLocal) {
+    errors.push({ field: "dateFromLocal", message: "dateFromLocal must be <= dateToLocal" });
+  }
+
   const unknownFields = collectUnknownFields(query, [
     "status",
     "bayId",
     "primaryAssignee",
+    "dateFromLocal",
+    "dateToLocal",
     "q",
     "includeClosed",
     "limit",
@@ -196,6 +210,8 @@ export function validateListWorkOrdersQuery(query) {
       status,
       bayId,
       primaryAssignee,
+      dateFromLocal,
+      dateToLocal,
       query: search,
       includeClosed: includeClosedRaw === null ? true : includeClosedRaw,
       limit: pagination.limit,

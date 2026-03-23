@@ -14,9 +14,9 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Spring cleanup wave is delivered and verified; next priority is Phase 4 (payments and reporting closure).
+Foundation hardening epic is delivered and verified; next priority is Phase 4 (payments and reporting closure).
 
-## Current state (2026-03-22)
+## Current state (2026-03-23)
 
 ### Product/runtime
 - Phase 1 scheduling/intake remains fully implemented:
@@ -43,6 +43,13 @@ Spring cleanup wave is delivered and verified; next priority is Phase 4 (payment
 ### Harness/operations
 - Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
 - Deploy-aware gate exists and is green: `npm run verify:render` (deploy, commit parity, smoke, scenarios including parts-flow, log audit).
+- Authorization boundary is unified across API/page write routes using `src/http/mutationPolicy.js`.
+- Render verify deploy mode is explicit and deterministic via CLI flags (`--skip-deploy` / `--deploy`) with CLI-over-env precedence.
+- Harness internals now share process orchestration helpers via `scripts/harness-process.js`.
+- Static/hygiene guardrails are enforceable via:
+  - `npm run lint` (route policy + syntax contract checks),
+  - `npm run hygiene:check` (branch and tracked-artifact hygiene policy),
+  - `npm run db:backup-drill` (backup/restore drill script).
 - Spring cleanup tooling is now available:
   - `npm run cleanup:spring` (dry-run)
   - `npm run cleanup:spring:apply` (tracked/untracked evidence pruning)
@@ -58,6 +65,7 @@ Spring cleanup wave is delivered and verified; next priority is Phase 4 (payment
 - 2026-03-22: Bloat audit closure (`AUT-55..AUT-60`) implemented and synced to Done.
 - 2026-03-22: Phase 3 parts-flow epic implemented and deployed (`AUT-73..AUT-81`), verification gates green.
 - 2026-03-22: Spring cleanup wave executed (`AUT-82..AUT-88`) with canonical evidence retention and harness CLI hardening.
+- 2026-03-23: Foundation hardening epic completed (`AUT-89..AUT-96`) and synced to Done.
 
 ## Verification snapshot
 
@@ -65,6 +73,8 @@ Most recent local gate results:
 - `npm test`: passed
 - `npm run verify`: passed
 - `npm run audit:bloat`: passed
+- `npm run lint`: passed
+- `npm run secrets:scan`: passed
 
 Most recent deploy-aware gate results:
 - `npm run verify:render -- --skip-deploy`: passed
@@ -80,6 +90,7 @@ Primary evidence pointers:
 - `evidence/render-log-audit-summary.json`
 - `evidence/bloat-audit-latest.json`
 - `evidence/linear-aut73-81-done-sync.json`
+- Linear sync audit (AUT-89..AUT-96): `/tmp/linear-aut89-96-sync-result.json`
 
 ## Environments
 

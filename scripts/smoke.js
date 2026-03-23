@@ -304,11 +304,70 @@ async function main() {
     },
   );
 
+  const dispatchBoardApi = await requestJson(baseUrl, {
+    step: "dispatch_board_api",
+    path: "/api/v1/dispatch/board",
+  });
+  expectStatus(dispatchBoardApi, 200, "dispatch_board_api");
+  assertHarness(Array.isArray(dispatchBoardApi.payload?.lanes), "dispatch board lanes must be an array", {
+    step: "dispatch_board_api",
+    responseStatus: dispatchBoardApi.status,
+    responsePayload: dispatchBoardApi.payload,
+  });
+  assertHarness(Array.isArray(dispatchBoardApi.payload?.appointments), "dispatch board appointments must be an array", {
+    step: "dispatch_board_api",
+    responseStatus: dispatchBoardApi.status,
+    responsePayload: dispatchBoardApi.payload,
+  });
+  assertHarness(Array.isArray(dispatchBoardApi.payload?.timeline?.slots), "dispatch board timeline slots must be an array", {
+    step: "dispatch_board_api",
+    responseStatus: dispatchBoardApi.status,
+    responsePayload: dispatchBoardApi.payload,
+  });
+
+  const dispatchBoardUi = await requestText(baseUrl, {
+    step: "dispatch_board_ui",
+    path: "/dispatch/board",
+  });
+  if (dispatchBoardUi.status !== 200) {
+    failHarness("unexpected response status for GET /dispatch/board", {
+      step: "dispatch_board_ui",
+      method: "GET",
+      path: "/dispatch/board",
+      url: dispatchBoardUi.url,
+      responseStatus: dispatchBoardUi.status,
+      responseBodySnippet: dispatchBoardUi.text?.slice(0, 400),
+    });
+  }
+  assertHarness(
+    dispatchBoardUi.text.includes("Диспетчерская доска") &&
+      dispatchBoardUi.text.includes("Очередь переносов"),
+    "dispatch board UI content missing",
+    {
+      step: "dispatch_board_ui",
+      method: "GET",
+      path: "/dispatch/board",
+      url: dispatchBoardUi.url,
+      responseStatus: dispatchBoardUi.status,
+      responseBodySnippet: dispatchBoardUi.text.slice(0, 400),
+    },
+  );
+
   process.stdout.write(
     `${JSON.stringify({
       status: "smoke_passed",
       baseUrl,
-      checks: ["healthz", "dashboard_api", "appointments_api", "search_api", "dashboard_ui", "booking_ui", "walkin_ui"],
+      checks: [
+        "healthz",
+        "dashboard_api",
+        "appointments_api",
+        "search_api",
+        "dashboard_ui",
+        "booking_ui",
+        "walkin_ui",
+        "dispatch_board_api",
+        "dispatch_board_ui",
+      ],
     })}\n`,
   );
 }

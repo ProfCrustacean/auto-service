@@ -10,6 +10,7 @@ import { registerAppointmentPageRoutes } from "./http/appointmentPageRoutes.js";
 import { registerWalkInIntakePageRoutes } from "./http/walkInIntakePageRoutes.js";
 import { registerWorkOrderRoutes } from "./http/workOrderRoutes.js";
 import { registerWorkOrderPageRoutes } from "./http/workOrderPageRoutes.js";
+import { registerDispatchBoardPageRoutes } from "./http/dispatchBoardPageRoutes.js";
 import { internalError, sendApiError, validationError } from "./http/apiErrors.js";
 import { createApiAuthMiddleware } from "./http/authz.js";
 
@@ -168,6 +169,12 @@ export function createApp({
     logger,
     workOrderService,
     referenceDataService,
+  });
+  registerDispatchBoardPageRoutes(app, {
+    logger,
+    dashboardService,
+    appointmentService,
+    workOrderService,
   });
   registerWalkInIntakePageRoutes(app, {
     logger,

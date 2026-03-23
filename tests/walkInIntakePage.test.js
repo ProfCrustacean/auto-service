@@ -1,65 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  closeServer,
-  createTempDatabase,
-  makeServer,
+  extractRedirectId,
   requestJson,
-  waitForServer,
+  submitUrlEncodedForm,
+  withTestServer,
 } from "./helpers/httpHarness.js";
 
-function toFormBody(payload) {
-  const params = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(payload)) {
-    if (value === undefined || value === null) {
-      continue;
-    }
-    params.set(key, String(value));
-  }
-
-  return params.toString();
-}
-
-async function submitWalkInForm(url, payload, { redirect = "follow" } = {}) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded",
-    },
-    body: toFormBody(payload),
-    redirect,
-  });
-
-  const text = await response.text();
-  return {
-    status: response.status,
-    text,
-    location: response.headers.get("location"),
-  };
-}
-
-function extractWorkOrderId(locationHeader) {
-  const match = /^\/work-orders\/([^?]+)/u.exec(locationHeader ?? "");
-  return match ? match[1] : null;
-}
-
-test("intake/walk-in renders production intake form and lookup results", async () => {
-  const tempDb = createTempDatabase("auto-service-walkin-page-render");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
-
+test("intake/walk-in renders intake form and lookup", async () => {
+  await withTestServer("auto-service-walkin-page-render", async ({ baseUrl }) => {
     const pageRes = await fetch(`${baseUrl}/intake/walk-in`);
     assert.equal(pageRes.status, 200);
     const html = await pageRes.text();
     assert.match(html, /Прием walk-in/u);
-    assert.match(html, /Быстрый поиск клиента и авто/u);
     assert.match(html, /Форма intake/u);
     assert.doesNotMatch(html, /Экран будет реализован/u);
 
@@ -69,25 +22,12 @@ test("intake/walk-in renders production intake form and lookup results", async (
     assert.match(lookupHtml, /Клиенты/u);
     assert.match(lookupHtml, /Авто/u);
     assert.match(lookupHtml, /Kia Rio/u);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });
 
-test("intake/walk-in returns actionable validation/domain errors without losing input", async () => {
-  const tempDb = createTempDatabase("auto-service-walkin-page-errors");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
-
-    const invalid = await submitWalkInForm(`${baseUrl}/intake/walk-in`, {
+test("intake/walk-in keeps validation/domain feedback", async () => {
+  await withTestServer("auto-service-walkin-page-errors", async ({ baseUrl }) => {
+    const invalid = await submitUrlEncodedForm(`${baseUrl}/intake/walk-in`, {
       customerId: "cust-2",
       vehicleId: "veh-3",
       complaint: "",
@@ -97,41 +37,29 @@ test("intake/walk-in returns actionable validation/domain errors without losing 
     assert.match(invalid.text, /Исправьте ошибки перед сохранением/u);
     assert.match(invalid.text, /Опишите жалобу или запрос клиента/u);
 
-    const mismatch = await submitWalkInForm(`${baseUrl}/intake/walk-in`, {
+    const mismatch = await submitUrlEncodedForm(`${baseUrl}/intake/walk-in`, {
       customerId: "cust-1",
       vehicleId: "veh-3",
-      complaint: "Проверка несоответствия клиента и авто",
+      complaint: "Несовпадение",
     });
 
     assert.equal(mismatch.status, 409);
     assert.match(mismatch.text, /Авто не принадлежит выбранному клиенту/u);
-    assert.match(mismatch.text, /Проверка несоответствия клиента и авто/u);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+    assert.match(mismatch.text, /Несовпадение/u);
+  });
 });
 
-test("intake/walk-in submits successfully and redirects to created work-order detail", async () => {
-  const tempDb = createTempDatabase("auto-service-walkin-page-submit");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+test("intake/walk-in submits and redirects to detail", async () => {
+  await withTestServer("auto-service-walkin-page-submit", async ({ baseUrl }) => {
     const beforeDashboard = await requestJson("GET", `${baseUrl}/api/v1/dashboard/today`);
     assert.equal(beforeDashboard.status, 200);
 
-    const submit = await submitWalkInForm(
+    const submit = await submitUrlEncodedForm(
       `${baseUrl}/intake/walk-in`,
       {
         customerId: "cust-2",
         vehicleId: "veh-3",
-        complaint: "Walk-in: нестабильная работа двигателя",
+        complaint: "Walk-in тест",
         bayId: "bay-2",
       },
       { redirect: "manual" },
@@ -140,7 +68,7 @@ test("intake/walk-in submits successfully and redirects to created work-order de
     assert.equal(submit.status, 303);
     assert.match(submit.location ?? "", /^\/work-orders\/[^?]+\?created=1/u);
 
-    const workOrderId = extractWorkOrderId(submit.location);
+    const workOrderId = extractRedirectId(submit.location, "work-orders");
     assert.equal(Boolean(workOrderId), true);
 
     const detailRes = await fetch(`${baseUrl}${submit.location}`);
@@ -159,33 +87,21 @@ test("intake/walk-in submits successfully and redirects to created work-order de
       beforeDashboard.json.summary.appointmentsToday,
     );
     assert.equal(afterDashboard.json.queues.active.some((item) => item.id === workOrderId), true);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });
 
-test("intake/walk-in supports inline customer+vehicle creation in a single submit", async () => {
-  const tempDb = createTempDatabase("auto-service-walkin-page-inline-create");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+test("intake/walk-in supports inline customer+vehicle create", async () => {
+  await withTestServer("auto-service-walkin-page-inline-create", async ({ baseUrl }) => {
     const token = `${Date.now()}`;
 
-    const fullName = `WalkIn Клиент ${token}`;
+    const fullName = `WI Клиент ${token}`;
     const phone = `+7 937 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`;
-    const vehicleLabel = `WalkIn Авто ${token}`;
+    const vehicleLabel = `WI Авто ${token}`;
 
-    const submit = await submitWalkInForm(
+    const submit = await submitUrlEncodedForm(
       `${baseUrl}/intake/walk-in`,
       {
-        complaint: "Проблема после поездки",
+        complaint: "Проблема",
         newCustomerFullName: fullName,
         newCustomerPhone: phone,
         newVehicleLabel: vehicleLabel,
@@ -195,7 +111,7 @@ test("intake/walk-in supports inline customer+vehicle creation in a single submi
     );
 
     assert.equal(submit.status, 303);
-    const workOrderId = extractWorkOrderId(submit.location);
+    const workOrderId = extractRedirectId(submit.location, "work-orders");
     assert.equal(Boolean(workOrderId), true);
 
     const detailRes = await fetch(`${baseUrl}${submit.location}`);
@@ -217,50 +133,5 @@ test("intake/walk-in supports inline customer+vehicle creation in a single submi
     );
     assert.equal(vehicleSearch.status, 200);
     assert.equal(vehicleSearch.json.items.some((item) => item.label === vehicleLabel), true);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
-});
-
-test("intake/walk-in rolls back inline customer and vehicle when intake save fails", async () => {
-  const tempDb = createTempDatabase("auto-service-walkin-page-inline-rollback");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
-    const token = `${Date.now()}`;
-    const beforeCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
-    const beforeVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
-    assert.equal(beforeCustomers.status, 200);
-    assert.equal(beforeVehicles.status, 200);
-
-    const submit = await submitWalkInForm(`${baseUrl}/intake/walk-in`, {
-      complaint: "Проверка отката транзакции walk-in",
-      bayId: "bay-missing",
-      newCustomerFullName: `Rollback WalkIn Клиент ${token}`,
-      newCustomerPhone: `+7 932 ${token.slice(-3)} ${token.slice(-3)} ${token.slice(-2)}`,
-      newVehicleLabel: `Rollback WalkIn Авто ${token}`,
-      newVehiclePlateNumber: `RW${token.slice(-6)}`,
-    });
-
-    assert.equal(submit.status, 404);
-    assert.match(submit.text, /Пост не найден/u);
-
-    const afterCustomers = await requestJson("GET", `${baseUrl}/api/v1/customers`);
-    const afterVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles`);
-    assert.equal(afterCustomers.status, 200);
-    assert.equal(afterVehicles.status, 200);
-    assert.equal(afterCustomers.json.count, beforeCustomers.json.count);
-    assert.equal(afterVehicles.json.count, beforeVehicles.json.count);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });

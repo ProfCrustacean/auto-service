@@ -26,6 +26,7 @@ export function collectUnknownFields(body, knownFields) {
 }
 
 export const MAX_PAGE_LIMIT = 100;
+const LOCAL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/u;
 
 function parseIntegerQuery(value, field, errors, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) {
   if (value === undefined) {
@@ -54,4 +55,23 @@ export function normalizePaginationQuery(query, errors) {
     limit: limitValue ?? null,
     offset: offsetValue ?? 0,
   };
+}
+
+export function normalizeLocalDateQuery(value, field, errors) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    errors.push({ field, message: `${field} must be a string` });
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (!LOCAL_DATE_RE.test(normalized)) {
+    errors.push({ field, message: `${field} must match YYYY-MM-DD` });
+    return undefined;
+  }
+
+  return normalized;
 }

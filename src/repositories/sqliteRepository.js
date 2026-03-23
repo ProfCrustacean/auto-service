@@ -1,248 +1,40 @@
 import { randomUUID } from "node:crypto";
-
-function asBoolean(value) {
-  return Boolean(value);
-}
-
-function mapEmployeeRow(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    name: row.name,
-    roles: JSON.parse(row.rolesJson),
-    isActive: asBoolean(row.isActive),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapBayRow(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    name: row.name,
-    isActive: asBoolean(row.isActive),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapCustomerRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    fullName: row.fullName,
-    phone: row.phone,
-    messagingHandle: row.messagingHandle,
-    notes: row.notes,
-    isActive: asBoolean(row.isActive),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapVehicleRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    customerId: row.customerId,
-    customerName: row.customerName,
-    label: row.label,
-    vin: row.vin,
-    plateNumber: row.plateNumber,
-    make: row.make,
-    model: row.model,
-    productionYear: row.productionYear,
-    engineOrTrim: row.engineOrTrim,
-    mileageKm: row.mileageKm,
-    isActive: asBoolean(row.isActive),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapAppointmentRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    code: row.code,
-    plannedStartLocal: row.plannedStartLocal,
-    customerId: row.customerId,
-    customerName: row.customerName,
-    vehicleId: row.vehicleId,
-    vehicleLabel: row.vehicleLabel,
-    complaint: row.complaint,
-    status: row.status,
-    bayId: row.bayId,
-    bayName: row.bayName,
-    primaryAssignee: row.primaryAssignee,
-    source: row.source,
-    expectedDurationMin: row.expectedDurationMin,
-    notes: row.notes,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapIntakeEventRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    source: row.source,
-    sourceAppointmentId: row.sourceAppointmentId,
-    customerId: row.customerId,
-    vehicleId: row.vehicleId,
-    complaint: row.complaint,
-    status: row.status,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapWorkOrderRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    code: row.code,
-    customerId: row.customerId,
-    customerName: row.customerName,
-    vehicleId: row.vehicleId,
-    vehicleLabel: row.vehicleLabel,
-    status: row.status,
-    statusLabelRu: row.statusLabelRu,
-    bayId: row.bayId,
-    bayName: row.bayName,
-    primaryAssignee: row.primaryAssignee,
-    complaint: row.complaint ?? null,
-    findings: row.findings ?? null,
-    internalNotes: row.internalNotes ?? null,
-    customerNotes: row.customerNotes ?? null,
-    blockedSinceIso: row.blockedSinceIso ?? null,
-    balanceDueRub: row.balanceDueRub ?? 0,
-    createdAt: row.createdAt,
-    closedAt: row.closedAt ?? null,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapWorkOrderStatusHistoryRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    workOrderId: row.workOrderId,
-    fromStatus: row.fromStatus ?? null,
-    fromStatusLabelRu: row.fromStatusLabelRu ?? null,
-    toStatus: row.toStatus,
-    toStatusLabelRu: row.toStatusLabelRu,
-    changedAt: row.changedAt,
-    changedBy: row.changedBy ?? null,
-    reason: row.reason ?? null,
-    source: row.source,
-  };
-}
-
-function mapWorkOrderPartsRequestRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    workOrderId: row.workOrderId,
-    replacementForRequestId: row.replacementForRequestId ?? null,
-    partName: row.partName,
-    supplierName: row.supplierName ?? null,
-    expectedArrivalDateLocal: row.expectedArrivalDateLocal ?? null,
-    requestedQty: row.requestedQty,
-    requestedUnitCostRub: row.requestedUnitCostRub,
-    salePriceRub: row.salePriceRub,
-    status: row.status,
-    statusLabelRu: row.statusLabelRu,
-    isBlocking: asBoolean(row.isBlocking),
-    notes: row.notes ?? null,
-    createdAt: row.createdAt,
-    resolvedAt: row.resolvedAt ?? null,
-    updatedAt: row.updatedAt,
-    purchaseActionCount: row.purchaseActionCount ?? 0,
-    openPurchaseActionCount: row.openPurchaseActionCount ?? 0,
-  };
-}
-
-function mapPartsPurchaseActionRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    partsRequestId: row.partsRequestId,
-    supplierName: row.supplierName ?? null,
-    supplierReference: row.supplierReference ?? null,
-    orderedQty: row.orderedQty,
-    unitCostRub: row.unitCostRub,
-    status: row.status,
-    orderedAt: row.orderedAt,
-    receivedAt: row.receivedAt ?? null,
-    notes: row.notes ?? null,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapWorkOrderPartsHistoryRecord(row) {
-  if (!row) {
-    return null;
-  }
-
-  let details = null;
-  if (typeof row.detailsJson === "string" && row.detailsJson.length > 0) {
-    try {
-      details = JSON.parse(row.detailsJson);
-    } catch {
-      details = null;
-    }
-  }
-
-  return {
-    id: row.id,
-    workOrderId: row.workOrderId,
-    partsRequestId: row.partsRequestId ?? null,
-    purchaseActionId: row.purchaseActionId ?? null,
-    fromStatus: row.fromStatus ?? null,
-    fromStatusLabelRu: row.fromStatusLabelRu ?? null,
-    toStatus: row.toStatus ?? null,
-    toStatusLabelRu: row.toStatusLabelRu ?? null,
-    changedAt: row.changedAt,
-    changedBy: row.changedBy ?? null,
-    reason: row.reason ?? null,
-    source: row.source,
-    details,
-  };
-}
+import {
+  mapAppointmentRecord,
+  mapIntakeEventRecord,
+  mapPartsPurchaseActionRecord,
+  mapWorkOrderPartsHistoryRecord,
+  mapWorkOrderPartsRequestRecord,
+  mapWorkOrderRecord,
+  mapWorkOrderStatusHistoryRecord,
+} from "./sqliteRepositoryMappers.js";
+import {
+  createBayRepository,
+  createCustomerRepository,
+  createEmployeeRepository,
+  createVehicleRepository,
+  deactivateBayByIdRepository,
+  deactivateCustomerByIdRepository,
+  deactivateEmployeeByIdRepository,
+  deactivateVehicleByIdRepository,
+  getBayByIdRepository,
+  getCustomerByIdRepository,
+  getEmployeeByIdRepository,
+  getVehicleByIdRepository,
+  listBaysRepository,
+  listCustomerRecordsRepository,
+  listCustomersRepository,
+  listEmployeesRepository,
+  listVehicleOwnershipHistoryRepository,
+  listVehicleRecordsRepository,
+  listVehiclesRepository,
+  searchCustomersRepository,
+  searchVehiclesRepository,
+  updateBayByIdRepository,
+  updateCustomerByIdRepository,
+  updateEmployeeByIdRepository,
+  updateVehicleByIdRepository,
+} from "./sqliteRepositoryReferenceCustomerVehicle.js";
 
 export class SqliteRepository {
   constructor(database) {
@@ -390,6 +182,8 @@ export class SqliteRepository {
     customerId = null,
     vehicleId = null,
     bayId = null,
+    dateFromLocal = null,
+    dateToLocal = null,
     query = "",
     limit = null,
     offset = 0,
@@ -415,6 +209,16 @@ export class SqliteRepository {
     if (bayId) {
       conditions.push("a.bay_id = ?");
       values.push(bayId);
+    }
+
+    if (dateFromLocal) {
+      conditions.push("substr(a.planned_start_local, 1, 10) >= ?");
+      values.push(dateFromLocal);
+    }
+
+    if (dateToLocal) {
+      conditions.push("substr(a.planned_start_local, 1, 10) <= ?");
+      values.push(dateToLocal);
     }
 
     const trimmedQuery = query.trim();
@@ -697,23 +501,143 @@ export class SqliteRepository {
     return this.getAppointmentRecordById(id);
   }
 
-  listSlotBlockingAppointments({ plannedStartLocal, excludeAppointmentId = null }) {
+  listAppointmentScheduleHistory(appointmentId, { limit = 25 } = {}) {
+    const hasLimit = Number.isInteger(limit) && limit > 0;
+    const query = hasLimit
+      ? `SELECT
+          id,
+          appointment_id AS appointmentId,
+          from_planned_start_local AS fromPlannedStartLocal,
+          to_planned_start_local AS toPlannedStartLocal,
+          from_expected_duration_min AS fromExpectedDurationMin,
+          to_expected_duration_min AS toExpectedDurationMin,
+          from_bay_id AS fromBayId,
+          to_bay_id AS toBayId,
+          from_primary_assignee AS fromPrimaryAssignee,
+          to_primary_assignee AS toPrimaryAssignee,
+          changed_at AS changedAt,
+          changed_by AS changedBy,
+          reason,
+          source
+         FROM appointment_schedule_history
+         WHERE appointment_id = ?
+         ORDER BY changed_at DESC, id DESC
+         LIMIT ?`
+      : `SELECT
+          id,
+          appointment_id AS appointmentId,
+          from_planned_start_local AS fromPlannedStartLocal,
+          to_planned_start_local AS toPlannedStartLocal,
+          from_expected_duration_min AS fromExpectedDurationMin,
+          to_expected_duration_min AS toExpectedDurationMin,
+          from_bay_id AS fromBayId,
+          to_bay_id AS toBayId,
+          from_primary_assignee AS fromPrimaryAssignee,
+          to_primary_assignee AS toPrimaryAssignee,
+          changed_at AS changedAt,
+          changed_by AS changedBy,
+          reason,
+          source
+         FROM appointment_schedule_history
+         WHERE appointment_id = ?
+         ORDER BY changed_at DESC, id DESC`;
+
+    const rows = hasLimit
+      ? this.database.prepare(query).all(appointmentId, limit)
+      : this.database.prepare(query).all(appointmentId);
+
+    return rows.map((row) => ({
+      id: row.id,
+      appointmentId: row.appointmentId,
+      fromPlannedStartLocal: row.fromPlannedStartLocal,
+      toPlannedStartLocal: row.toPlannedStartLocal,
+      fromExpectedDurationMin: row.fromExpectedDurationMin,
+      toExpectedDurationMin: row.toExpectedDurationMin,
+      fromBayId: row.fromBayId,
+      toBayId: row.toBayId,
+      fromPrimaryAssignee: row.fromPrimaryAssignee,
+      toPrimaryAssignee: row.toPrimaryAssignee,
+      changedAt: row.changedAt,
+      changedBy: row.changedBy,
+      reason: row.reason,
+      source: row.source,
+    }));
+  }
+
+  createAppointmentScheduleHistoryEntry({
+    id,
+    appointmentId,
+    fromPlannedStartLocal,
+    toPlannedStartLocal,
+    fromExpectedDurationMin = null,
+    toExpectedDurationMin = null,
+    fromBayId = null,
+    toBayId = null,
+    fromPrimaryAssignee = null,
+    toPrimaryAssignee = null,
+    changedAt,
+    changedBy = null,
+    reason = null,
+    source,
+  }) {
+    this.database
+      .prepare(
+        `INSERT INTO appointment_schedule_history(
+          id,
+          appointment_id,
+          from_planned_start_local,
+          to_planned_start_local,
+          from_expected_duration_min,
+          to_expected_duration_min,
+          from_bay_id,
+          to_bay_id,
+          from_primary_assignee,
+          to_primary_assignee,
+          changed_at,
+          changed_by,
+          reason,
+          source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        appointmentId,
+        fromPlannedStartLocal,
+        toPlannedStartLocal,
+        fromExpectedDurationMin,
+        toExpectedDurationMin,
+        fromBayId,
+        toBayId,
+        fromPrimaryAssignee,
+        toPrimaryAssignee,
+        changedAt,
+        changedBy,
+        reason,
+        source,
+      );
+  }
+
+  listIntervalBlockingAppointments({
+    dateFromLocal,
+    dateToLocal,
+    excludeAppointmentId = null,
+  }) {
+    const conditions = ["status IN ('booked', 'confirmed', 'arrived')"];
+    const values = [];
+
+    if (dateFromLocal) {
+      conditions.push("substr(planned_start_local, 1, 10) >= ?");
+      values.push(dateFromLocal);
+    }
+
+    if (dateToLocal) {
+      conditions.push("substr(planned_start_local, 1, 10) <= ?");
+      values.push(dateToLocal);
+    }
+
     if (excludeAppointmentId) {
-      return this.database
-        .prepare(
-          `SELECT
-            id,
-            code,
-            bay_id AS bayId,
-            primary_assignee AS primaryAssignee,
-            status
-           FROM appointments
-           WHERE planned_start_local = ?
-             AND status IN ('booked', 'confirmed', 'arrived')
-             AND id != ?
-           ORDER BY code ASC`,
-        )
-        .all(plannedStartLocal, excludeAppointmentId);
+      conditions.push("id != ?");
+      values.push(excludeAppointmentId);
     }
 
     return this.database
@@ -721,15 +645,16 @@ export class SqliteRepository {
         `SELECT
           id,
           code,
+          planned_start_local AS plannedStartLocal,
+          expected_duration_min AS expectedDurationMin,
           bay_id AS bayId,
           primary_assignee AS primaryAssignee,
           status
          FROM appointments
-         WHERE planned_start_local = ?
-           AND status IN ('booked', 'confirmed', 'arrived')
-         ORDER BY code ASC`,
+         WHERE ${conditions.join(" AND ")}
+         ORDER BY planned_start_local ASC, code ASC`,
       )
-      .all(plannedStartLocal);
+      .all(...values);
   }
 
   listWorkOrders() {
@@ -744,6 +669,8 @@ export class SqliteRepository {
     status = null,
     bayId = null,
     primaryAssignee = null,
+    dateFromLocal = null,
+    dateToLocal = null,
     query = "",
     includeClosed = true,
     limit = null,
@@ -765,6 +692,16 @@ export class SqliteRepository {
     if (primaryAssignee) {
       conditions.push("w.primary_assignee = ?");
       values.push(primaryAssignee);
+    }
+
+    if (dateFromLocal) {
+      conditions.push("substr(COALESCE(w.created_at, w.updated_at), 1, 10) >= ?");
+      values.push(dateFromLocal);
+    }
+
+    if (dateToLocal) {
+      conditions.push("substr(COALESCE(w.created_at, w.updated_at), 1, 10) <= ?");
+      values.push(dateToLocal);
     }
 
     if (!includeClosed) {
@@ -823,6 +760,44 @@ export class SqliteRepository {
          ORDER BY w.code ASC${paginationClause}`,
       )
       .all(...values, ...paginationValues)
+      .map(mapWorkOrderRecord);
+  }
+
+  listUnscheduledWalkInWorkOrders({ limit = 50 } = {}) {
+    const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 50;
+
+    return this.database
+      .prepare(
+        `SELECT
+          w.id,
+          w.code,
+          w.customer_id AS customerId,
+          w.customer_name_snapshot AS customerName,
+          w.vehicle_id AS vehicleId,
+          w.vehicle_label_snapshot AS vehicleLabel,
+          w.status,
+          w.status_label_ru AS statusLabelRu,
+          w.bay_id AS bayId,
+          COALESCE(w.bay_name_snapshot, b.name, 'Без поста') AS bayName,
+          COALESCE(w.primary_assignee, 'Без ответственного') AS primaryAssignee,
+          w.complaint,
+          w.findings,
+          w.internal_notes AS internalNotes,
+          w.customer_notes AS customerNotes,
+          w.blocked_since_iso AS blockedSinceIso,
+          w.balance_due_rub AS balanceDueRub,
+          w.created_at AS createdAt,
+          w.closed_at AS closedAt,
+          w.updated_at AS updatedAt
+         FROM work_orders w
+         LEFT JOIN bays b ON b.id = w.bay_id
+         LEFT JOIN appointment_work_order_links l ON l.work_order_id = w.id
+         WHERE l.work_order_id IS NULL
+           AND w.status NOT IN ('completed', 'cancelled')
+         ORDER BY w.created_at DESC, w.code DESC
+         LIMIT ?`,
+      )
+      .all(safeLimit)
       .map(mapWorkOrderRecord);
   }
 
@@ -1737,558 +1712,87 @@ export class SqliteRepository {
   }
 
   listVehicles() {
-    return this.database
-      .prepare(
-        `SELECT
-          id,
-          customer_id AS customerId,
-          label,
-          vin
-         FROM vehicles
-         WHERE is_active = 1
-         ORDER BY label ASC`,
-      )
-      .all();
+    return listVehiclesRepository(this);
   }
 
   listCustomers() {
-    return this.database
-      .prepare(
-        `SELECT
-          id,
-          full_name AS name,
-          phone
-         FROM customers
-         WHERE is_active = 1
-         ORDER BY full_name ASC`,
-      )
-      .all();
+    return listCustomersRepository(this);
   }
 
   listEmployees({ includeInactive = false, limit = null, offset = 0 } = {}) {
-    const whereClause = includeInactive ? "" : "WHERE is_active = 1";
-    const hasLimit = Number.isInteger(limit);
-    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
-    const paginationClause = hasLimit
-      ? " LIMIT ? OFFSET ?"
-      : hasOffsetOnly
-        ? " LIMIT -1 OFFSET ?"
-        : "";
-    const paginationValues = hasLimit
-      ? [limit, offset]
-      : hasOffsetOnly
-        ? [offset]
-        : [];
-
-    const rows = this.database
-      .prepare(
-        `SELECT
-          id,
-          name,
-          roles_json AS rolesJson,
-          is_active AS isActive,
-          created_at AS createdAt,
-          updated_at AS updatedAt
-         FROM employees
-         ${whereClause}
-         ORDER BY name ASC${paginationClause}`,
-      )
-      .all(...paginationValues);
-
-    return rows.map(mapEmployeeRow);
+    return listEmployeesRepository(this, { includeInactive, limit, offset });
   }
 
   getEmployeeById(id) {
-    const row = this.database
-      .prepare(
-        `SELECT
-          id,
-          name,
-          roles_json AS rolesJson,
-          is_active AS isActive,
-          created_at AS createdAt,
-          updated_at AS updatedAt
-         FROM employees
-         WHERE id = ?`,
-      )
-      .get(id);
-
-    return mapEmployeeRow(row);
+    return getEmployeeByIdRepository(this, id);
   }
 
   createEmployee({ id, name, roles, isActive }) {
-    const nowIso = new Date().toISOString();
-
-    this.database
-      .prepare(
-        `INSERT INTO employees(id, name, roles_json, is_active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-      )
-      .run(id, name, JSON.stringify(roles), isActive ? 1 : 0, nowIso, nowIso);
-
-    return this.getEmployeeById(id);
+    return createEmployeeRepository(this, { id, name, roles, isActive });
   }
 
   updateEmployeeById(id, updates) {
-    const existing = this.getEmployeeById(id);
-    if (!existing) {
-      return null;
-    }
-
-    const assignments = [];
-    const values = [];
-
-    if (updates.name !== undefined) {
-      assignments.push("name = ?");
-      values.push(updates.name);
-    }
-
-    if (updates.roles !== undefined) {
-      assignments.push("roles_json = ?");
-      values.push(JSON.stringify(updates.roles));
-    }
-
-    if (updates.isActive !== undefined) {
-      assignments.push("is_active = ?");
-      values.push(updates.isActive ? 1 : 0);
-    }
-
-    if (assignments.length === 0) {
-      return existing;
-    }
-
-    assignments.push("updated_at = ?");
-    values.push(new Date().toISOString());
-    values.push(id);
-
-    this.database.prepare(`UPDATE employees SET ${assignments.join(", ")} WHERE id = ?`).run(...values);
-
-    return this.getEmployeeById(id);
+    return updateEmployeeByIdRepository(this, id, updates);
   }
 
   deactivateEmployeeById(id) {
-    return this.updateEmployeeById(id, { isActive: false });
+    return deactivateEmployeeByIdRepository(this, id);
   }
 
   listBays({ includeInactive = false, limit = null, offset = 0 } = {}) {
-    const whereClause = includeInactive ? "" : "WHERE is_active = 1";
-    const hasLimit = Number.isInteger(limit);
-    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
-    const paginationClause = hasLimit
-      ? " LIMIT ? OFFSET ?"
-      : hasOffsetOnly
-        ? " LIMIT -1 OFFSET ?"
-        : "";
-    const paginationValues = hasLimit
-      ? [limit, offset]
-      : hasOffsetOnly
-        ? [offset]
-        : [];
-
-    const rows = this.database
-      .prepare(
-        `SELECT
-          id,
-          name,
-          is_active AS isActive,
-          created_at AS createdAt,
-          updated_at AS updatedAt
-         FROM bays
-         ${whereClause}
-         ORDER BY name ASC${paginationClause}`,
-      )
-      .all(...paginationValues);
-
-    return rows.map(mapBayRow);
+    return listBaysRepository(this, { includeInactive, limit, offset });
   }
 
   getBayById(id) {
-    const row = this.database
-      .prepare(
-        `SELECT
-          id,
-          name,
-          is_active AS isActive,
-          created_at AS createdAt,
-          updated_at AS updatedAt
-         FROM bays
-         WHERE id = ?`,
-      )
-      .get(id);
-
-    return mapBayRow(row);
+    return getBayByIdRepository(this, id);
   }
 
   createBay({ id, name, isActive }) {
-    const nowIso = new Date().toISOString();
-
-    this.database
-      .prepare(
-        `INSERT INTO bays(id, name, is_active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?)`,
-      )
-      .run(id, name, isActive ? 1 : 0, nowIso, nowIso);
-
-    return this.getBayById(id);
+    return createBayRepository(this, { id, name, isActive });
   }
 
   updateBayById(id, updates) {
-    const existing = this.getBayById(id);
-    if (!existing) {
-      return null;
-    }
-
-    const assignments = [];
-    const values = [];
-
-    if (updates.name !== undefined) {
-      assignments.push("name = ?");
-      values.push(updates.name);
-    }
-
-    if (updates.isActive !== undefined) {
-      assignments.push("is_active = ?");
-      values.push(updates.isActive ? 1 : 0);
-    }
-
-    if (assignments.length === 0) {
-      return existing;
-    }
-
-    assignments.push("updated_at = ?");
-    values.push(new Date().toISOString());
-    values.push(id);
-
-    this.database.prepare(`UPDATE bays SET ${assignments.join(", ")} WHERE id = ?`).run(...values);
-
-    return this.getBayById(id);
+    return updateBayByIdRepository(this, id, updates);
   }
 
   deactivateBayById(id) {
-    return this.updateBayById(id, { isActive: false });
+    return deactivateBayByIdRepository(this, id);
   }
 
   listCustomerRecords({ includeInactive = false, query = "", limit = null, offset = 0 } = {}) {
-    const conditions = [];
-    const values = [];
-
-    if (!includeInactive) {
-      conditions.push("c.is_active = 1");
-    }
-
-    const trimmedQuery = query.trim();
-    if (trimmedQuery.length > 0) {
-      conditions.push("(c.full_name LIKE ? OR c.phone LIKE ?)");
-      const pattern = `%${trimmedQuery}%`;
-      values.push(pattern, pattern);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-    const hasLimit = Number.isInteger(limit);
-    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
-    const paginationClause = hasLimit
-      ? " LIMIT ? OFFSET ?"
-      : hasOffsetOnly
-        ? " LIMIT -1 OFFSET ?"
-        : "";
-    const paginationValues = hasLimit
-      ? [limit, offset]
-      : hasOffsetOnly
-        ? [offset]
-        : [];
-
-    const rows = this.database
-      .prepare(
-        `SELECT
-          c.id,
-          c.full_name AS fullName,
-          c.phone,
-          c.messaging_handle AS messagingHandle,
-          c.notes,
-          c.is_active AS isActive,
-          c.created_at AS createdAt,
-          c.updated_at AS updatedAt
-         FROM customers c
-         ${whereClause}
-         ORDER BY c.full_name ASC${paginationClause}`,
-      )
-      .all(...values, ...paginationValues);
-
-    return rows.map(mapCustomerRecord);
+    return listCustomerRecordsRepository(this, { includeInactive, query, limit, offset });
   }
 
   searchCustomers({ query, limit }) {
-    const trimmedQuery = query.trim();
-    const pattern = `%${trimmedQuery}%`;
-    const phoneDigits = trimmedQuery.replace(/\D/gu, "");
-    const phonePattern = `%${phoneDigits}%`;
-
-    const total = this.database
-      .prepare(
-        `SELECT COUNT(1) AS count
-         FROM customers c
-         WHERE c.is_active = 1
-           AND (
-             c.full_name LIKE ?
-             OR c.phone LIKE ?
-             OR (? != '' AND replace(replace(replace(replace(replace(c.phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') LIKE ?)
-           )`,
-      )
-      .get(pattern, pattern, phoneDigits, phonePattern)
-      .count;
-
-    const rows = this.database
-      .prepare(
-        `SELECT
-          c.id,
-          c.full_name AS fullName,
-          c.phone
-         FROM customers c
-         WHERE c.is_active = 1
-           AND (
-             c.full_name LIKE ?
-             OR c.phone LIKE ?
-             OR (? != '' AND replace(replace(replace(replace(replace(c.phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') LIKE ?)
-           )
-         ORDER BY c.full_name ASC
-         LIMIT ?`,
-      )
-      .all(pattern, pattern, phoneDigits, phonePattern, limit);
-
-    return { total, rows };
+    return searchCustomersRepository(this, { query, limit });
   }
 
   getCustomerById(id) {
-    const row = this.database
-      .prepare(
-        `SELECT
-          c.id,
-          c.full_name AS fullName,
-          c.phone,
-          c.messaging_handle AS messagingHandle,
-          c.notes,
-          c.is_active AS isActive,
-          c.created_at AS createdAt,
-          c.updated_at AS updatedAt
-         FROM customers c
-         WHERE c.id = ?`,
-      )
-      .get(id);
-
-    return mapCustomerRecord(row);
+    return getCustomerByIdRepository(this, id);
   }
 
   createCustomer({ id, fullName, phone, messagingHandle, notes, isActive }) {
-    const nowIso = new Date().toISOString();
-
-    this.database
-      .prepare(
-        `INSERT INTO customers(
-          id,
-          full_name,
-          phone,
-          messaging_handle,
-          notes,
-          is_active,
-          created_at,
-          updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(id, fullName, phone, messagingHandle, notes, isActive ? 1 : 0, nowIso, nowIso);
-
-    return this.getCustomerById(id);
+    return createCustomerRepository(this, { id, fullName, phone, messagingHandle, notes, isActive });
   }
 
   updateCustomerById(id, updates) {
-    const existing = this.getCustomerById(id);
-    if (!existing) {
-      return null;
-    }
-
-    const assignments = [];
-    const values = [];
-
-    if (updates.fullName !== undefined) {
-      assignments.push("full_name = ?");
-      values.push(updates.fullName);
-    }
-
-    if (updates.phone !== undefined) {
-      assignments.push("phone = ?");
-      values.push(updates.phone);
-    }
-
-    if (updates.messagingHandle !== undefined) {
-      assignments.push("messaging_handle = ?");
-      values.push(updates.messagingHandle);
-    }
-
-    if (updates.notes !== undefined) {
-      assignments.push("notes = ?");
-      values.push(updates.notes);
-    }
-
-    if (updates.isActive !== undefined) {
-      assignments.push("is_active = ?");
-      values.push(updates.isActive ? 1 : 0);
-    }
-
-    if (assignments.length === 0) {
-      return existing;
-    }
-
-    assignments.push("updated_at = ?");
-    values.push(new Date().toISOString());
-    values.push(id);
-
-    this.database.prepare(`UPDATE customers SET ${assignments.join(", ")} WHERE id = ?`).run(...values);
-
-    return this.getCustomerById(id);
+    return updateCustomerByIdRepository(this, id, updates);
   }
 
   deactivateCustomerById(id) {
-    return this.updateCustomerById(id, { isActive: false });
+    return deactivateCustomerByIdRepository(this, id);
   }
 
   listVehicleRecords({ includeInactive = false, query = "", customerId = null, limit = null, offset = 0 } = {}) {
-    const conditions = [];
-    const values = [];
-
-    if (!includeInactive) {
-      conditions.push("v.is_active = 1");
-    }
-
-    if (customerId) {
-      conditions.push("v.customer_id = ?");
-      values.push(customerId);
-    }
-
-    const trimmedQuery = query.trim();
-    if (trimmedQuery.length > 0) {
-      conditions.push(
-        "(v.label LIKE ? OR COALESCE(v.plate_number, '') LIKE ? OR COALESCE(v.vin, '') LIKE ? OR COALESCE(v.make, '') LIKE ? OR COALESCE(v.model, '') LIKE ?)",
-      );
-      const pattern = `%${trimmedQuery}%`;
-      values.push(pattern, pattern, pattern, pattern, pattern);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-    const hasLimit = Number.isInteger(limit);
-    const hasOffsetOnly = !hasLimit && Number.isInteger(offset) && offset > 0;
-    const paginationClause = hasLimit
-      ? " LIMIT ? OFFSET ?"
-      : hasOffsetOnly
-        ? " LIMIT -1 OFFSET ?"
-        : "";
-    const paginationValues = hasLimit
-      ? [limit, offset]
-      : hasOffsetOnly
-        ? [offset]
-        : [];
-
-    const rows = this.database
-      .prepare(
-        `SELECT
-          v.id,
-          v.customer_id AS customerId,
-          c.full_name AS customerName,
-          v.label,
-          v.vin,
-          v.plate_number AS plateNumber,
-          v.make,
-          v.model,
-          v.production_year AS productionYear,
-          v.engine_or_trim AS engineOrTrim,
-          v.mileage_km AS mileageKm,
-          v.is_active AS isActive,
-          v.created_at AS createdAt,
-          v.updated_at AS updatedAt
-         FROM vehicles v
-         JOIN customers c ON c.id = v.customer_id
-         ${whereClause}
-         ORDER BY v.label ASC${paginationClause}`,
-      )
-      .all(...values, ...paginationValues);
-
-    return rows.map(mapVehicleRecord);
+    return listVehicleRecordsRepository(this, { includeInactive, query, customerId, limit, offset });
   }
 
   searchVehicles({ query, limit }) {
-    const trimmedQuery = query.trim();
-    const pattern = `%${trimmedQuery}%`;
-
-    const total = this.database
-      .prepare(
-        `SELECT COUNT(1) AS count
-         FROM vehicles v
-         JOIN customers c ON c.id = v.customer_id
-         WHERE v.is_active = 1
-           AND (
-             v.label LIKE ?
-             OR COALESCE(v.plate_number, '') LIKE ?
-             OR COALESCE(v.vin, '') LIKE ?
-             OR COALESCE(v.make, '') LIKE ?
-             OR COALESCE(v.model, '') LIKE ?
-             OR c.full_name LIKE ?
-           )`,
-      )
-      .get(pattern, pattern, pattern, pattern, pattern, pattern)
-      .count;
-
-    const rows = this.database
-      .prepare(
-        `SELECT
-          v.id,
-          v.customer_id AS customerId,
-          c.full_name AS customerName,
-          v.label,
-          v.plate_number AS plateNumber,
-          v.vin,
-          v.model
-         FROM vehicles v
-         JOIN customers c ON c.id = v.customer_id
-         WHERE v.is_active = 1
-           AND (
-             v.label LIKE ?
-             OR COALESCE(v.plate_number, '') LIKE ?
-             OR COALESCE(v.vin, '') LIKE ?
-             OR COALESCE(v.make, '') LIKE ?
-             OR COALESCE(v.model, '') LIKE ?
-             OR c.full_name LIKE ?
-           )
-         ORDER BY v.label ASC
-         LIMIT ?`,
-      )
-      .all(pattern, pattern, pattern, pattern, pattern, pattern, limit);
-
-    return { total, rows };
+    return searchVehiclesRepository(this, { query, limit });
   }
 
   getVehicleById(id) {
-    const row = this.database
-      .prepare(
-        `SELECT
-          v.id,
-          v.customer_id AS customerId,
-          c.full_name AS customerName,
-          v.label,
-          v.vin,
-          v.plate_number AS plateNumber,
-          v.make,
-          v.model,
-          v.production_year AS productionYear,
-          v.engine_or_trim AS engineOrTrim,
-          v.mileage_km AS mileageKm,
-          v.is_active AS isActive,
-          v.created_at AS createdAt,
-          v.updated_at AS updatedAt
-         FROM vehicles v
-         JOIN customers c ON c.id = v.customer_id
-         WHERE v.id = ?`,
-      )
-      .get(id);
-
-    return mapVehicleRecord(row);
+    return getVehicleByIdRepository(this, id);
   }
 
   createVehicle({
@@ -2304,190 +1808,31 @@ export class SqliteRepository {
     mileageKm,
     isActive,
   }) {
-    const nowIso = new Date().toISOString();
-
-    this.runInTransaction(() => {
-      this.database
-        .prepare(
-          `INSERT INTO vehicles(
-            id,
-            customer_id,
-            label,
-            vin,
-            plate_number,
-            make,
-            model,
-            production_year,
-            engine_or_trim,
-            mileage_km,
-            is_active,
-            created_at,
-            updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .run(
-          id,
-          customerId,
-          label,
-          vin,
-          plateNumber,
-          make,
-          model,
-          productionYear,
-          engineOrTrim,
-          mileageKm,
-          isActive ? 1 : 0,
-          nowIso,
-          nowIso,
-        );
-
-      this.database
-        .prepare(
-          `INSERT INTO vehicle_ownership_history(
-            id,
-            vehicle_id,
-            customer_id,
-            changed_at,
-            change_reason,
-            source
-          ) VALUES (?, ?, ?, ?, ?, ?)`,
-        )
-        .run(`ownership-${randomUUID().split("-")[0]}`, id, customerId, nowIso, "vehicle_created", "api");
+    return createVehicleRepository(this, {
+      id,
+      customerId,
+      label,
+      vin,
+      plateNumber,
+      make,
+      model,
+      productionYear,
+      engineOrTrim,
+      mileageKm,
+      isActive,
     });
-
-    return this.getVehicleById(id);
   }
 
   updateVehicleById(id, updates) {
-    const existing = this.getVehicleById(id);
-    if (!existing) {
-      return null;
-    }
-
-    const assignments = [];
-    const values = [];
-
-    if (updates.customerId !== undefined) {
-      assignments.push("customer_id = ?");
-      values.push(updates.customerId);
-    }
-
-    if (updates.label !== undefined) {
-      assignments.push("label = ?");
-      values.push(updates.label);
-    }
-
-    if (updates.vin !== undefined) {
-      assignments.push("vin = ?");
-      values.push(updates.vin);
-    }
-
-    if (updates.plateNumber !== undefined) {
-      assignments.push("plate_number = ?");
-      values.push(updates.plateNumber);
-    }
-
-    if (updates.make !== undefined) {
-      assignments.push("make = ?");
-      values.push(updates.make);
-    }
-
-    if (updates.model !== undefined) {
-      assignments.push("model = ?");
-      values.push(updates.model);
-    }
-
-    if (updates.productionYear !== undefined) {
-      assignments.push("production_year = ?");
-      values.push(updates.productionYear);
-    }
-
-    if (updates.engineOrTrim !== undefined) {
-      assignments.push("engine_or_trim = ?");
-      values.push(updates.engineOrTrim);
-    }
-
-    if (updates.mileageKm !== undefined) {
-      assignments.push("mileage_km = ?");
-      values.push(updates.mileageKm);
-    }
-
-    if (updates.isActive !== undefined) {
-      assignments.push("is_active = ?");
-      values.push(updates.isActive ? 1 : 0);
-    }
-
-    if (assignments.length === 0) {
-      return existing;
-    }
-
-    const nowIso = new Date().toISOString();
-    assignments.push("updated_at = ?");
-    values.push(nowIso);
-    values.push(id);
-
-    const customerChanged = updates.customerId !== undefined && updates.customerId !== existing.customerId;
-
-    this.runInTransaction(() => {
-      this.database.prepare(`UPDATE vehicles SET ${assignments.join(", ")} WHERE id = ?`).run(...values);
-
-      if (customerChanged) {
-        this.database
-          .prepare(
-            `INSERT INTO vehicle_ownership_history(
-              id,
-              vehicle_id,
-              customer_id,
-              changed_at,
-              change_reason,
-              source
-            ) VALUES (?, ?, ?, ?, ?, ?)`,
-          )
-          .run(
-            `ownership-${randomUUID().split("-")[0]}`,
-            id,
-            updates.customerId,
-            nowIso,
-            "owner_reassigned",
-            "api",
-          );
-      }
-    });
-
-    return this.getVehicleById(id);
+    return updateVehicleByIdRepository(this, id, updates);
   }
 
   deactivateVehicleById(id) {
-    return this.updateVehicleById(id, { isActive: false });
+    return deactivateVehicleByIdRepository(this, id);
   }
 
   listVehicleOwnershipHistory(vehicleId) {
-    const rows = this.database
-      .prepare(
-        `SELECT
-          h.id,
-          h.vehicle_id AS vehicleId,
-          h.customer_id AS customerId,
-          c.full_name AS customerName,
-          h.changed_at AS changedAt,
-          h.change_reason AS changeReason,
-          h.source
-         FROM vehicle_ownership_history h
-         JOIN customers c ON c.id = h.customer_id
-         WHERE h.vehicle_id = ?
-         ORDER BY h.changed_at DESC, h.id DESC`,
-      )
-      .all(vehicleId);
-
-    return rows.map((row) => ({
-      id: row.id,
-      vehicleId: row.vehicleId,
-      customerId: row.customerId,
-      customerName: row.customerName,
-      changedAt: row.changedAt,
-      changeReason: row.changeReason,
-      source: row.source,
-    }));
+    return listVehicleOwnershipHistoryRepository(this, vehicleId);
   }
 
   getIntakeEventById(id) {

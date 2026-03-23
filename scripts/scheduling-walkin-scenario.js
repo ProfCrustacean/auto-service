@@ -1,85 +1,21 @@
 import {
   assertHarness,
-  buildFailurePayload,
   expectStatus,
-  isLocalBaseUrl,
-  parseBooleanFlag,
-  requestJson,
 } from "./harness-diagnostics.js";
 import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
+import {
+  buildScenarioIsolation,
+  buildUniqueSlot,
+  renderScenarioFailure,
+  requestScenarioJson,
+  runScenario,
+} from "./scenario-runtime.js";
 
 loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
 
-function resolveMode() {
-  const hasNonDestructiveArg = process.argv.includes("--non-destructive");
-  const hasDestructiveArg = process.argv.includes("--destructive");
-
-  if (hasNonDestructiveArg && hasDestructiveArg) {
-    throw new Error("cannot use --non-destructive and --destructive together");
-  }
-
-  const envMode = parseBooleanFlag(process.env.SCENARIO_NON_DESTRUCTIVE, "SCENARIO_NON_DESTRUCTIVE");
-
-  if (hasNonDestructiveArg || envMode === true) {
-    return {
-      name: "non_destructive",
-      source: hasNonDestructiveArg ? "arg" : "env",
-      reason: "explicit_non_destructive",
-    };
-  }
-
-  if (hasDestructiveArg || envMode === false) {
-    return {
-      name: "default",
-      source: hasDestructiveArg ? "arg" : "env",
-      reason: "explicit_destructive",
-    };
-  }
-
-  if (!isLocalBaseUrl(baseUrl)) {
-    return {
-      name: "non_destructive",
-      source: "auto",
-      reason: "non_local_default",
-    };
-  }
-
-  return {
-    name: "default",
-    source: "auto",
-    reason: "local_default",
-  };
-}
-
-function buildIsolation(mode, writesPerformed) {
-  if (mode.name === "non_destructive") {
-    return {
-      strategy: "read_only",
-      writesPerformed,
-      cleanupStatus: "not_required",
-    };
-  }
-
-  return {
-    strategy: "write",
-    writesPerformed,
-    cleanupStatus: "not_performed",
-  };
-}
-
-function buildUniqueSlot(token, hour = 13) {
-  const date = new Date();
-  const minute = Number.parseInt(token.slice(-2), 10) % 60;
-  date.setHours(hour, minute, 0, 0);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
 async function request(path, { step, method = "GET", body } = {}) {
-  return requestJson(baseUrl, { step, path, method, body });
+  return requestScenarioJson(baseUrl, path, { step, method, body });
 }
 
 async function requestList(path, step) {
@@ -290,7 +226,7 @@ async function runNonDestructiveScenario(mode) {
     modeReason: mode.reason,
     baseUrl,
     writesPerformed: false,
-    isolation: buildIsolation(mode, false),
+    isolation: buildScenarioIsolation(mode, false),
     checks: {
       appointmentsToday: dashboard.payload.summary.appointmentsToday,
       activeWorkOrders: dashboard.payload.summary.activeWorkOrders,
@@ -497,7 +433,7 @@ async function runDefaultScenario(mode) {
     modeReason: mode.reason,
     baseUrl,
     writesPerformed: true,
-    isolation: buildIsolation(mode, true),
+    isolation: buildScenarioIsolation(mode, true),
     plannedStartLocal,
     appointmentId,
     appointmentCode: createAppointment.payload.item.code,
@@ -523,18 +459,11 @@ async function runDefaultScenario(mode) {
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 }
 
-async function main() {
-  const mode = resolveMode();
-
-  if (mode.name === "non_destructive") {
-    await runNonDestructiveScenario(mode);
-    return;
-  }
-
-  await runDefaultScenario(mode);
-}
-
-main().catch((error) => {
-  process.stderr.write(`${JSON.stringify(buildFailurePayload("scheduling_walkin_scenario_failed", error))}\n`);
+runScenario({
+  baseUrl,
+  runNonDestructive: runNonDestructiveScenario,
+  runDefault: runDefaultScenario,
+}).catch((error) => {
+  renderScenarioFailure("scheduling_walkin_scenario_failed", error);
   process.exit(1);
 });

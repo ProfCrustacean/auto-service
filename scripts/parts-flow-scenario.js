@@ -1,77 +1,22 @@
 import {
   assertHarness,
-  buildFailurePayload,
   expectStatus,
   failHarness,
-  isLocalBaseUrl,
-  parseBooleanFlag,
-  requestJson,
 } from "./harness-diagnostics.js";
 import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
+import {
+  buildScenarioIsolation,
+  renderScenarioFailure,
+  requestScenarioJson,
+  runScenario,
+} from "./scenario-runtime.js";
 
 loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
 const WRITE_COMPATIBLE_STATUSES = new Set(["scheduled", "in_progress", "paused", "waiting_approval", "waiting_parts"]);
 
-function resolveMode() {
-  const hasNonDestructiveArg = process.argv.includes("--non-destructive");
-  const hasDestructiveArg = process.argv.includes("--destructive");
-
-  if (hasNonDestructiveArg && hasDestructiveArg) {
-    throw new Error("cannot use --non-destructive and --destructive together");
-  }
-
-  const envMode = parseBooleanFlag(process.env.SCENARIO_NON_DESTRUCTIVE, "SCENARIO_NON_DESTRUCTIVE");
-
-  if (hasNonDestructiveArg || envMode === true) {
-    return {
-      name: "non_destructive",
-      source: hasNonDestructiveArg ? "arg" : "env",
-      reason: "explicit_non_destructive",
-    };
-  }
-
-  if (hasDestructiveArg || envMode === false) {
-    return {
-      name: "default",
-      source: hasDestructiveArg ? "arg" : "env",
-      reason: "explicit_destructive",
-    };
-  }
-
-  if (!isLocalBaseUrl(baseUrl)) {
-    return {
-      name: "non_destructive",
-      source: "auto",
-      reason: "non_local_default",
-    };
-  }
-
-  return {
-    name: "default",
-    source: "auto",
-    reason: "local_default",
-  };
-}
-
-function buildIsolation(mode, writesPerformed) {
-  if (mode.name === "non_destructive") {
-    return {
-      strategy: "read_only",
-      writesPerformed,
-      cleanupStatus: "not_required",
-    };
-  }
-
-  return {
-    strategy: "write",
-    writesPerformed,
-    cleanupStatus: "not_performed",
-  };
-}
-
 async function request(path, { step, method = "GET", body } = {}) {
-  return requestJson(baseUrl, { step, path, method, body });
+  return requestScenarioJson(baseUrl, path, { step, method, body });
 }
 
 async function listActiveWorkOrders(step = "list_work_orders") {
@@ -172,7 +117,7 @@ async function runNonDestructiveScenario(mode) {
       modeReason: mode.reason,
       baseUrl,
       writesPerformed: false,
-      isolation: buildIsolation(mode, false),
+      isolation: buildScenarioIsolation(mode, false),
       checks: {
         waitingPartsQueueCount: dashboard.payload.queues.waitingParts.length,
         candidateWorkOrderId: candidate.id,
@@ -317,7 +262,7 @@ async function runDefaultScenario(mode) {
       modeReason: mode.reason,
       baseUrl,
       writesPerformed: true,
-      isolation: buildIsolation(mode, true),
+      isolation: buildScenarioIsolation(mode, true),
       targetWorkOrderId: targetWorkOrder.id,
       checks: {
         createdRequestId,
@@ -331,18 +276,11 @@ async function runDefaultScenario(mode) {
   );
 }
 
-async function main() {
-  const mode = resolveMode();
-
-  if (mode.name === "non_destructive") {
-    await runNonDestructiveScenario(mode);
-    return;
-  }
-
-  await runDefaultScenario(mode);
-}
-
-main().catch((error) => {
-  process.stderr.write(`${JSON.stringify(buildFailurePayload("parts_flow_scenario_failed", error))}\n`);
+runScenario({
+  baseUrl,
+  runNonDestructive: runNonDestructiveScenario,
+  runDefault: runDefaultScenario,
+}).catch((error) => {
+  renderScenarioFailure("parts_flow_scenario_failed", error);
   process.exit(1);
 });

@@ -37,6 +37,20 @@ export function hasAnyInput(values, fieldNames = []) {
   return fieldNames.some((fieldName) => normalizeScalar(values[fieldName]).length > 0);
 }
 
+export function buildCustomerVehicleFormHelpers({ formFields, inlineCustomerFields, inlineVehicleFields }) {
+  return {
+    normalizeFormValues(input = {}) {
+      return normalizeFormValuesByFields(input, formFields);
+    },
+    hasInlineCustomerInput(values) {
+      return hasAnyInput(values, inlineCustomerFields);
+    },
+    hasInlineVehicleInput(values) {
+      return hasAnyInput(values, inlineVehicleFields);
+    },
+  };
+}
+
 export function createValidationLocalizer({ fieldLabels, exactTranslations }) {
   return (field, message) => {
     const normalizedMessage = String(message ?? "Неверное значение");
@@ -262,6 +276,85 @@ export function resolveInlineCustomerVehicleCreation({
     inlineCustomerPayload,
     inlineVehiclePayload,
   };
+}
+
+export function validateCustomerVehicleSubmission({
+  values,
+  buildPayload,
+  validatePayload,
+  hasInlineCustomerInput,
+  hasInlineVehicleInput,
+  localizeValidationMessage,
+}) {
+  const errors = [];
+
+  const preliminaryPayload = buildPayload(values, {
+    customerId: values.customerId || "cust-temporary",
+    vehicleId: values.vehicleId || "veh-temporary",
+  });
+  const preliminaryValidation = validatePayload(preliminaryPayload);
+  if (!preliminaryValidation.ok) {
+    errors.push(
+      ...mapValidationErrors(preliminaryValidation.errors.filter((error) => {
+        return error.field !== "customerId" && error.field !== "vehicleId";
+      }), localizeValidationMessage),
+    );
+  }
+
+  let customerId = values.customerId;
+  let vehicleId = values.vehicleId;
+  let inlineCustomerPayload = null;
+  let inlineVehiclePayload = null;
+  if (errors.length === 0) {
+    const inlineResolution = resolveInlineCustomerVehicleCreation({
+      values,
+      selectedCustomerId: customerId,
+      selectedVehicleId: vehicleId,
+      hasInlineCustomerInput,
+      hasInlineVehicleInput,
+      localizeValidationMessage,
+    });
+    errors.push(...inlineResolution.errors);
+    customerId = inlineResolution.customerId;
+    vehicleId = inlineResolution.vehicleId;
+    inlineCustomerPayload = inlineResolution.inlineCustomerPayload;
+    inlineVehiclePayload = inlineResolution.inlineVehiclePayload;
+  }
+
+  const payload = buildPayload(values, {
+    customerId: customerId || (inlineCustomerPayload ? "cust-inline" : ""),
+    vehicleId: vehicleId || (inlineVehiclePayload ? "veh-inline" : ""),
+  });
+  const validation = validatePayload(payload);
+  if (!validation.ok) {
+    errors.push(...mapValidationErrors(validation.errors, localizeValidationMessage));
+  }
+
+  return {
+    errors,
+    customerId,
+    vehicleId,
+    inlineCustomerPayload,
+    inlineVehiclePayload,
+    validation,
+  };
+}
+
+export function renderPageUnexpectedError({
+  logger,
+  error,
+  event,
+  res,
+  buildModel,
+  renderPage,
+  values,
+}) {
+  logger.error(event, { message: error.message });
+  const model = buildModel({
+    values,
+    errors: [{ field: "form", message: "Не удалось выполнить операцию. Повторите попытку." }],
+  });
+  renderPage(res, { statusCode: 500, model });
 }
 
 export function mapSharedCustomerVehicleDomainError(error) {

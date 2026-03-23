@@ -34,6 +34,16 @@ jobs:
           set -o pipefail
           npm run secrets:scan | tee evidence/ci-secrets-scan.txt
 
+      - name: Static guardrails
+        run: |
+          set -o pipefail
+          npm run lint | tee evidence/ci-lint-output.txt
+
+      - name: Hygiene policy
+        run: |
+          set -o pipefail
+          npm run hygiene:check | tee evidence/ci-hygiene-output.txt
+
       - name: Unit and integration tests
         run: |
           set -o pipefail
@@ -57,6 +67,8 @@ jobs:
           if-no-files-found: warn
           path: |
             evidence/ci-secrets-scan.txt
+            evidence/ci-lint-output.txt
+            evidence/ci-hygiene-output.txt
             evidence/ci-test-output.txt
             evidence/ci-verify-output.txt
             evidence/ci-bloat-audit.txt

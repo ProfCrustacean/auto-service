@@ -1,140 +1,30 @@
 import {
   assertHarness,
-  buildFailurePayload,
   expectStatus,
-  failHarness,
-  isLocalBaseUrl,
-  parseBooleanFlag,
-  requestJson,
-  requestText,
 } from "./harness-diagnostics.js";
 import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
+import {
+  buildScenarioIsolation,
+  renderScenarioFailure,
+  requestScenarioJson,
+  requestScenarioText,
+  runScenario,
+  submitScenarioForm,
+} from "./scenario-runtime.js";
 
 loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
 
-function resolveMode() {
-  const hasNonDestructiveArg = process.argv.includes("--non-destructive");
-  const hasDestructiveArg = process.argv.includes("--destructive");
-
-  if (hasNonDestructiveArg && hasDestructiveArg) {
-    throw new Error("cannot use --non-destructive and --destructive together");
-  }
-
-  const envMode = parseBooleanFlag(process.env.SCENARIO_NON_DESTRUCTIVE, "SCENARIO_NON_DESTRUCTIVE");
-
-  if (hasNonDestructiveArg || envMode === true) {
-    return {
-      name: "non_destructive",
-      source: hasNonDestructiveArg ? "arg" : "env",
-      reason: "explicit_non_destructive",
-    };
-  }
-
-  if (hasDestructiveArg || envMode === false) {
-    return {
-      name: "default",
-      source: hasDestructiveArg ? "arg" : "env",
-      reason: "explicit_destructive",
-    };
-  }
-
-  if (!isLocalBaseUrl(baseUrl)) {
-    return {
-      name: "non_destructive",
-      source: "auto",
-      reason: "non_local_default",
-    };
-  }
-
-  return {
-    name: "default",
-    source: "auto",
-    reason: "local_default",
-  };
-}
-
-function buildIsolation(mode, writesPerformed) {
-  if (mode.name === "non_destructive") {
-    return {
-      strategy: "read_only",
-      writesPerformed,
-      cleanupStatus: "not_required",
-    };
-  }
-
-  return {
-    strategy: "write",
-    writesPerformed,
-    cleanupStatus: "not_performed",
-  };
-}
-
-function toFormBody(payload) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(payload)) {
-    if (value === undefined || value === null) {
-      continue;
-    }
-    params.set(key, String(value));
-  }
-  return params.toString();
-}
-
 async function request(path, { step, method = "GET", body } = {}) {
-  return requestJson(baseUrl, { step, path, method, body });
+  return requestScenarioJson(baseUrl, path, { step, method, body });
 }
 
 async function requestPage(path, step) {
-  return requestText(baseUrl, { step, path });
+  return requestScenarioText(baseUrl, path, step);
 }
 
 async function submitForm(path, { step, payload, redirect = "manual" }) {
-  const url = new URL(path, baseUrl).toString();
-
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "content-type": "application/x-www-form-urlencoded",
-      },
-      body: toFormBody(payload),
-      redirect,
-    });
-  } catch (error) {
-    failHarness(`network request failed for POST ${path}`, {
-      step,
-      method: "POST",
-      path,
-      url,
-      errorKind: "network",
-      targetUrl: url,
-    }, error);
-  }
-
-  let text;
-  try {
-    text = await response.text();
-  } catch (error) {
-    failHarness(`failed to read response text for POST ${path}`, {
-      step,
-      method: "POST",
-      path,
-      url,
-      responseStatus: response.status,
-      errorKind: "response_read",
-    }, error);
-  }
-
-  return {
-    method: "POST",
-    path,
-    url,
-    status: response.status,
-    text,
-    location: response.headers.get("location"),
-  };
+  return submitScenarioForm(baseUrl, path, { step, payload, redirect });
 }
 
 function expectTextIncludes(response, expectedSnippet, step, details = {}) {
@@ -224,7 +114,7 @@ async function runNonDestructiveScenario(mode) {
       modeReason: mode.reason,
       baseUrl,
       writesPerformed: false,
-      isolation: buildIsolation(mode, false),
+      isolation: buildScenarioIsolation(mode, false),
       checks: ["walkin_page_open", "walkin_lookup", "walkin_invalid_submit", "walkin_mismatch_submit"],
     }, null, 2)}\n`,
   );
@@ -314,7 +204,7 @@ async function runDefaultScenario(mode) {
       modeReason: mode.reason,
       baseUrl,
       writesPerformed: true,
-      isolation: buildIsolation(mode, true),
+      isolation: buildScenarioIsolation(mode, true),
       workOrderId,
       checks: {
         activeWorkOrdersBefore: before.payload.summary.activeWorkOrders,
@@ -324,18 +214,11 @@ async function runDefaultScenario(mode) {
   );
 }
 
-async function main() {
-  const mode = resolveMode();
-
-  if (mode.name === "non_destructive") {
-    await runNonDestructiveScenario(mode);
-    return;
-  }
-
-  await runDefaultScenario(mode);
-}
-
-main().catch((error) => {
-  process.stderr.write(`${JSON.stringify(buildFailurePayload("walkin_page_scenario_failed", error))}\n`);
+runScenario({
+  baseUrl,
+  runNonDestructive: runNonDestructiveScenario,
+  runDefault: runDefaultScenario,
+}).catch((error) => {
+  renderScenarioFailure("walkin_page_scenario_failed", error);
   process.exit(1);
 });

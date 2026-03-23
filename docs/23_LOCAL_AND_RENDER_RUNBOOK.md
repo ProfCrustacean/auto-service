@@ -43,10 +43,12 @@ Service defaults:
 - Work-order lifecycle/parts UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`, plus parts forms under `/work-orders/:id/parts-requests*`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
 - SQLite runtime pragmas: `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=1000ms` (override timeout via `SQLITE_BUSY_TIMEOUT_MS`)
-- API auth baseline for mutating `/api/v1/**` requests:
+- Unified mutation policy baseline for API + page form mutations:
   - send `Authorization: Bearer <token>` (or `x-api-token`)
+  - form fallback token (`authToken`) is accepted for HTML POST flows
   - default local tokens: `owner-dev-token`, `frontdesk-dev-token`, `technician-dev-token`
   - override via `AUTH_OWNER_TOKEN`, `AUTH_FRONT_DESK_TOKEN`, `AUTH_TECHNICIAN_TOKEN`
+  - `AUTH_UI_IMPLICIT_ROLE` controls UI fallback actor (`front_desk` default, `none` disables implicit UI role)
   - disable only for local diagnostics with `AUTH_ENABLED=0`
 
 ## Local verification
@@ -55,6 +57,8 @@ Automated checks:
 
 ```bash
 npm run secrets:scan
+npm run lint
+npm run hygiene:check
 npm test
 ```
 
@@ -69,6 +73,7 @@ Combined local verification:
 ```bash
 npm run verify
 npm run audit:bloat
+npm run db:backup-drill
 ```
 
 Repository hygiene dry-run/apply:
@@ -112,7 +117,7 @@ Two-stage gate policy:
 
 CI gate:
 - GitHub Actions workflow: `.github/workflows/ci.yml`
-- executes `npm ci`, `npm run secrets:scan`, `npm test`, `npm run verify`, `npm run audit:bloat`
+- executes `npm ci`, `npm run secrets:scan`, `npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`, `npm run audit:bloat`
 - does not require external secrets for default path
 - uploads `evidence/ci-*.txt`, `evidence/bloat-audit-latest.json`, and `evidence/verify-server.log` when checks fail
 
@@ -140,7 +145,7 @@ Commands:
 ```bash
 LINEAR_API_KEY="<key>" npm run linear:probe -- --team-key AUT --state Backlog
 LINEAR_API_KEY="<key>" npm run linear:create -- --spec data/linear/phase1-task-template.json --dry-run
-LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/technical-audit-2026-03-22.json --state Done
+LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done
 ```
 
 Notes:
