@@ -105,10 +105,10 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
 ## Last accepted milestones
 
 - 2026-03-24: Pico UI baseline rollout completed and production-validated:
-  - commit: `7a2ec0581c06f7d436abf45afdf61974f6f69af1`,
+  - commit: `f94f7c6abbdf2204b0b211413994c4fc3bbbfcca`,
   - shared SSR document shell introduced across hot-path pages,
   - static `/assets/*` contract introduced with local Pico/Event Calendar vendor assets,
-  - Render deploy verification passed with smoke + non-destructive scenarios + log audit (`dep-d70vtt6a2pns73eqajdg`).
+  - Render deploy verification passed with smoke + non-destructive scenarios + log audit (`dep-d70vvalactks738jmhrg`).
 - 2026-03-24: Pico UI baseline planning epic and tasks created in Linear Backlog (`AUT-120..AUT-132`) with idempotent `linear:apply` flow.
 - 2026-03-24: Linear harness full rewrite delivered:
   - single-command interface (`linear:apply`) with deterministic JSON output,
@@ -147,8 +147,8 @@ Most recent local gate results:
 Most recent deploy-aware gate results:
 - `npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d70vtt6a2pns73eqajdg`
-  - latest commit parity: `7a2ec0581c06f7d436abf45afdf61974f6f69af1`
+  - latest deploy id: `dep-d70vvalactks738jmhrg`
+  - latest commit parity: `f94f7c6abbdf2204b0b211413994c4fc3bbbfcca`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 
