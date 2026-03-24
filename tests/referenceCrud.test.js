@@ -1,24 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  closeServer,
-  createTempDatabase,
-  makeServer,
   requestJson,
-  waitForServer,
+  withTestServer,
 } from "./helpers/httpHarness.js";
 
 test("employee and bay CRUD endpoints enforce validation and stable error contracts", async () => {
-  const tempDb = createTempDatabase("auto-service-reference-test");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  const address = server.address();
-  const baseUrl = `http://127.0.0.1:${address.port}`;
-
-  try {
+  await withTestServer("auto-service-reference-test", async ({ baseUrl }) => {
     const invalidEmployeeCreate = await requestJson("POST", `${baseUrl}/api/v1/employees`, {
       roles: ["mechanic"],
     });
@@ -110,9 +98,5 @@ test("employee and bay CRUD endpoints enforce validation and stable error contra
     const missingBay = await requestJson("GET", `${baseUrl}/api/v1/bays/bay-missing`);
     assert.equal(missingBay.status, 404);
     assert.equal(missingBay.json.error.code, "not_found");
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });

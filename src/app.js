@@ -7,15 +7,44 @@ import { registerCustomerVehicleRoutes } from "./http/customerVehicleRoutes.js";
 import { registerAppointmentRoutes } from "./http/appointmentRoutes.js";
 import { registerWalkInIntakeRoutes } from "./http/walkInIntakeRoutes.js";
 import { registerAppointmentPageRoutes } from "./http/appointmentPageRoutes.js";
-import { registerWalkInIntakePageRoutes } from "./http/walkInIntakePageRoutes.js";
 import { registerWorkOrderRoutes } from "./http/workOrderRoutes.js";
 import { registerWorkOrderPageRoutes } from "./http/workOrderPageRoutes.js";
 import { registerDispatchBoardPageRoutes } from "./http/dispatchBoardPageRoutes.js";
 import { internalError, sendApiError, validationError } from "./http/apiErrors.js";
 import { createApiAuthMiddleware } from "./http/authz.js";
 
-function shouldSkipHttpRequestLog(path, statusCode) {
-  return path === "/healthz" && statusCode < 400;
+const MUTATING_HTTP_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+function isSuccessfulHttpStatus(statusCode) {
+  return Number.isInteger(statusCode) && statusCode >= 200 && statusCode < 400;
+}
+
+function resolveRequestLogMode(config) {
+  if (typeof config?.requestLogMode === "string" && config.requestLogMode.trim().length > 0) {
+    return config.requestLogMode.trim().toLowerCase();
+  }
+  if (config?.appEnv === "production") {
+    return "errors";
+  }
+  return "all";
+}
+
+function shouldSkipHttpRequestLog({ path, method, statusCode, mode }) {
+  if (path === "/healthz" && isSuccessfulHttpStatus(statusCode)) {
+    return true;
+  }
+
+  if (mode === "errors") {
+    return isSuccessfulHttpStatus(statusCode);
+  }
+
+  if (mode === "mutations") {
+    const normalizedMethod = String(method ?? "").toUpperCase();
+    const isMutation = MUTATING_HTTP_METHODS.has(normalizedMethod);
+    return !isMutation && isSuccessfulHttpStatus(statusCode);
+  }
+
+  return false;
 }
 
 function validateSearchQuery(query) {
@@ -84,6 +113,7 @@ export function createApp({
   workOrderService,
 }) {
   const app = express();
+  const requestLogMode = resolveRequestLogMode(config);
   const apiAuthMiddleware = createApiAuthMiddleware({
     logger,
     authConfig: config.auth,
@@ -98,7 +128,12 @@ export function createApp({
 
     const startedAt = Date.now();
     res.on("finish", () => {
-      if (shouldSkipHttpRequestLog(req.path, res.statusCode)) {
+      if (shouldSkipHttpRequestLog({
+        path: req.path,
+        method: req.method,
+        statusCode: res.statusCode,
+        mode: requestLogMode,
+      })) {
         return;
       }
 
@@ -176,12 +211,6 @@ export function createApp({
     dashboardService,
     appointmentService,
     workOrderService,
-  });
-  registerWalkInIntakePageRoutes(app, {
-    logger,
-    walkInIntakeService,
-    customerVehicleService,
-    referenceDataService,
   });
 
   app.get("/", (req, res) => {

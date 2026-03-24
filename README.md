@@ -147,7 +147,6 @@ Open:
 - `http://127.0.0.1:3000/healthz`
 - `http://127.0.0.1:3000/api/v1/dashboard/today`
 - `http://127.0.0.1:3000/appointments/new` (единая страница записи; `?mode=walkin` для приема без записи)
-- `http://127.0.0.1:3000/intake/walk-in` (`410 Gone`, перенаправляющий указатель на unified page)
 
 Phase 1 reference-data APIs:
 - `GET|POST /api/v1/employees`
@@ -205,6 +204,8 @@ npm run verify:full
 
 Harness scripts auto-load `.env` and `.env.local` without overriding already exported environment variables.
 Harness outputs written to stdout/stderr/files are redacted to avoid leaking API credentials.
+Harness log policy defaults to compact step summaries; set `HARNESS_LOG_LEVEL=verbose` for full child-process logs.
+App request logging can be tuned via `APP_REQUEST_LOG_MODE=all|mutations|errors` (default `errors` in production, `all` outside production).
 
 CI quality gate:
 - GitHub Actions workflow: `.github/workflows/ci.yml`
@@ -236,12 +237,13 @@ Render defaults and toggles:
 - `RENDER_VERIFY_REQUIRE_REMOTE_SYNC=0` disables remote branch sync fail-fast preflight (default enabled)
 - `RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY=0` disables strict manual deploy policy check (default enabled)
 - scenario and log-audit gates are enabled by default in `verify:render`
+- `RENDER_LOG_AUDIT_MODE=balanced|minimal|full` controls Render log-audit fetch strategy (default `balanced`)
 - for full env matrix and all tuning knobs, use `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`
 
 Scenario mode defaults:
 - local base URL (`127.0.0.1`/`localhost`) => write mode
 - non-local base URL => non-destructive read-only mode
-- override with `SCENARIO_NON_DESTRUCTIVE=1|0` or `--non-destructive|--destructive` for `scenario:booking-page`, `scenario:walkin-page`, `scenario:scheduling-walkin`, and `scenario:parts-flow`
+- override with `SCENARIO_NON_DESTRUCTIVE=1|0` or `--non-destructive|--destructive` for `scenario:intake-page`, `scenario:scheduling-walkin`, and `scenario:parts-flow`
 
 Smoke/scenario failures are emitted as machine-parseable JSON with step and request diagnostics.
 

@@ -38,6 +38,102 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-22 — Spring cleanup wave (`AUT-82..AUT-88`)
 - 2026-03-22 — Phase 3 parts flow (`AUT-73..AUT-81`)
 - 2026-03-23 — Dispatch board full EventCalendar cutover
+- 2026-03-23 — Dispatch board DnD/readability hardening + global overlap warnings
+- 2026-03-23 — Dashboard week blocks cleanup (vertical stack + Monday week start)
+
+## Completed Plan — Render log selectivity + request log noise control (2026-03-24)
+
+### Objective
+
+Reduce Render log ingestion volume and improve signal quality by combining source-side request log gating with balanced post-deploy log-audit fetching.
+
+### Delivered
+
+- Added app request log policy:
+  - `APP_REQUEST_LOG_MODE=all|mutations|errors`
+  - production default is reduced-noise (`errors`), non-production default remains `all`.
+- Added balanced Render log-audit mode in `verify:render`:
+  - `RENDER_LOG_AUDIT_MODE=balanced|minimal|full` (`balanced` default),
+  - `RENDER_LOG_AUDIT_INITIAL_LIMIT` for first-pass fetch cap,
+  - first-pass narrow fetch + auto-escalation only on warning/error/truncation/repo-access signals.
+- Updated log-audit summary contract with fetch metadata:
+  - `mode`, `escalated`, `fetch.initialLimit`, `fetch.rowsFetchedInitial`, `fetch.rowsFetchedExpanded`.
+- Added request-log behavior tests for `errors` and `mutations` modes.
+- Updated runbook/README/STATUS for new logging controls.
+
+### Verification
+
+- `npm run lint`: passed
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:render -- --skip-deploy`: passed
+- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render`: passed
+  - deploy id: `dep-d70sgq95pdvs739hsk70`
+  - commit parity: `3526d2e9f1cbfa44c6b11eb0a31528461525af0f`
+  - post-deploy log audit in balanced mode: passed (`rowsFetchedInitial=78`, `escalated=false`)
+
+## Completed Plan — Internal refactor wave (no contract changes) (2026-03-24)
+
+### Objective
+
+Reduce coupling/duplication in hot-path `services/http/ui/scripts` while keeping API/page/CLI behavior stable.
+
+### Delivered
+
+- Dashboard decomposition:
+  - `DashboardService` converted to thin orchestrator,
+  - projections moved to `src/services/dashboard/{today,week,dispatch,search}Projection.js`,
+  - shared date/window helpers moved to `src/services/dashboard/timeUtils.js`.
+- Validator dedupe:
+  - shared primitives in `src/http/validatorUtils.js` adopted across appointment/work-order/walk-in/reference/customer-vehicle validators.
+- Dispatch HTTP dedupe:
+  - shared dispatch mutation pipeline extracted to `src/http/dispatchBoardRouteFactory.js`,
+  - `dispatchBoardPageRoutes.js` reduced to route wiring + page/api read endpoints.
+- Dispatch UI split:
+  - `src/ui/dispatchBoardPageTemplate.js` (template),
+  - `src/ui/dispatchBoardPageStyles.js` (style contract),
+  - `src/ui/dispatchBoardPageClient.js` (client-side interaction),
+  - `src/ui/dispatchBoardPage.js` now wrapper-only entrypoint.
+- `verify-render` modular split:
+  - `scripts/render-verify/config.js`,
+  - `scripts/render-verify/api.js`,
+  - `scripts/render-verify/deployFlow.js`,
+  - `scripts/render-verify/scenarioFlow.js`,
+  - `scripts/render-verify/logAuditFlow.js`.
+
+### Verification
+
+- `npm run lint`: passed
+- targeted parity suites for dashboard/dispatch/render-preflight: passed
+- full gate reruns pending final wave closure in this slice (`npm test`, `npm run verify`, `npm run audit:bloat`, `npm run verify:render -- --skip-deploy`)
+
+## Completed Plan — Aggressive noise cleanup (scripts/tests/logging surface) (2026-03-24)
+
+### Objective
+
+Reduce operational noise and maintenance drag by removing dead UI routes, collapsing duplicated page scenarios, and switching harness output to summary-first defaults without breaking working API contracts.
+
+### Delivered
+
+- Removed legacy walk-in page route registration (`/intake/walk-in` now falls back to standard `404`).
+- Unified duplicated booking/walk-in page scenarios into one runner:
+  - `scripts/intake-page-scenario.js --mode booking|walkin`
+  - removed `scripts/booking-page-scenario.js` and `scripts/walkin-page-scenario.js`.
+- Updated `verify` and `verify:render` to use unified intake scenarios and summary-first logging:
+  - default `HARNESS_LOG_LEVEL=summary`,
+  - verbose logs via `HARNESS_LOG_LEVEL=verbose`,
+  - minimal artifact mode by default (`HARNESS_ARTIFACTS=minimal`).
+- Simplified Linear harness transport surface to `playwright`-only.
+- Reduced duplicate test bootstrap patterns and removed redundant unit-only route primitive/mapper tests in favor of existing higher-level API coverage.
+
+### Verification
+
+- `npm run lint`: passed
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
 
 ## Completed Plan — Deterministic Render verify on new commit only (2026-03-24)
 
@@ -87,135 +183,6 @@ Eliminate wasted first-pass Render verification against stale live commit by enf
   - commit parity: `d73af5315c419cbcf30c474825e609b8f68d6623`
   - smoke + non-destructive scenarios + post-deploy log audit: passed
 - Playwright production smoke on `/dispatch/board`: passed (title/content loaded, console warnings/errors: 0)
-
-## Completed Plan — Unified `/appointments/new` with walk-in mode (2026-03-23)
-
-### Objective
-
-Collapse duplicated booking/walk-in page flows into one owner-facing page and deprecate the legacy walk-in page route.
-
-### Delivered
-
-- `/appointments/new` now supports two UI modes on one form:
-  - `booking` (default),
-  - `walkin` (`/appointments/new?mode=walkin`).
-- Unified POST handler in `appointmentPageRoutes`:
-  - booking mode preserves existing appointment create flow,
-  - walk-in mode calls `walkInIntakeService.createWalkInFromIntakeForm(...)` and redirects to `/work-orders/:id?created=1`.
-- Legacy page route `/intake/walk-in` is now explicit `410 Gone` for both GET and POST with migration hint.
-- Dashboard/dispatch actions now point to `/appointments/new?mode=walkin`.
-- Harness updates:
-  - smoke now validates walk-in mode via `/appointments/new?mode=walkin`,
-  - `scripts/walkin-page-scenario.js` moved from legacy path to mode-aware unified page submit.
-- Removed dead legacy UI renderer file `src/ui/walkInIntakePage.js`.
-- Docs/status sync:
-  - `README.md`,
-  - `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
-  - `STATUS.md`.
-
-### Verification
-
-- `npm test`: passed
-- `npm run lint`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-- `npm run secrets:scan`: passed
-
-## Completed Plan — Dashboard week blocks cleanup (vertical stack + Monday week start) (2026-03-23)
-
-### Objective
-
-Increase weekly planning readability on `/` by stacking weekly blocks vertically and switching week semantics to calendar week (`Пн..Вс`).
-
-### Delivered
-
-- `DashboardService` week window anchor changed from rolling `today+6` to Monday-based calendar week:
-  - new helper `startOfLocalWeekMonday(...)`,
-  - `buildWeekDays(...)` now starts from local Monday.
-- Dashboard weekly section layout changed from `split-grid` to single-column `week-stack`.
-- Weekly tables now use dedicated non-scrolling wrapper (`week-table-wrap`) and fixed table layout:
-  - removed wide `min-width` behavior for week tables,
-  - enabled wrapping for weekly cell metadata to keep columns readable.
-- Tests updated:
-  - `tests/dashboardService.test.js` now asserts Monday-first weekly header and monotonic day sequence,
-  - `tests/http.test.js` now asserts weekly stack/layout markers in rendered dashboard HTML.
-
-### Verification
-
-- `npm run lint`: passed
-- `npm test -- tests/dashboardService.test.js tests/http.test.js`: passed
-- `npm test`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-
-## Archived plan skeleton
-
-Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
-
-- 2026-03-21 — Render build/runtime log investigation and follow-up triage
-- 2026-03-21 — AUT-14 verification scenarios for scheduling and walk-in
-- 2026-03-21 — AUT-10 Walk-in intake API and active queue insertion
-- 2026-03-21 — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
-- 2026-03-21 — AUT-8 Customers and Vehicles CRUD API
-- 2026-03-21 — AUT-7 Employees and Bays CRUD API
-- 2026-03-21 — AUT-6 Persistent Data Model and Migrations
-- 2026-03-21 — Phase 0 Foundation Slice
-- 2026-03-21 — Phase 1 Dashboard UX Refactor
-- 2026-03-21 — AUT-17 health-check log noise reduction
-- 2026-03-21 — AUT-16 pin Render Node runtime to LTS
-- 2026-03-21 — AUT-18 repo-access warning remediation investigation
-- 2026-03-21 — Repository spring cleaning and harness simplification
-- 2026-03-21 — PLANS archive automation and policy enforcement
-- 2026-03-21 — Linear Playwright workflow integrated into harness
-- 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
-- 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
-- 2026-03-22 — Bloat audit execution (`AUT-55..AUT-60`)
-- 2026-03-22 — Phase 2 lifecycle core (`AUT-61..AUT-69`)
-- 2026-03-22 — Spring cleanup wave (`AUT-82..AUT-88`)
-- 2026-03-22 — Phase 3 parts flow (`AUT-73..AUT-81`)
-- 2026-03-23 — Dispatch board UX simplification (calendar-only controls)
-- 2026-03-23 — Foundation hardening (`AUT-89..AUT-96`)
-
-## Completed Plan — Dispatch board DnD/readability hardening + global overlap warnings (2026-03-23)
-
-### Objective
-
-Fix dispatch board usability blockers (queue drag/drop and unreadable event cards) and switch capacity conflicts from blocking errors to global non-blocking warnings.
-
-### Delivered
-
-- Reworked appointment capacity policy in domain/service layer:
-  - overlap checks now produce structured warning details instead of throwing blocking domain conflicts,
-  - create/update responses can carry `warnings` while still committing.
-- Updated API routes (`appointments` and dispatch board mutations) to surface `warnings` payloads.
-- Updated booking page flow:
-  - overlap is previewed as warning detail,
-  - submission is no longer blocked by slot overlap.
-- Hardened dispatch board DnD:
-  - transfer payload fallback parsing (`dataTransfer`) added,
-  - drop target fallback resolution added when direct point resolution is unavailable.
-- Redesigned dispatch board event readability:
-  - high-contrast event palette,
-  - deterministic two-line event content rendering (time/code + customer/vehicle),
-  - overlap events are visually marked (`status-overlap`).
-- Updated tests for the new global overlap policy and dispatch board UI contract.
-
-### Verification
-
-- `npm test -- tests/appointmentLifecycle.test.js tests/appointmentBookingPage.test.js tests/domainSchedulingWalkin.test.js tests/dispatchBoard.test.js`: passed
-- `npm test`: passed
-- `npm run lint`: passed
-- `npm run verify`: passed
-- `npm run audit:bloat`: passed
-- `npm run secrets:scan`: passed
-- `npm run verify:render`: passed
-  - deploy id: `dep-d70obktm5p6s73a1f52g`
-  - commit parity: `f95625f49a76ab071aefb00cf4638a99f783748e`
-  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-- Playwright production smoke on `/dispatch/board`: passed
-  - queue drop into occupied slot succeeds (`201`) with warning toast
-  - event drag and resize commit successfully (`200`)
-  - no browser console errors/warnings
 
 ## Maintenance rule
 

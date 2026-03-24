@@ -2,153 +2,68 @@ import {
   collectUnknownFields,
   finalizeUnknownQueryFields,
   isNonEmptyString,
+  normalizeBooleanField,
   normalizeBooleanLike,
+  normalizeEnum,
+  normalizeIntegerRange,
   normalizeLocalDateQuery,
+  normalizeOptionalId,
+  normalizeOptionalString,
   normalizePaginationQuery,
   normalizeSearchQuery,
 } from "./validatorUtils.js";
-import { isKnownWorkOrderStatus, WORK_ORDER_STATUS_CODES } from "../domain/workOrderLifecycle.js";
+import { WORK_ORDER_STATUS_CODES } from "../domain/workOrderLifecycle.js";
 import {
-  isKnownPartsPurchaseActionStatus,
-  isKnownPartsRequestStatus,
   PARTS_PURCHASE_ACTION_STATUS_CODES,
   PARTS_REQUEST_STATUS_CODES,
 } from "../domain/partsRequestLifecycle.js";
 
-function normalizeOptionalString(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value === null) {
-    return null;
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string or null` });
-    return undefined;
-  }
-
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    errors.push({ field, message: `${field} must be a non-empty string or null` });
-    return undefined;
-  }
-
-  return trimmed;
-}
-
-function normalizeOptionalId(value, field, errors) {
-  return normalizeOptionalString(value, field, errors);
-}
-
 function normalizeStatus(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string` });
-    return undefined;
-  }
-
-  const normalized = value.trim();
-  if (!isKnownWorkOrderStatus(normalized)) {
-    errors.push({
-      field,
-      message: `${field} must be one of: ${WORK_ORDER_STATUS_CODES.join(", ")}`,
-    });
-    return undefined;
-  }
-
-  return normalized;
+  return normalizeEnum(value, field, errors, {
+    allowedValues: WORK_ORDER_STATUS_CODES,
+    enumMessage: `${field} must be one of: ${WORK_ORDER_STATUS_CODES.join(", ")}`,
+  });
 }
 
 function normalizeNonNegativeInteger(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (!Number.isInteger(value)) {
-    errors.push({ field, message: `${field} must be an integer` });
-    return undefined;
-  }
-
-  if (value < 0) {
-    errors.push({ field, message: `${field} must be >= 0` });
-    return undefined;
-  }
-
-  return value;
+  return normalizeIntegerRange(value, field, errors, {
+    min: 0,
+    max: Number.MAX_SAFE_INTEGER,
+    allowNull: false,
+    integerMessage: `${field} must be an integer`,
+    rangeMessage: `${field} must be >= 0`,
+  });
 }
 
 function normalizePositiveInteger(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (!Number.isInteger(value)) {
-    errors.push({ field, message: `${field} must be an integer` });
-    return undefined;
-  }
-
-  if (value <= 0) {
-    errors.push({ field, message: `${field} must be > 0` });
-    return undefined;
-  }
-
-  return value;
+  return normalizeIntegerRange(value, field, errors, {
+    min: 1,
+    max: Number.MAX_SAFE_INTEGER,
+    allowNull: false,
+    integerMessage: `${field} must be an integer`,
+    rangeMessage: `${field} must be > 0`,
+  });
 }
 
 function normalizeOptionalBoolean(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  const normalized = normalizeBooleanLike(value);
-  if (normalized === null) {
-    errors.push({ field, message: `${field} must be boolean-like (true/false/1/0)` });
-    return undefined;
-  }
-  return normalized;
+  return normalizeBooleanField(value, field, errors, {
+    strict: true,
+    strictMessage: `${field} must be boolean-like (true/false/1/0)`,
+  });
 }
 
 function normalizePartsRequestStatus(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string` });
-    return undefined;
-  }
-
-  const normalized = value.trim();
-  if (!isKnownPartsRequestStatus(normalized)) {
-    errors.push({ field, message: `${field} must be one of: ${PARTS_REQUEST_STATUS_CODES.join(", ")}` });
-    return undefined;
-  }
-
-  return normalized;
+  return normalizeEnum(value, field, errors, {
+    allowedValues: PARTS_REQUEST_STATUS_CODES,
+    enumMessage: `${field} must be one of: ${PARTS_REQUEST_STATUS_CODES.join(", ")}`,
+  });
 }
 
 function normalizePartsPurchaseActionStatus(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string` });
-    return undefined;
-  }
-
-  const normalized = value.trim();
-  if (!isKnownPartsPurchaseActionStatus(normalized)) {
-    errors.push({ field, message: `${field} must be one of: ${PARTS_PURCHASE_ACTION_STATUS_CODES.join(", ")}` });
-    return undefined;
-  }
-
-  return normalized;
+  return normalizeEnum(value, field, errors, {
+    allowedValues: PARTS_PURCHASE_ACTION_STATUS_CODES,
+    enumMessage: `${field} must be one of: ${PARTS_PURCHASE_ACTION_STATUS_CODES.join(", ")}`,
+  });
 }
 
 export function validateListWorkOrdersQuery(query) {

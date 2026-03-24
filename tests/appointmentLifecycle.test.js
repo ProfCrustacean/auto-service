@@ -1,24 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  closeServer,
-  createTempDatabase,
-  makeServer,
   requestJson,
-  waitForServer,
+  withTestServer,
 } from "./helpers/httpHarness.js";
 
 test("appointment lifecycle API enforces transitions and returns non-blocking capacity warnings", async () => {
-  const tempDb = createTempDatabase("auto-service-appointment-lifecycle-test");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  const address = server.address();
-  const baseUrl = `http://127.0.0.1:${address.port}`;
-
-  try {
+  await withTestServer("auto-service-appointment-lifecycle-test", async ({ baseUrl }) => {
     const listSeeded = await requestJson("GET", `${baseUrl}/api/v1/appointments`);
     assert.equal(listSeeded.status, 200);
     assert.equal(listSeeded.json.count, 1);
@@ -182,9 +170,5 @@ test("appointment lifecycle API enforces transitions and returns non-blocking ca
     const notFound = await requestJson("GET", `${baseUrl}/api/v1/appointments/apt-missing`);
     assert.equal(notFound.status, 404);
     assert.equal(notFound.json.error.code, "not_found");
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });

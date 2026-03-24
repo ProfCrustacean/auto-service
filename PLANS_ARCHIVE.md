@@ -236,3 +236,111 @@ Replace `vis-timeline` with vertical `@event-calendar/build` (`resourceTimeGridD
   - console errors: 0.
 - `npm run audit:bloat`: failed (pre-existing budget overruns in `src/tests/scripts`; unchanged blocker category).
 
+## Archive Batch — 2026-03-23
+
+### Moved from PLANS.md
+
+- Completed Plan — Dispatch board DnD/readability hardening + global overlap warnings (2026-03-23)
+
+## Completed Plan — Dispatch board DnD/readability hardening + global overlap warnings (2026-03-23)
+
+### Objective
+
+Fix dispatch board usability blockers (queue drag/drop and unreadable event cards) and switch capacity conflicts from blocking errors to global non-blocking warnings.
+
+### Delivered
+
+- Reworked appointment capacity policy in domain/service layer:
+  - overlap checks now produce structured warning details instead of throwing blocking domain conflicts,
+  - create/update responses can carry `warnings` while still committing.
+- Updated API routes (`appointments` and dispatch board mutations) to surface `warnings` payloads.
+- Updated booking page flow:
+  - overlap is previewed as warning detail,
+  - submission is no longer blocked by slot overlap.
+- Hardened dispatch board DnD:
+  - transfer payload fallback parsing (`dataTransfer`) added,
+  - drop target fallback resolution added when direct point resolution is unavailable.
+- Redesigned dispatch board event readability:
+  - high-contrast event palette,
+  - deterministic two-line event content rendering (time/code + customer/vehicle),
+  - overlap events are visually marked (`status-overlap`).
+- Updated tests for the new global overlap policy and dispatch board UI contract.
+
+### Verification
+
+- `npm test -- tests/appointmentLifecycle.test.js tests/appointmentBookingPage.test.js tests/domainSchedulingWalkin.test.js tests/dispatchBoard.test.js`: passed
+- `npm test`: passed
+- `npm run lint`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+- `npm run secrets:scan`: passed
+- `npm run verify:render`: passed
+  - deploy id: `dep-d70obktm5p6s73a1f52g`
+  - commit parity: `f95625f49a76ab071aefb00cf4638a99f783748e`
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- Playwright production smoke on `/dispatch/board`: passed
+  - queue drop into occupied slot succeeds (`201`) with warning toast
+  - event drag and resize commit successfully (`200`)
+  - no browser console errors/warnings
+
+## Archive Batch — 2026-03-23
+
+### Moved from PLANS.md
+
+- Completed Plan — Dashboard week blocks cleanup (vertical stack + Monday week start) (2026-03-23)
+
+## Completed Plan — Dashboard week blocks cleanup (vertical stack + Monday week start) (2026-03-23)
+
+### Objective
+
+Increase weekly planning readability on `/` by stacking weekly blocks vertically and switching week semantics to calendar week (`Пн..Вс`).
+
+### Delivered
+
+- `DashboardService` week window anchor changed from rolling `today+6` to Monday-based calendar week:
+  - new helper `startOfLocalWeekMonday(...)`,
+  - `buildWeekDays(...)` now starts from local Monday.
+- Dashboard weekly section layout changed from `split-grid` to single-column `week-stack`.
+- Weekly tables now use dedicated non-scrolling wrapper (`week-table-wrap`) and fixed table layout:
+  - removed wide `min-width` behavior for week tables,
+  - enabled wrapping for weekly cell metadata to keep columns readable.
+- Tests updated:
+  - `tests/dashboardService.test.js` now asserts Monday-first weekly header and monotonic day sequence,
+  - `tests/http.test.js` now asserts weekly stack/layout markers in rendered dashboard HTML.
+
+### Verification
+
+- `npm run lint`: passed
+- `npm test -- tests/dashboardService.test.js tests/http.test.js`: passed
+- `npm test`: passed
+- `npm run verify`: passed
+- `npm run audit:bloat`: passed
+
+## Archived plan skeleton
+
+Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
+
+- 2026-03-21 — Render build/runtime log investigation and follow-up triage
+- 2026-03-21 — AUT-14 verification scenarios for scheduling and walk-in
+- 2026-03-21 — AUT-10 Walk-in intake API and active queue insertion
+- 2026-03-21 — AUT-9 Appointment lifecycle API with deterministic capacity conflicts
+- 2026-03-21 — AUT-8 Customers and Vehicles CRUD API
+- 2026-03-21 — AUT-7 Employees and Bays CRUD API
+- 2026-03-21 — AUT-6 Persistent Data Model and Migrations
+- 2026-03-21 — Phase 0 Foundation Slice
+- 2026-03-21 — Phase 1 Dashboard UX Refactor
+- 2026-03-21 — AUT-17 health-check log noise reduction
+- 2026-03-21 — AUT-16 pin Render Node runtime to LTS
+- 2026-03-21 — AUT-18 repo-access warning remediation investigation
+- 2026-03-21 — Repository spring cleaning and harness simplification
+- 2026-03-21 — PLANS archive automation and policy enforcement
+- 2026-03-21 — Linear Playwright workflow integrated into harness
+- 2026-03-22 — AUT-21/22/23 harness hardening follow-ups
+- 2026-03-22 — AUT-18 recheck and self-contained verification gate hardening
+- 2026-03-22 — Bloat audit execution (`AUT-55..AUT-60`)
+- 2026-03-22 — Phase 2 lifecycle core (`AUT-61..AUT-69`)
+- 2026-03-22 — Spring cleanup wave (`AUT-82..AUT-88`)
+- 2026-03-22 — Phase 3 parts flow (`AUT-73..AUT-81`)
+- 2026-03-23 — Dispatch board UX simplification (calendar-only controls)
+- 2026-03-23 — Foundation hardening (`AUT-89..AUT-96`)
+

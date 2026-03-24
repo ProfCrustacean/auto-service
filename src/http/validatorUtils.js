@@ -2,6 +2,134 @@ export function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+export function normalizeOptionalString(
+  value,
+  field,
+  errors,
+  {
+    allowNull = true,
+    typeMessage = `${field} must be a string${allowNull ? " or null" : ""}`,
+    emptyMessage = `${field} must be a non-empty string${allowNull ? " or null" : ""}`,
+  } = {},
+) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    if (allowNull) {
+      return null;
+    }
+    errors.push({ field, message: typeMessage });
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    errors.push({ field, message: typeMessage });
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    errors.push({ field, message: emptyMessage });
+    return undefined;
+  }
+
+  return trimmed;
+}
+
+export function normalizeOptionalId(value, field, errors, options = {}) {
+  return normalizeOptionalString(value, field, errors, options);
+}
+
+export function normalizeEnum(
+  value,
+  field,
+  errors,
+  {
+    allowedValues,
+    typeMessage = `${field} must be a string`,
+    enumMessage = `${field} must be one of: ${allowedValues.join(", ")}`,
+  },
+) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    errors.push({ field, message: typeMessage });
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (!allowedValues.includes(normalized)) {
+    errors.push({ field, message: enumMessage });
+    return undefined;
+  }
+
+  return normalized;
+}
+
+export function normalizeIntegerRange(
+  value,
+  field,
+  errors,
+  {
+    min = Number.MIN_SAFE_INTEGER,
+    max = Number.MAX_SAFE_INTEGER,
+    allowNull = false,
+    integerMessage = `${field} must be an integer${allowNull ? " or null" : ""}`,
+    rangeMessage = `${field} must be between ${min} and ${max}`,
+  } = {},
+) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    if (allowNull) {
+      return null;
+    }
+    errors.push({ field, message: integerMessage });
+    return undefined;
+  }
+
+  if (!Number.isInteger(value)) {
+    errors.push({ field, message: integerMessage });
+    return undefined;
+  }
+
+  if (value < min || value > max) {
+    errors.push({ field, message: rangeMessage });
+    return undefined;
+  }
+
+  return value;
+}
+
+export function normalizeBooleanField(
+  value,
+  field,
+  errors,
+  {
+    whenProvidedMessage = `${field} must be boolean when provided`,
+    strictMessage = `${field} must be boolean`,
+    strict = false,
+  } = {},
+) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const normalized = normalizeBooleanLike(value);
+  if (normalized === null) {
+    errors.push({ field, message: strict ? strictMessage : whenProvidedMessage });
+    return undefined;
+  }
+
+  return normalized;
+}
+
 export function normalizeBooleanLike(value) {
   if (typeof value === "boolean") {
     return value;

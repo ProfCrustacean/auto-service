@@ -10,6 +10,65 @@ import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 
 loadDotenvIntoProcessSync();
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
+const DASHBOARD_ARRAY_FIELDS = [
+  "appointments",
+  "queues.waitingParts",
+  "queues.waitingDiagnosis",
+  "queues.waitingApproval",
+  "queues.paused",
+  "queues.readyPickup",
+  "queues.active",
+  "week.days",
+  "week.byBay",
+  "week.byAssignee",
+];
+const DASHBOARD_SUMMARY_FIELDS = [
+  "summary.appointmentsToday",
+  "summary.waitingDiagnosisCount",
+  "summary.waitingApprovalCount",
+  "summary.waitingPartsCount",
+  "summary.pausedCount",
+  "summary.readyForPickupCount",
+  "summary.activeWorkOrders",
+];
+const DASHBOARD_LENGTH_PARITY = [
+  ["summary.appointmentsToday", "appointments"],
+  ["summary.waitingDiagnosisCount", "queues.waitingDiagnosis"],
+  ["summary.waitingApprovalCount", "queues.waitingApproval"],
+  ["summary.waitingPartsCount", "queues.waitingParts"],
+  ["summary.pausedCount", "queues.paused"],
+  ["summary.readyForPickupCount", "queues.readyPickup"],
+  ["summary.activeWorkOrders", "queues.active"],
+];
+const UI_PAGES = [
+  {
+    step: "dashboard_ui",
+    path: "/",
+    snippets: ["План недели: загрузка и перегруз", "Быстрый поиск клиента и авто"],
+    oneOf: ["Операционная доска", "Автосервис"],
+  },
+  {
+    step: "booking_ui",
+    path: "/appointments/new",
+    snippets: ["Новая запись", "Форма записи"],
+  },
+  {
+    step: "walkin_ui",
+    path: "/appointments/new?mode=walkin",
+    snippets: ["Новая запись", "Принять сейчас", "Форма приема"],
+  },
+  {
+    step: "dispatch_board_ui",
+    path: "/dispatch/board",
+    snippets: ["Диспетчерская доска", "Очередь переносов", 'id="dispatch-calendar"'],
+  },
+];
+
+function getPathValue(source, dottedPath) {
+  return String(dottedPath)
+    .split(".")
+    .reduce((value, key) => (value == null ? undefined : value[key]), source);
+}
 
 function assertNonNegativeInteger(value, label, step, response) {
   assertHarness(Number.isInteger(value), `${label} must be an integer`, {
@@ -22,6 +81,33 @@ function assertNonNegativeInteger(value, label, step, response) {
     responseStatus: response.status,
     responsePayload: response.payload,
   });
+}
+
+function assertPageStatus(response, step, path) {
+  if (response.status === 200) {
+    return;
+  }
+  failHarness(`unexpected response status for GET ${path}`, {
+    step,
+    method: "GET",
+    path,
+    url: response.url,
+    responseStatus: response.status,
+    responseBodySnippet: response.text?.slice(0, 400),
+  });
+}
+
+function assertIncludesAll(response, expectedSnippets, step) {
+  for (const snippet of expectedSnippets) {
+    assertHarness(response.text.includes(snippet), `expected UI snippet '${snippet}'`, {
+      step,
+      method: response.method,
+      path: response.path,
+      url: response.url,
+      responseStatus: response.status,
+      responseBodySnippet: response.text.slice(0, 400),
+    });
+  }
 }
 
 async function main() {
@@ -42,148 +128,39 @@ async function main() {
   });
   expectStatus(dashboard, 200, "dashboard_api");
 
-  assertHarness(dashboard.payload?.summary && typeof dashboard.payload.summary === "object", "dashboard summary is missing", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(dashboard.payload?.queues && typeof dashboard.payload.queues === "object", "dashboard queues are missing", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(dashboard.payload?.week && typeof dashboard.payload.week === "object", "dashboard week payload is missing", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.appointments), "dashboard appointments must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.queues?.waitingParts), "dashboard waitingParts queue must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.queues?.waitingDiagnosis), "dashboard waitingDiagnosis queue must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.queues?.waitingApproval), "dashboard waitingApproval queue must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.queues?.paused), "dashboard paused queue must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.queues?.readyPickup), "dashboard readyPickup queue must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.queues?.active), "dashboard active queue must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.week?.days), "dashboard week days must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
+  for (const objectPath of ["summary", "queues", "week"]) {
+    const value = getPathValue(dashboard.payload, objectPath);
+    assertHarness(value && typeof value === "object" && !Array.isArray(value), `dashboard ${objectPath} is missing`, {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    });
+  }
+  for (const arrayPath of DASHBOARD_ARRAY_FIELDS) {
+    const value = getPathValue(dashboard.payload, arrayPath);
+    assertHarness(Array.isArray(value), `dashboard ${arrayPath} must be an array`, {
+      step: "dashboard_api",
+      responseStatus: dashboard.status,
+      responsePayload: dashboard.payload,
+    });
+  }
   assertHarness(dashboard.payload.week.days.length === 7, "dashboard week must contain 7 days", {
     step: "dashboard_api",
     responseStatus: dashboard.status,
     responsePayload: dashboard.payload,
   });
-  assertHarness(Array.isArray(dashboard.payload?.week?.byBay), "dashboard week.byBay must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-  assertHarness(Array.isArray(dashboard.payload?.week?.byAssignee), "dashboard week.byAssignee must be an array", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
-  });
-
-  assertNonNegativeInteger(dashboard.payload.summary.appointmentsToday, "summary.appointmentsToday", "dashboard_api", dashboard);
-  assertNonNegativeInteger(dashboard.payload.summary.waitingDiagnosisCount, "summary.waitingDiagnosisCount", "dashboard_api", dashboard);
-  assertNonNegativeInteger(dashboard.payload.summary.waitingApprovalCount, "summary.waitingApprovalCount", "dashboard_api", dashboard);
-  assertNonNegativeInteger(dashboard.payload.summary.waitingPartsCount, "summary.waitingPartsCount", "dashboard_api", dashboard);
-  assertNonNegativeInteger(dashboard.payload.summary.pausedCount, "summary.pausedCount", "dashboard_api", dashboard);
-  assertNonNegativeInteger(dashboard.payload.summary.readyForPickupCount, "summary.readyForPickupCount", "dashboard_api", dashboard);
-  assertNonNegativeInteger(dashboard.payload.summary.activeWorkOrders, "summary.activeWorkOrders", "dashboard_api", dashboard);
-
-  assertHarness(
-    dashboard.payload.summary.appointmentsToday === dashboard.payload.appointments.length,
-    "summary.appointmentsToday must match appointments array length",
-    {
+  for (const field of DASHBOARD_SUMMARY_FIELDS) {
+    assertNonNegativeInteger(getPathValue(dashboard.payload, field), field, "dashboard_api", dashboard);
+  }
+  for (const [summaryField, arrayField] of DASHBOARD_LENGTH_PARITY) {
+    const summaryValue = getPathValue(dashboard.payload, summaryField);
+    const arrayValue = getPathValue(dashboard.payload, arrayField);
+    assertHarness(summaryValue === arrayValue.length, `${summaryField} must match ${arrayField} queue length`, {
       step: "dashboard_api",
       responseStatus: dashboard.status,
       responsePayload: dashboard.payload,
-    },
-  );
-  assertHarness(
-    dashboard.payload.summary.waitingDiagnosisCount === dashboard.payload.queues.waitingDiagnosis.length,
-    "summary.waitingDiagnosisCount must match waitingDiagnosis queue length",
-    {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    },
-  );
-  assertHarness(
-    dashboard.payload.summary.waitingApprovalCount === dashboard.payload.queues.waitingApproval.length,
-    "summary.waitingApprovalCount must match waitingApproval queue length",
-    {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    },
-  );
-  assertHarness(
-    dashboard.payload.summary.waitingPartsCount === dashboard.payload.queues.waitingParts.length,
-    "summary.waitingPartsCount must match waitingParts queue length",
-    {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    },
-  );
-  assertHarness(
-    dashboard.payload.summary.pausedCount === dashboard.payload.queues.paused.length,
-    "summary.pausedCount must match paused queue length",
-    {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    },
-  );
-  assertHarness(
-    dashboard.payload.summary.readyForPickupCount === dashboard.payload.queues.readyPickup.length,
-    "summary.readyForPickupCount must match readyPickup queue length",
-    {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    },
-  );
-  assertHarness(
-    dashboard.payload.summary.activeWorkOrders === dashboard.payload.queues.active.length,
-    "summary.activeWorkOrders must match active queue length",
-    {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    },
-  );
+    });
+  }
 
   const appointments = await requestJson(baseUrl, {
     step: "appointments_api",
@@ -219,91 +196,21 @@ async function main() {
   });
   assertNonNegativeInteger(search.payload?.totals?.vehicles ?? -1, "search_api totals.vehicles", "search_api", search);
 
-  const dashboardUi = await requestText(baseUrl, {
-    step: "dashboard_ui",
-    path: "/",
-  });
-  if (dashboardUi.status !== 200) {
-    failHarness("unexpected response status for GET /", {
-      step: "dashboard_ui",
-      method: "GET",
-      path: "/",
-      url: dashboardUi.url,
-      responseStatus: dashboardUi.status,
-      responseBodySnippet: dashboardUi.text?.slice(0, 400),
-    });
+  for (const page of UI_PAGES) {
+    const response = await requestText(baseUrl, { step: page.step, path: page.path });
+    assertPageStatus(response, page.step, page.path);
+    if (Array.isArray(page.oneOf)) {
+      assertHarness(page.oneOf.some((snippet) => response.text.includes(snippet)), `none of ${page.oneOf.join(", ")} found`, {
+        step: page.step,
+        method: response.method,
+        path: response.path,
+        url: response.url,
+        responseStatus: response.status,
+        responseBodySnippet: response.text.slice(0, 400),
+      });
+    }
+    assertIncludesAll(response, page.snippets, page.step);
   }
-  assertHarness(
-    (dashboardUi.text.includes("Операционная доска") || dashboardUi.text.includes("Автосервис")) &&
-      dashboardUi.text.includes("План недели: загрузка и перегруз") &&
-      dashboardUi.text.includes("Быстрый поиск клиента и авто"),
-    "Russian UI content missing",
-    {
-      step: "dashboard_ui",
-      method: "GET",
-      path: "/",
-      url: dashboardUi.url,
-      responseStatus: dashboardUi.status,
-      responseBodySnippet: dashboardUi.text.slice(0, 400),
-    },
-  );
-
-  const bookingUi = await requestText(baseUrl, {
-    step: "booking_ui",
-    path: "/appointments/new",
-  });
-  if (bookingUi.status !== 200) {
-    failHarness("unexpected response status for GET /appointments/new", {
-      step: "booking_ui",
-      method: "GET",
-      path: "/appointments/new",
-      url: bookingUi.url,
-      responseStatus: bookingUi.status,
-      responseBodySnippet: bookingUi.text?.slice(0, 400),
-    });
-  }
-  assertHarness(
-    bookingUi.text.includes("Новая запись") &&
-      bookingUi.text.includes("Форма записи"),
-    "booking UI content missing",
-    {
-      step: "booking_ui",
-      method: "GET",
-      path: "/appointments/new",
-      url: bookingUi.url,
-      responseStatus: bookingUi.status,
-      responseBodySnippet: bookingUi.text.slice(0, 400),
-    },
-  );
-
-  const walkInUi = await requestText(baseUrl, {
-    step: "walkin_ui",
-    path: "/appointments/new?mode=walkin",
-  });
-  if (walkInUi.status !== 200) {
-    failHarness("unexpected response status for GET /appointments/new?mode=walkin", {
-      step: "walkin_ui",
-      method: "GET",
-      path: "/appointments/new?mode=walkin",
-      url: walkInUi.url,
-      responseStatus: walkInUi.status,
-      responseBodySnippet: walkInUi.text?.slice(0, 400),
-    });
-  }
-  assertHarness(
-    walkInUi.text.includes("Новая запись") &&
-      walkInUi.text.includes("Принять сейчас") &&
-      walkInUi.text.includes("Форма приема"),
-    "walk-in UI content missing",
-    {
-      step: "walkin_ui",
-      method: walkInUi.method,
-      path: walkInUi.path,
-      url: walkInUi.url,
-      responseStatus: walkInUi.status,
-      responseBodySnippet: walkInUi.text.slice(0, 400),
-    },
-  );
 
   const dispatchBoardApi = await requestJson(baseUrl, {
     step: "dispatch_board_api",
@@ -327,35 +234,6 @@ async function main() {
       step: "dispatch_board_api",
       responseStatus: dispatchBoardApi.status,
       responsePayload: dispatchBoardApi.payload,
-    },
-  );
-
-  const dispatchBoardUi = await requestText(baseUrl, {
-    step: "dispatch_board_ui",
-    path: "/dispatch/board",
-  });
-  if (dispatchBoardUi.status !== 200) {
-    failHarness("unexpected response status for GET /dispatch/board", {
-      step: "dispatch_board_ui",
-      method: "GET",
-      path: "/dispatch/board",
-      url: dispatchBoardUi.url,
-      responseStatus: dispatchBoardUi.status,
-      responseBodySnippet: dispatchBoardUi.text?.slice(0, 400),
-    });
-  }
-  assertHarness(
-    dispatchBoardUi.text.includes("Диспетчерская доска") &&
-      dispatchBoardUi.text.includes("Очередь переносов") &&
-      dispatchBoardUi.text.includes('id="dispatch-calendar"'),
-    "dispatch board UI content missing",
-    {
-      step: "dispatch_board_ui",
-      method: "GET",
-      path: "/dispatch/board",
-      url: dispatchBoardUi.url,
-      responseStatus: dispatchBoardUi.status,
-      responseBodySnippet: dispatchBoardUi.text.slice(0, 400),
     },
   );
 

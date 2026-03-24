@@ -103,8 +103,12 @@ async function previewMove({ eventId, minute, resourceId, dayLocal, laneMode, du
 
 async function runNonDestructive(mode) {
   const board = await loadBoard("dispatch_board_non_destructive_load");
-  const event = board.events[0];
-  assertHarness(Boolean(event?.id), "dispatch board must contain at least one event", {
+  const event = board.events[0] ?? board.queues?.unscheduledAppointments?.[0];
+  assertHarness(Boolean(event?.id), "dispatch board must contain at least one schedulable appointment", {
+    step: "dispatch_board_non_destructive_load",
+    responsePayload: board,
+  });
+  assertHarness(Array.isArray(board.resources) && board.resources.length > 0, "dispatch board must contain at least one resource", {
     step: "dispatch_board_non_destructive_load",
     responsePayload: board,
   });

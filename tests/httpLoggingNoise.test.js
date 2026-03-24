@@ -2,30 +2,28 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   closeServer,
-  createTempDatabase,
-  makeServer,
+  withTestServer,
   waitForServer,
 } from "./helpers/httpHarness.js";
 
-test("request logging suppresses successful health checks and keeps business-path logs", async () => {
-  const tempDb = createTempDatabase("auto-service-http-log-noise");
-  const { databasePath, cleanup } = tempDb;
+function createCollectingLogger() {
   const infoLogs = [];
+  const errorLogs = [];
   const logger = {
     info(event, fields = {}) {
       infoLogs.push({ event, ...fields });
     },
     warn() {},
-    error() {},
+    error(event, fields = {}) {
+      errorLogs.push({ event, ...fields });
+    },
   };
-  const { server, database } = makeServer({ databasePath, logger });
+  return { logger, infoLogs, errorLogs };
+}
 
-  await waitForServer(server);
-
-  const address = server.address();
-  const baseUrl = `http://127.0.0.1:${address.port}`;
-
-  try {
+test("request logging suppresses health-check noise", async () => {
+  const { logger, infoLogs } = createCollectingLogger();
+  await withTestServer("auto-service-http-log-noise", async ({ baseUrl }) => {
     const externalRequestId = "req-from-client-123";
     const healthRes = await fetch(`${baseUrl}/healthz`);
     assert.equal(healthRes.status, 200);
@@ -48,25 +46,65 @@ test("request logging suppresses successful health checks and keeps business-pat
     assert.equal(dashboardLogs[0].statusCode, 200);
     assert.equal(typeof dashboardLogs[0].durationMs, "number");
     assert.equal(dashboardLogs[0].requestId, externalRequestId);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  }, { logger });
+});
+
+test("request logging errors mode logs only failures", async () => {
+  const { logger, infoLogs } = createCollectingLogger();
+  await withTestServer("auto-service-http-log-errors-only", async ({ baseUrl }) => {
+    const healthRes = await fetch(`${baseUrl}/healthz`);
+    assert.equal(healthRes.status, 200);
+
+    const dashboardRes = await fetch(`${baseUrl}/api/v1/dashboard/today`);
+    assert.equal(dashboardRes.status, 200);
+
+    const missingRes = await fetch(`${baseUrl}/api/v1/unknown-endpoint`);
+    assert.equal(missingRes.status, 404);
+
+    const requestLogs = infoLogs.filter((entry) => entry.event === "http_request");
+    assert.equal(requestLogs.length, 1);
+    assert.equal(requestLogs[0].path, "/api/v1/unknown-endpoint");
+    assert.equal(requestLogs[0].statusCode, 404);
+  }, { logger, requestLogMode: "errors" });
+});
+
+test("request logging mutations mode keeps writes and failures", async () => {
+  const { logger, infoLogs } = createCollectingLogger();
+  await withTestServer("auto-service-http-log-mutations", async ({ baseUrl }) => {
+    const dashboardRes = await fetch(`${baseUrl}/api/v1/dashboard/today`);
+    assert.equal(dashboardRes.status, 200);
+
+    const createCustomer = await fetch(`${baseUrl}/api/v1/customers`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer owner-dev-token",
+      },
+      body: JSON.stringify({
+        fullName: "Logging Mode Test",
+        phone: "+7 999 000 00 00",
+      }),
+    });
+    assert.equal(createCustomer.status, 201);
+
+    const missingRes = await fetch(`${baseUrl}/api/v1/unknown-endpoint`);
+    assert.equal(missingRes.status, 404);
+
+    const requestLogs = infoLogs.filter((entry) => entry.event === "http_request");
+    const dashboardLog = requestLogs.find((entry) => entry.path === "/api/v1/dashboard/today");
+    const createLog = requestLogs.find((entry) => entry.path === "/api/v1/customers" && entry.method === "POST");
+    const missingLog = requestLogs.find((entry) => entry.path === "/api/v1/unknown-endpoint");
+
+    assert.equal(dashboardLog, undefined);
+    assert.ok(createLog);
+    assert.equal(createLog.statusCode, 201);
+    assert.ok(missingLog);
+    assert.equal(missingLog.statusCode, 404);
+  }, { logger, requestLogMode: "mutations" });
 });
 
 test("unexpected API failures log request context with requestId", async () => {
-  const infoLogs = [];
-  const errorLogs = [];
-  const logger = {
-    info(event, fields = {}) {
-      infoLogs.push({ event, ...fields });
-    },
-    warn() {},
-    error(event, fields = {}) {
-      errorLogs.push({ event, ...fields });
-    },
-  };
+  const { logger, infoLogs, errorLogs } = createCollectingLogger();
 
   const dashboardService = {
     getTodayDashboard() {

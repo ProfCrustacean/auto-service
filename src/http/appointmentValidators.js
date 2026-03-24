@@ -2,93 +2,33 @@ import {
   collectUnknownFields,
   finalizeUnknownQueryFields,
   isNonEmptyString,
+  normalizeEnum,
+  normalizeIntegerRange,
   normalizeLocalDateQuery,
+  normalizeOptionalId,
+  normalizeOptionalString,
   normalizePaginationQuery,
   normalizeSearchQuery,
 } from "./validatorUtils.js";
 import { normalizePlannedStartLocal } from "./plannedStartLocal.js";
 
-const APPOINTMENT_STATUSES = new Set(["booked", "confirmed", "arrived", "cancelled", "no-show"]);
-
-function normalizeOptionalString(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value === null) {
-    return null;
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string or null` });
-    return undefined;
-  }
-
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    errors.push({ field, message: `${field} must be a non-empty string or null` });
-    return undefined;
-  }
-
-  return trimmed;
-}
+const APPOINTMENT_STATUS_CODES = ["booked", "confirmed", "arrived", "cancelled", "no-show"];
 
 function normalizeDuration(value, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value === null) {
-    return null;
-  }
-
-  if (!Number.isInteger(value)) {
-    errors.push({ field: "expectedDurationMin", message: "expectedDurationMin must be an integer or null" });
-    return undefined;
-  }
-
-  if (value < 5 || value > 720) {
-    errors.push({ field: "expectedDurationMin", message: "expectedDurationMin must be between 5 and 720" });
-    return undefined;
-  }
-
-  return value;
+  return normalizeIntegerRange(value, "expectedDurationMin", errors, {
+    min: 5,
+    max: 720,
+    allowNull: true,
+    integerMessage: "expectedDurationMin must be an integer or null",
+    rangeMessage: "expectedDurationMin must be between 5 and 720",
+  });
 }
 
 function normalizeStatus(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string` });
-    return undefined;
-  }
-
-  const normalized = value.trim();
-  if (!APPOINTMENT_STATUSES.has(normalized)) {
-    errors.push({ field, message: `${field} must be one of: booked, confirmed, arrived, cancelled, no-show` });
-    return undefined;
-  }
-
-  return normalized;
-}
-
-function normalizeOptionalId(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value === null) {
-    return null;
-  }
-
-  if (!isNonEmptyString(value)) {
-    errors.push({ field, message: `${field} must be a non-empty string or null` });
-    return undefined;
-  }
-
-  return value.trim();
+  return normalizeEnum(value, field, errors, {
+    allowedValues: APPOINTMENT_STATUS_CODES,
+    enumMessage: `${field} must be one of: ${APPOINTMENT_STATUS_CODES.join(", ")}`,
+  });
 }
 
 export function validateListAppointmentsQuery(query) {

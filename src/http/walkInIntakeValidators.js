@@ -1,27 +1,8 @@
-import { collectUnknownFields, isNonEmptyString } from "./validatorUtils.js";
-
-function normalizeOptionalString(value, field, errors) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value === null) {
-    return null;
-  }
-
-  if (typeof value !== "string") {
-    errors.push({ field, message: `${field} must be a string or null` });
-    return undefined;
-  }
-
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    errors.push({ field, message: `${field} must be a non-empty string or null` });
-    return undefined;
-  }
-
-  return trimmed;
-}
+import {
+  collectUnknownFields,
+  isNonEmptyString,
+  normalizeOptionalString,
+} from "./validatorUtils.js";
 
 export function validateWalkInCreate(body) {
   const errors = [];

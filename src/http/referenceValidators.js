@@ -2,6 +2,7 @@ import {
   collectUnknownFields,
   finalizeUnknownQueryFields,
   isNonEmptyString,
+  normalizeBooleanField,
   normalizeBooleanLike,
   normalizePaginationQuery,
 } from "./validatorUtils.js";
@@ -76,10 +77,10 @@ export function validateEmployeeCreate(body) {
 
   let isActive = true;
   if (body.isActive !== undefined) {
-    const normalized = normalizeBooleanLike(body.isActive);
-    if (normalized === null) {
-      errors.push({ field: "isActive", message: "isActive must be boolean when provided" });
-    } else {
+    const normalized = normalizeBooleanField(body.isActive, "isActive", errors, {
+      whenProvidedMessage: "isActive must be boolean when provided",
+    });
+    if (normalized !== undefined) {
       isActive = normalized;
     }
   }
@@ -125,10 +126,11 @@ export function validateEmployeeUpdate(body) {
   }
 
   if (body.isActive !== undefined) {
-    const normalized = normalizeBooleanLike(body.isActive);
-    if (normalized === null) {
-      errors.push({ field: "isActive", message: "isActive must be boolean" });
-    } else {
+    const normalized = normalizeBooleanField(body.isActive, "isActive", errors, {
+      strict: true,
+      strictMessage: "isActive must be boolean",
+    });
+    if (normalized !== undefined) {
       value.isActive = normalized;
     }
   }
@@ -158,10 +160,10 @@ export function validateBayCreate(body) {
 
   let isActive = true;
   if (body.isActive !== undefined) {
-    const normalized = normalizeBooleanLike(body.isActive);
-    if (normalized === null) {
-      errors.push({ field: "isActive", message: "isActive must be boolean when provided" });
-    } else {
+    const normalized = normalizeBooleanField(body.isActive, "isActive", errors, {
+      whenProvidedMessage: "isActive must be boolean when provided",
+    });
+    if (normalized !== undefined) {
       isActive = normalized;
     }
   }
@@ -197,10 +199,11 @@ export function validateBayUpdate(body) {
   }
 
   if (body.isActive !== undefined) {
-    const normalized = normalizeBooleanLike(body.isActive);
-    if (normalized === null) {
-      errors.push({ field: "isActive", message: "isActive must be boolean" });
-    } else {
+    const normalized = normalizeBooleanField(body.isActive, "isActive", errors, {
+      strict: true,
+      strictMessage: "isActive must be boolean",
+    });
+    if (normalized !== undefined) {
       value.isActive = normalized;
     }
   }

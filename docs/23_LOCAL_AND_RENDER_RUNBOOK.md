@@ -49,6 +49,7 @@ Service defaults:
 - Work-order lifecycle/parts UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`, plus parts forms under `/work-orders/:id/parts-requests*`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
 - SQLite runtime pragmas: `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=1000ms` (override timeout via `SQLITE_BUSY_TIMEOUT_MS`)
+- request logging mode: `APP_REQUEST_LOG_MODE=all|mutations|errors` (default `errors` in production, `all` in non-production)
 - Unified mutation policy baseline for API + page form mutations:
   - send `Authorization: Bearer <token>` (or `x-api-token`)
   - form fallback token (`authToken`) is accepted for HTML POST flows
@@ -97,18 +98,20 @@ Harness outputs written to stdout/stderr/files are redacted before persistence t
 - starts a temporary isolated app instance and DB,
 - runs test + smoke + booking-page + unified walk-in-mode page + scheduling/walk-in + parts-flow scenario checks,
 - and shuts down automatically.
+- default output is compact step-level summary (`HARNESS_LOG_LEVEL=summary`); set `HARNESS_LOG_LEVEL=verbose` for full child logs.
+- default artifact mode is minimal (`HARNESS_ARTIFACTS=minimal`); set `HARNESS_ARTIFACTS=full` to keep full verify server logs in `evidence/`.
 
 Optional toggles:
-- `VERIFY_INCLUDE_BOOKING_SCENARIO=0 npm run verify` (skip booking-page scenario check)
-- `VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=0 npm run verify` (skip walk-in-page scenario check)
+- `VERIFY_INCLUDE_INTAKE_BOOKING_SCENARIO=0 npm run verify` (skip intake booking scenario check)
+- `VERIFY_INCLUDE_INTAKE_WALKIN_SCENARIO=0 npm run verify` (skip intake walk-in scenario check)
 - `VERIFY_INCLUDE_SCENARIO=0 npm run verify` (skip scenario check)
 - `VERIFY_INCLUDE_PARTS_SCENARIO=0 npm run verify` (skip parts-flow scenario check)
-- `npm run scenario:booking-page` defaults to read-only mode on non-local URLs and write mode on local URLs.
-- `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:booking-page` or `npm run scenario:booking-page -- --non-destructive` (force read-only mode)
-- `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:booking-page` or `npm run scenario:booking-page -- --destructive` (force write mode)
-- `npm run scenario:walkin-page` defaults to read-only mode on non-local URLs and write mode on local URLs.
-- `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:walkin-page` or `npm run scenario:walkin-page -- --non-destructive` (force read-only mode)
-- `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:walkin-page` or `npm run scenario:walkin-page -- --destructive` (force write mode)
+- `npm run scenario:intake-page:booking` defaults to read-only mode on non-local URLs and write mode on local URLs.
+- `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:intake-page:booking` or `npm run scenario:intake-page:booking -- --non-destructive` (force read-only mode)
+- `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:intake-page:booking` or `npm run scenario:intake-page:booking -- --destructive` (force write mode)
+- `npm run scenario:intake-page:walkin` defaults to read-only mode on non-local URLs and write mode on local URLs.
+- `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:intake-page:walkin` or `npm run scenario:intake-page:walkin -- --non-destructive` (force read-only mode)
+- `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:intake-page:walkin` or `npm run scenario:intake-page:walkin -- --destructive` (force write mode)
 - `npm run scenario:scheduling-walkin` defaults to read-only mode on non-local URLs and write mode on local URLs.
 - `SCENARIO_NON_DESTRUCTIVE=1 npm run scenario:scheduling-walkin` or `npm run scenario:scheduling-walkin -- --non-destructive` (force read-only mode)
 - `SCENARIO_NON_DESTRUCTIVE=0 npm run scenario:scheduling-walkin` or `npm run scenario:scheduling-walkin -- --destructive` (force write mode)
@@ -129,8 +132,8 @@ CI gate:
 
 Scenario fixture assumptions (current):
 - Smoke checks validate API/UI contracts (including unified lookup) and summary-to-array consistency instead of fixed seeded counts.
-- Booking-page scenario validates `/appointments/new` read/write behavior locally and non-destructive behavior remotely.
-- Walk-in-page scenario validates unified walk-in mode at `/appointments/new?mode=walkin` (including mode-aware submit) and non-destructive behavior remotely.
+- Intake booking scenario validates `/appointments/new` read/write behavior locally and non-destructive behavior remotely.
+- Intake walk-in scenario validates unified walk-in mode at `/appointments/new?mode=walkin` (including mode-aware submit) and non-destructive behavior remotely.
 - Scheduling/walk-in scenario resolves customers/vehicles/bays/employees dynamically from live API data.
 - Scheduling/walk-in scenario also validates appointment -> work-order conversion idempotency and lifecycle transitions (`scheduled -> in_progress -> ready_pickup`).
 - Parts-flow scenario validates blocking parts request lifecycle (`requested -> received/substituted`), work-order gating, and replacement request creation.
@@ -155,8 +158,7 @@ LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/workorder-epic-
 ```
 
 Notes:
-- default transport is `playwright` to bypass geo-restricted direct API paths observed in this environment.
-- override transport only when needed: `--transport direct` or `--transport auto`.
+- only `playwright` transport is supported (deterministic path for this environment).
 - `linear:create` is idempotent by issue title within the sampled team issue window (`--issues-limit`, default `250`); existing titles are skipped.
 - `linear:sync` matches issues by normalized title from the spec and transitions them to the selected workflow state.
 
@@ -200,8 +202,8 @@ Behavior:
 - polls deploy until `live` (configurable timeout/interval)
 - asserts deploy commit parity against expected commit
 - runs `npm run smoke` against `APP_BASE_URL` (default service URL)
-- runs `npm run scenario:booking-page -- --non-destructive` against deployed URL
-- runs `npm run scenario:walkin-page -- --non-destructive` against deployed URL
+- runs `npm run scenario:intake-page:booking -- --non-destructive` against deployed URL
+- runs `npm run scenario:intake-page:walkin -- --non-destructive` against deployed URL
 - runs `npm run scenario:scheduling-walkin -- --non-destructive` against deployed URL
 - runs `npm run scenario:parts-flow -- --non-destructive` against deployed URL
 - audits Render build/app logs for warn/error/repo-access signals in the deploy window
@@ -220,19 +222,26 @@ Useful toggles:
 - `RENDER_DEPLOY_TIMEOUT_MS=<ms>` and `RENDER_DEPLOY_POLL_INTERVAL_MS=<ms>` → tune polling
 - `RENDER_VERIFY_COMMIT_PARITY=0` → disable deploy commit parity check (default enabled)
 - `RENDER_EXPECT_COMMIT=<sha>` → override expected commit for parity check
-- `RENDER_VERIFY_INCLUDE_BOOKING_SCENARIO=0` → skip deployed non-destructive booking scenario check
-- `RENDER_VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO=0` → skip deployed non-destructive walk-in scenario check
+- `RENDER_VERIFY_INCLUDE_INTAKE_BOOKING_SCENARIO=0` → skip deployed non-destructive intake booking scenario check
+- `RENDER_VERIFY_INCLUDE_INTAKE_WALKIN_SCENARIO=0` → skip deployed non-destructive intake walk-in scenario check
 - `RENDER_VERIFY_INCLUDE_SCENARIO=0` → skip deployed non-destructive scenario check
 - `RENDER_VERIFY_INCLUDE_PARTS_SCENARIO=0` → skip deployed non-destructive parts-flow scenario check
 - `RENDER_SMOKE_MAX_ATTEMPTS=<n>` and `RENDER_SMOKE_RETRY_DELAY_MS=<ms>` → retry deployed smoke checks after promotion (defaults `3` and `10000`)
 - `RENDER_VERIFY_LOG_AUDIT=0` → skip post-deploy log audit
-- `RENDER_LOG_AUDIT_LIMIT=<n>` → per-type (`build`/`app`) log row cap (default `1000`)
+- `RENDER_LOG_AUDIT_MODE=balanced|minimal|full` → log-audit fetch strategy (default `balanced`)
+- `RENDER_LOG_AUDIT_LIMIT=<n>` → per-type full-pass log row cap (default `1000` in `full`, `200` otherwise)
+- `RENDER_LOG_AUDIT_INITIAL_LIMIT=<n>` → per-type first-pass row cap for `balanced` mode (default `200`)
 - `RENDER_LOG_AUDIT_MAX_WARNINGS=<n>` / `RENDER_LOG_AUDIT_MAX_ERRORS=<n>` / `RENDER_LOG_AUDIT_MAX_REPO_WARNINGS=<n>` → audit thresholds (default `0`)
 - `RENDER_LOG_AUDIT_FAIL_ON_TRUNCATION=0` → do not fail when log API reports `hasMore=true`
 - `RENDER_LOG_AUDIT_SUMMARY_PATH=<path>` → summary output path (default `evidence/render-log-audit-summary.json`)
 - `RENDER_LOG_AUDIT_WRITE_RAW=1` → enable debug raw log artifact output (default disabled)
 - `RENDER_LOG_AUDIT_GZIP_RAW=0` → disable gzip for raw output when raw logging is enabled
 - `RENDER_LOG_AUDIT_RAW_PATH=<path>` → raw output base path (default `evidence/render-log-audit.raw.ndjson`)
+
+Log-audit mode behavior:
+- `balanced` (default): fetches a narrow first pass, then auto-escalates to full limit only if warnings/errors/truncation/repo-access signals are detected.
+- `minimal`: narrow pass only, no escalation.
+- `full`: always fetch full limit immediately.
 
 Render service deploy policy utility:
 

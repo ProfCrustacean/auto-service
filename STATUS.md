@@ -23,7 +23,7 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
   - `/appointments/new` has mode switch (`booking` / `walkin`),
   - `mode=walkin` uses same customer/vehicle selection with intake submit (`work-order` creation, no planned slot fields),
   - dashboard entry is unified through one CTA (`Новая запись`), without separate walk-in button,
-  - legacy page route `/intake/walk-in` is explicitly deprecated (`410 Gone`) with migration hint.
+  - legacy page route `/intake/walk-in` is removed from app routing (fallback `404`).
 - Dashboard weekly planning UI is now owner-readable without horizontal weekly scroll:
   - `Неделя по постам` and `Неделя по сотрудникам` are stacked vertically (one above another),
   - week window now uses calendar week semantics `Пн–Вс` (instead of rolling `today+6`),
@@ -59,6 +59,14 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 
 ### Harness/operations
 - Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
+- Harness logging is summary-first by default (`HARNESS_LOG_LEVEL=summary`), with verbose child logs available via `HARNESS_LOG_LEVEL=verbose`.
+- Internal refactor wave completed with no external contract changes:
+  - dashboard projections split into `src/services/dashboard/*` with `DashboardService` as thin orchestrator,
+  - dispatch mutation HTTP path now runs through `src/http/dispatchBoardRouteFactory.js`,
+  - dispatch board UI split into template/styles/client modules (`dispatchBoardPageTemplate/styles/client`),
+  - `verify-render` split into `scripts/render-verify/{config,api,deployFlow,scenarioFlow,logAuditFlow}.js`.
+- Render log audit now defaults to `balanced` fetch mode (narrow first pass + auto-escalation on risk signals), reducing default log pull volume.
+- App request logging now supports `APP_REQUEST_LOG_MODE=all|mutations|errors` so production can reduce request-log noise at the source.
 - Deploy-aware gate now enforces strict preflight before deploy trigger:
   - clean worktree + remote sync checks (default on),
   - manual deploy service policy check (`autoDeploy` off + `autoDeployTrigger` off, default on),
@@ -84,12 +92,18 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 
 ## Last accepted milestones
 
+- 2026-03-24: Refactor wave delivered (dashboard/service decomposition, validator dedupe, dispatch route/UI split, verify-render modular split) with no API/page/CLI contract changes.
 - 2026-03-24: Render deploy verification hardening delivered:
   - strict `verify:render` git+service preflight,
   - deterministic manual deploy policy enforcement,
   - one-command Render policy remediation utility,
   - Render service policy remediated to `autoDeploy=no`, `autoDeployTrigger=off`.
-- 2026-03-23: Unified booking/walk-in page delivered (`/appointments/new?mode=walkin`, legacy `/intake/walk-in` now `410`) and deployed (`7b57980662a2e7a64eee5310d923717bb9dbc6a2`).
+- 2026-03-24: One-pass `scripts/tests` LOC trim delivered without contract changes:
+  - verify/verify-render scenario orchestration deduped,
+  - smoke checks converted to table-driven structure,
+  - repeated test bootstrap reduced via shared harness helpers,
+  - net `scripts+tests` delta: `-420` LOC vs `HEAD` baseline.
+- 2026-03-23: Unified booking/walk-in page delivered (`/appointments/new?mode=walkin`), legacy `/intake/walk-in` page route removed, and deployed (`7b57980662a2e7a64eee5310d923717bb9dbc6a2`).
 - 2026-03-23: Dispatch board DnD/readability hardening delivered and deployed with global overlap warning policy (`f95625f49a76ab071aefb00cf4638a99f783748e`).
 - 2026-03-23: Dispatch board owner-focused simplification delivered and deployed (`ea3ca989dee8362ceadd3882a1c08bdc2da39da2`, runtime fix on top `3945ce76b7667ee5ecccaabee04b235eeb3eabf4`).
 - 2026-03-23: Dispatch board full EventCalendar cutover delivered and deployed (vertical EventCalendar board + API-only dispatch mutations).

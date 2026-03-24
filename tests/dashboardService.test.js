@@ -19,8 +19,8 @@ function parseDayKey(dayKey) {
   return new Date(year, month - 1, day);
 }
 
-test("DashboardService returns expected queue counts from fixtures", () => {
-  const tempDb = createTempDatabase("auto-service-dashboard-test");
+function withDashboardService(prefix, run) {
+  const tempDb = createTempDatabase(prefix);
   const { databasePath, cleanup } = tempDb;
   const config = {
     appEnv: "test",
@@ -33,6 +33,15 @@ test("DashboardService returns expected queue counts from fixtures", () => {
   const service = new DashboardService(repository);
 
   try {
+    return run({ repository, service });
+  } finally {
+    database.close();
+    cleanup();
+  }
+}
+
+test("DashboardService returns expected queue counts from fixtures", () => {
+  withDashboardService("auto-service-dashboard-test", ({ service }) => {
     const payload = service.getTodayDashboard();
 
     assert.equal(payload.summary.appointmentsToday, payload.appointments.length);
@@ -66,26 +75,11 @@ test("DashboardService returns expected queue counts from fixtures", () => {
     assert.equal(typeof payload.week.summary.unscheduledAppointmentsCount, "number");
     assert.equal(payload.search.performed, false);
     assert.equal(payload.search.totals.all, 0);
-  } finally {
-    database.close();
-    cleanup();
-  }
+  });
 });
 
 test("DashboardService today metrics include only current local-day appointments", () => {
-  const tempDb = createTempDatabase("auto-service-dashboard-today-filter");
-  const { databasePath, cleanup } = tempDb;
-  const config = {
-    appEnv: "test",
-    port: 0,
-    seedPath: "./data/seed-fixtures.json",
-    databasePath,
-  };
-  const logger = createSilentLogger();
-  const { repository, database } = bootstrapPersistence({ config, logger });
-  const service = new DashboardService(repository);
-
-  try {
+  withDashboardService("auto-service-dashboard-today-filter", ({ repository, service }) => {
     const before = service.getTodayDashboard();
     const yesterday = toDateKeyWithOffset(-1);
     const today = toDateKeyWithOffset(0);
@@ -150,26 +144,11 @@ test("DashboardService today metrics include only current local-day appointments
     assert.equal(after.appointments.some((item) => item.id === "apt-filter-today"), true);
     assert.equal(after.appointments.some((item) => item.id === "apt-filter-yesterday"), false);
     assert.equal(after.appointments.some((item) => item.id === "apt-filter-tomorrow"), false);
-  } finally {
-    database.close();
-    cleanup();
-  }
+  });
 });
 
 test("DashboardService week plan highlights overbooking and unscheduled appointments", () => {
-  const tempDb = createTempDatabase("auto-service-dashboard-week-test");
-  const { databasePath, cleanup } = tempDb;
-  const config = {
-    appEnv: "test",
-    port: 0,
-    seedPath: "./data/seed-fixtures.json",
-    databasePath,
-  };
-  const logger = createSilentLogger();
-  const { repository, database } = bootstrapPersistence({ config, logger });
-  const service = new DashboardService(repository);
-
-  try {
+  withDashboardService("auto-service-dashboard-week-test", ({ repository, service }) => {
     const dayKey = toDateKeyWithOffset(2);
 
     repository.createAppointment({
@@ -245,26 +224,11 @@ test("DashboardService week plan highlights overbooking and unscheduled appointm
     assert.ok(assigneeDay);
     assert.equal(assigneeDay.isOverbooked, true);
     assert.equal(assigneeDay.slotConflicts, 1);
-  } finally {
-    database.close();
-    cleanup();
-  }
+  });
 });
 
 test("DashboardService search lookup supports customer, phone, plate, VIN and model", () => {
-  const tempDb = createTempDatabase("auto-service-dashboard-search-test");
-  const { databasePath, cleanup } = tempDb;
-  const config = {
-    appEnv: "test",
-    port: 0,
-    seedPath: "./data/seed-fixtures.json",
-    databasePath,
-  };
-  const logger = createSilentLogger();
-  const { repository, database } = bootstrapPersistence({ config, logger });
-  const service = new DashboardService(repository);
-
-  try {
+  withDashboardService("auto-service-dashboard-search-test", ({ service }) => {
     const byCustomer = service.searchLookup({ query: "Елена" });
     assert.ok(byCustomer.totals.customers >= 1);
     assert.equal(byCustomer.customers.some((item) => item.fullName === "Елена Смирнова"), true);
@@ -288,8 +252,5 @@ test("DashboardService search lookup supports customer, phone, plate, VIN and mo
     assert.equal(typeof byModel.timing.durationMs, "number");
     assert.equal(typeof byModel.timing.withinBaseline, "boolean");
     assert.equal(byModel.timing.withinBaseline, true);
-  } finally {
-    database.close();
-    cleanup();
-  }
+  });
 });

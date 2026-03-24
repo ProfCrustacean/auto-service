@@ -213,15 +213,3 @@ export function parsePlaywrightEvalOutput(stdout) {
     throw new Error(`Playwright CLI result was not valid JSON: ${error.message}`);
   }
 }
-
-export function hasCountryRestriction(graphqlErrors) {
-  if (!Array.isArray(graphqlErrors)) {
-    return false;
-  }
-
-  return graphqlErrors.some((error) => {
-    const code = error?.extensions?.code;
-    const message = typeof error?.message === "string" ? error.message : "";
-    return code === "RESTRICTED_COUNTRY_BLOCKED" || /not available in russia/i.test(message);
-  });
-}

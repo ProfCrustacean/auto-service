@@ -6,7 +6,6 @@ import process from "node:process";
 import { loadDotenvIntoProcess } from "./dotenv-loader.js";
 import { redactSecrets, redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
 import {
-  hasCountryRestriction,
   mergeLabelNames,
   normalizeIssueSpec,
   normalizeIssueTitle,
@@ -19,15 +18,6 @@ const LINEAR_GRAPHQL_URL = "https://api.linear.app/graphql";
 const LINEAR_ORIGIN_URL = "https://linear.app";
 const DEFAULT_STATE_NAME = "Backlog";
 const DEFAULT_ISSUES_LIMIT = 250;
-const VIEWER_QUERY = `
-  query ViewerQuery {
-    viewer {
-      id
-      name
-      email
-    }
-  }
-`;
 
 class LinearGraphQLError extends Error {
   constructor(message, { errors = [], statusCode, transportName } = {}) {
@@ -41,15 +31,15 @@ class LinearGraphQLError extends Error {
 
 function printHelp() {
   process.stdout.write(`Usage:\n`);
-  process.stdout.write(`  node scripts/linear-harness.js probe [--team-key <key>] [--state <name>] [--transport <playwright|direct|auto>] [--output <path>]\n`);
-  process.stdout.write(`  node scripts/linear-harness.js create --spec <path> [--dry-run] [--team-key <key>] [--state <name>] [--transport <playwright|direct|auto>] [--output <path>]\n\n`);
-  process.stdout.write(`  node scripts/linear-harness.js sync --spec <path> [--dry-run] [--team-key <key>] [--state <name>] [--transport <playwright|direct|auto>] [--output <path>]\n\n`);
+  process.stdout.write(`  node scripts/linear-harness.js probe [--team-key <key>] [--state <name>] [--transport <playwright>] [--output <path>]\n`);
+  process.stdout.write(`  node scripts/linear-harness.js create --spec <path> [--dry-run] [--team-key <key>] [--state <name>] [--transport <playwright>] [--output <path>]\n\n`);
+  process.stdout.write(`  node scripts/linear-harness.js sync --spec <path> [--dry-run] [--team-key <key>] [--state <name>] [--transport <playwright>] [--output <path>]\n\n`);
   process.stdout.write(`Environment variables:\n`);
   process.stdout.write(`  LINEAR_API_KEY (required)\n`);
   process.stdout.write(`  Optional local defaults can be read from .env / .env.local\n`);
   process.stdout.write(`  LINEAR_TEAM_KEY (optional)\n`);
   process.stdout.write(`  LINEAR_STATE_NAME (optional; default Backlog)\n`);
-  process.stdout.write(`  LINEAR_TRANSPORT (optional; default playwright)\n`);
+  process.stdout.write(`  LINEAR_TRANSPORT (optional; only 'playwright' is supported)\n`);
   process.stdout.write(`  LINEAR_OUTPUT_PATH (optional)\n`);
   process.stdout.write(`  LINEAR_ISSUES_LIMIT (optional; default 250)\n`);
   process.stdout.write(`  LINEAR_PLAYWRIGHT_CLI (optional explicit path to playwright_cli.sh)\n`);
@@ -141,9 +131,9 @@ function parseArgs(argv) {
     throw new Error(`Unsupported command '${options.command}'. Use 'probe', 'create', or 'sync'.`);
   }
 
-  const validTransports = new Set(["playwright", "direct", "auto"]);
+  const validTransports = new Set(["playwright"]);
   if (!validTransports.has(options.transport)) {
-    throw new Error(`Unsupported transport '${options.transport}'. Use playwright, direct, or auto.`);
+    throw new Error(`Unsupported transport '${options.transport}'. Use playwright.`);
   }
 
   if ((options.command === "create" || options.command === "sync") && !options.specPath) {
@@ -204,52 +194,6 @@ function makeRequestBody(query, variables) {
     query,
     variables: variables ?? {},
   };
-}
-
-class DirectTransport {
-  constructor(apiKey) {
-    this.name = "direct";
-    this.apiKey = apiKey;
-  }
-
-  async request(query, variables) {
-    let response;
-    try {
-      response = await fetch(LINEAR_GRAPHQL_URL, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: this.apiKey,
-        },
-        body: JSON.stringify(makeRequestBody(query, variables)),
-      });
-    } catch (error) {
-      throw new Error(`Direct Linear request failed: ${error.message}`);
-    }
-
-    let payload;
-    try {
-      payload = await response.json();
-    } catch (error) {
-      throw new Error(`Linear API returned non-JSON response (${response.status}): ${error.message}`);
-    }
-
-    if (!response.ok || payload.errors) {
-      const decodedErrors = payload.errors ? decodeGraphqlErrors(payload.errors) : "";
-      const errorMessage = decodedErrors || `HTTP ${response.status}`;
-      throw new LinearGraphQLError(`Linear GraphQL request failed: ${errorMessage}`, {
-        errors: payload.errors,
-        statusCode: response.status,
-        transportName: this.name,
-      });
-    }
-
-    return payload.data;
-  }
-
-  async close() {
-    // no-op
-  }
 }
 
 class PlaywrightTransport {
@@ -390,39 +334,11 @@ class PlaywrightTransport {
   }
 }
 
-function shouldFallbackToPlaywright(error) {
-  if (error instanceof LinearGraphQLError) {
-    if (hasCountryRestriction(error.errors)) {
-      return true;
-    }
-
-    return error.statusCode === 403 || error.statusCode === 451;
-  }
-
-  const message = typeof error?.message === "string" ? error.message : "";
-  return /fetch failed|network|timed out/i.test(message);
-}
-
 async function resolveTransport(apiKey, transportPreference) {
-  if (transportPreference === "direct") {
-    return new DirectTransport(apiKey);
+  if (transportPreference !== "playwright") {
+    throw new Error(`Unsupported transport '${transportPreference}'. Use playwright.`);
   }
-
-  if (transportPreference === "playwright") {
-    return new PlaywrightTransport(apiKey);
-  }
-
-  const direct = new DirectTransport(apiKey);
-  try {
-    await direct.request(VIEWER_QUERY, {});
-    return direct;
-  } catch (error) {
-    if (!shouldFallbackToPlaywright(error)) {
-      throw error;
-    }
-
-    return new PlaywrightTransport(apiKey);
-  }
+  return new PlaywrightTransport(apiKey);
 }
 
 async function fetchWorkspaceContext(transport, { teamSelector, stateName, issuesLimit }) {

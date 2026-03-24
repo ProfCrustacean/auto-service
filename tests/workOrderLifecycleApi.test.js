@@ -1,34 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  closeServer,
-  createTempDatabase,
-  makeServer,
+  buildUniqueSlot,
   requestJson,
-  waitForServer,
+  withTestServer,
 } from "./helpers/httpHarness.js";
 
-function buildUniqueSlot(token, hour = 16) {
-  const date = new Date();
-  const minute = Number.parseInt(token.slice(-2), 10) % 60;
-  date.setHours(hour, minute, 0, 0);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
 test("work-order lifecycle API supports list/detail/update with transition invariants", async () => {
-  const tempDb = createTempDatabase("auto-service-work-order-api");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
-
+  await withTestServer("auto-service-work-order-api", async ({ baseUrl }) => {
     const list = await requestJson("GET", `${baseUrl}/api/v1/work-orders`);
     assert.equal(list.status, 200);
     assert.equal(Array.isArray(list.json.items), true);
@@ -72,23 +51,11 @@ test("work-order lifecycle API supports list/detail/update with transition invar
     });
     assert.equal(missingBay.status, 404);
     assert.equal(missingBay.json.error.code, "not_found");
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });
 
 test("appointment to work-order conversion is idempotent and enforces appointment status guardrails", async () => {
-  const tempDb = createTempDatabase("auto-service-work-order-convert-api");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+  await withTestServer("auto-service-work-order-convert-api", async ({ baseUrl }) => {
     const token = `${Date.now()}`;
 
     const createAppointment = await requestJson("POST", `${baseUrl}/api/v1/appointments`, {
@@ -140,24 +107,11 @@ test("appointment to work-order conversion is idempotent and enforces appointmen
     const blockedConvert = await requestJson("POST", `${baseUrl}/api/v1/appointments/${blockedAppointmentId}/convert-to-work-order`);
     assert.equal(blockedConvert.status, 409);
     assert.equal(blockedConvert.json.error.code, "conflict");
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });
 
 test("work-order parts APIs enforce blocking lifecycle rules and supplier action sync", async () => {
-  const tempDb = createTempDatabase("auto-service-work-order-parts-api");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
-
+  await withTestServer("auto-service-work-order-parts-api", async ({ baseUrl }) => {
     const createRequest = await requestJson("POST", `${baseUrl}/api/v1/work-orders/wo-1004/parts-requests`, {
       partName: "Катушка зажигания",
       requestedQty: 1,
@@ -225,9 +179,5 @@ test("work-order parts APIs enforce blocking lifecycle rules and supplier action
     const completedOrderPartsList = await requestJson("GET", `${baseUrl}/api/v1/work-orders/wo-0091/parts-requests`);
     assert.equal(completedOrderPartsList.status, 200);
     assert.equal(Array.isArray(completedOrderPartsList.json.items), true);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });

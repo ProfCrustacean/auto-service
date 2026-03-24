@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const VALID_AUTH_ROLES = new Set(["owner", "front_desk", "technician"]);
+const VALID_REQUEST_LOG_MODES = new Set(["all", "mutations", "errors"]);
 
 function parseImplicitUiRole(rawValue) {
   if (rawValue === undefined) {
@@ -29,6 +30,22 @@ function parseImplicitUiRole(rawValue) {
   return normalized;
 }
 
+function parseRequestLogMode(rawValue, appEnv) {
+  const defaultMode = appEnv === "production" ? "errors" : "all";
+  if (rawValue === undefined) {
+    return defaultMode;
+  }
+
+  const normalized = String(rawValue).trim().toLowerCase();
+  if (!VALID_REQUEST_LOG_MODES.has(normalized)) {
+    throw new Error(
+      `Invalid APP_REQUEST_LOG_MODE: ${rawValue}. Expected one of all, mutations, errors.`,
+    );
+  }
+
+  return normalized;
+}
+
 export function loadConfig() {
   const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 
@@ -44,9 +61,13 @@ export function loadConfig() {
   ];
   const implicitUiRole = parseImplicitUiRole(process.env.AUTH_UI_IMPLICIT_ROLE);
 
+  const appEnv = process.env.NODE_ENV ?? "development";
+  const requestLogMode = parseRequestLogMode(process.env.APP_REQUEST_LOG_MODE, appEnv);
+
   return {
-    appEnv: process.env.NODE_ENV ?? "development",
+    appEnv,
     port,
+    requestLogMode,
     databasePath:
       process.env.DB_PATH ?? path.resolve(dirname, "..", "data", "auto-service.sqlite"),
     seedPath:

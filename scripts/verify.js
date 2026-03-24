@@ -10,6 +10,7 @@ import { redactSecretsInText, stringifyRedacted } from "./secret-redaction.js";
 import {
   assertPositiveInteger,
   runProcess as runProcessBase,
+  resolveHarnessLogLevel,
   wait,
   withTimeout,
 } from "./harness-process.js";
@@ -33,6 +34,11 @@ function getLastLogLines(chunks, maxBytes = 4000) {
 
 function runProcess(command, args, { env, label }) {
   return runProcessBase(command, args, { env, label });
+}
+
+async function runStep({ step, baseUrl, args, label, env = process.env, logLevel }) {
+  logJson({ status: "verify_step_started", step, ...(baseUrl ? { baseUrl } : {}) });
+  await runProcess(process.execPath, args, { env, label, logLevel });
 }
 
 function waitForExit(child) {
@@ -120,18 +126,33 @@ async function stopServer(serverChild) {
 
 async function main() {
   assertPositiveInteger(READY_TIMEOUT_MS, "VERIFY_READY_TIMEOUT_MS");
+  const harnessLogLevel = resolveHarnessLogLevel();
 
   const includeScenario = process.env.VERIFY_INCLUDE_SCENARIO !== "0";
-  const includeBookingScenario = process.env.VERIFY_INCLUDE_BOOKING_SCENARIO !== "0";
-  const includeWalkInPageScenario = process.env.VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO !== "0";
+  const includeIntakeBookingScenario = (
+    process.env.VERIFY_INCLUDE_INTAKE_BOOKING_SCENARIO
+    ?? process.env.VERIFY_INCLUDE_BOOKING_SCENARIO
+    ?? "1"
+  ) !== "0";
+  const includeIntakeWalkInScenario = (
+    process.env.VERIFY_INCLUDE_INTAKE_WALKIN_SCENARIO
+    ?? process.env.VERIFY_INCLUDE_WALKIN_PAGE_SCENARIO
+    ?? "1"
+  ) !== "0";
   const includePartsScenario = process.env.VERIFY_INCLUDE_PARTS_SCENARIO !== "0";
   const includeDispatchBoardScenario = process.env.VERIFY_INCLUDE_DISPATCH_BOARD_SCENARIO !== "0";
   const includeRender = process.env.VERIFY_RENDER === "1";
+  const artifactMode = String(process.env.HARNESS_ARTIFACTS ?? "minimal").trim().toLowerCase();
+  const writeFullArtifacts = artifactMode === "full";
   const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "auto-service-verify-"));
   const dbPath = path.join(tmpRoot, "verify.sqlite");
 
-  await fsp.mkdir(path.resolve("evidence"), { recursive: true });
-  const serverLogPath = path.resolve("evidence", "verify-server.log");
+  const serverLogPath = writeFullArtifacts
+    ? path.resolve("evidence", "verify-server.log")
+    : path.join(tmpRoot, "verify-server.log");
+  if (writeFullArtifacts) {
+    await fsp.mkdir(path.resolve("evidence"), { recursive: true });
+  }
   const logStream = fs.createWriteStream(serverLogPath, { flags: "w" });
   const logChunks = [];
 
@@ -140,10 +161,12 @@ async function main() {
   const baseUrl = `http://127.0.0.1:${port}`;
 
   try {
-    logJson({ status: "verify_step_started", step: "tests" });
-    await runProcess(process.execPath, ["--test"], {
+    await runStep({
+      step: "tests",
+      args: ["--test"],
       env: process.env,
       label: "node --test",
+      logLevel: harnessLogLevel,
     });
 
     logJson({ status: "verify_step_started", step: "server_boot", baseUrl, dbPath });
@@ -176,102 +199,90 @@ async function main() {
 
     await waitForReady(baseUrl, serverChild, logChunks);
 
-    logJson({ status: "verify_step_started", step: "smoke", baseUrl });
-    await runProcess(process.execPath, ["scripts/smoke.js"], {
-      env: {
-        ...process.env,
-        APP_BASE_URL: baseUrl,
+    const scenarioEnv = { ...process.env, APP_BASE_URL: baseUrl };
+    const scenarioSteps = [
+      { enabled: true, step: "smoke", args: ["scripts/smoke.js"], label: "smoke" },
+      {
+        enabled: includeIntakeBookingScenario,
+        step: "scenario_intake_page_booking",
+        args: ["scripts/intake-page-scenario.js", "--mode", "booking"],
+        label: "scenario:intake-page:booking",
       },
-      label: "smoke",
-    });
-
-    if (includeBookingScenario) {
-      logJson({ status: "verify_step_started", step: "scenario_booking_page", baseUrl });
-      await runProcess(process.execPath, ["scripts/booking-page-scenario.js"], {
-        env: {
-          ...process.env,
-          APP_BASE_URL: baseUrl,
-        },
-        label: "scenario:booking-page",
-      });
-    }
-
-    if (includeWalkInPageScenario) {
-      logJson({ status: "verify_step_started", step: "scenario_walkin_page", baseUrl });
-      await runProcess(process.execPath, ["scripts/walkin-page-scenario.js"], {
-        env: {
-          ...process.env,
-          APP_BASE_URL: baseUrl,
-        },
-        label: "scenario:walkin-page",
-      });
-    }
-
-    if (includeScenario) {
-      logJson({ status: "verify_step_started", step: "scenario_scheduling_walkin", baseUrl });
-      await runProcess(process.execPath, ["scripts/scheduling-walkin-scenario.js"], {
-        env: {
-          ...process.env,
-          APP_BASE_URL: baseUrl,
-        },
+      {
+        enabled: includeIntakeWalkInScenario,
+        step: "scenario_intake_page_walkin",
+        args: ["scripts/intake-page-scenario.js", "--mode", "walkin"],
+        label: "scenario:intake-page:walkin",
+      },
+      {
+        enabled: includeScenario,
+        step: "scenario_scheduling_walkin",
+        args: ["scripts/scheduling-walkin-scenario.js"],
         label: "scenario:scheduling-walkin",
-      });
-    }
-
-    if (includePartsScenario) {
-      logJson({ status: "verify_step_started", step: "scenario_parts_flow", baseUrl });
-      await runProcess(process.execPath, ["scripts/parts-flow-scenario.js"], {
-        env: {
-          ...process.env,
-          APP_BASE_URL: baseUrl,
-        },
+      },
+      {
+        enabled: includePartsScenario,
+        step: "scenario_parts_flow",
+        args: ["scripts/parts-flow-scenario.js"],
         label: "scenario:parts-flow",
-      });
-    }
-
-    if (includeDispatchBoardScenario) {
-      logJson({ status: "verify_step_started", step: "scenario_dispatch_board", baseUrl });
-      await runProcess(process.execPath, ["scripts/dispatch-board-scenario.js"], {
-        env: {
-          ...process.env,
-          APP_BASE_URL: baseUrl,
-        },
+      },
+      {
+        enabled: includeDispatchBoardScenario,
+        step: "scenario_dispatch_board",
+        args: ["scripts/dispatch-board-scenario.js"],
         label: "scenario:dispatch-board",
+      },
+    ];
+    for (const scenarioStep of scenarioSteps) {
+      if (!scenarioStep.enabled) {
+        continue;
+      }
+      await runStep({
+        ...scenarioStep,
+        baseUrl,
+        env: scenarioEnv,
+        logLevel: harnessLogLevel,
       });
     }
 
     if (includeRender) {
-      logJson({ status: "verify_step_started", step: "render_verify" });
-      await runProcess(process.execPath, ["scripts/verify-render.js"], {
+      await runStep({
+        step: "render_verify",
+        args: ["scripts/verify-render.js"],
         env: process.env,
         label: "verify:render",
+        logLevel: harnessLogLevel,
       });
     }
 
     logJson({
       status: "verify_passed",
       baseUrl,
-      includeBookingScenario,
-      includeWalkInPageScenario,
+      includeIntakeBookingScenario,
+      includeIntakeWalkInScenario,
       includeScenario,
       includePartsScenario,
       includeDispatchBoardScenario,
       includeRender,
-      serverLogPath,
+      serverLogPath: writeFullArtifacts ? serverLogPath : null,
       dbPath,
+      harnessLogLevel,
+      artifactMode: writeFullArtifacts ? "full" : "minimal",
     });
   } catch (error) {
     logJson({
       status: "verify_failed",
       message: error.message,
       baseUrl,
-      includeBookingScenario,
-      includeWalkInPageScenario,
+      includeIntakeBookingScenario,
+      includeIntakeWalkInScenario,
       includeScenario,
       includePartsScenario,
       includeDispatchBoardScenario,
       includeRender,
-      serverLogPath,
+      serverLogPath: writeFullArtifacts ? serverLogPath : null,
+      harnessLogLevel,
+      artifactMode: writeFullArtifacts ? "full" : "minimal",
     });
     process.exitCode = 1;
   } finally {

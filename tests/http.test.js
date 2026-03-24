@@ -1,17 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { closeServer, createTempDatabase, makeServer, waitForServer } from "./helpers/httpHarness.js";
+import { withTestServer } from "./helpers/httpHarness.js";
 
 test("health and dashboard endpoints return successful responses", async () => {
-  const tempDb = createTempDatabase("auto-service-http-test");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+  await withTestServer("auto-service-http-test", async ({ baseUrl }) => {
 
     const healthRes = await fetch(`${baseUrl}/healthz`);
     assert.equal(healthRes.status, 200);
@@ -91,29 +83,11 @@ test("health and dashboard endpoints return successful responses", async () => {
     const walkInModeHtml = await walkInModeRes.text();
     assert.match(walkInModeHtml, /Форма приема/);
     assert.match(walkInModeHtml, /Принять без записи/);
-
-    const intakeRes = await fetch(`${baseUrl}/intake/walk-in`);
-    assert.equal(intakeRes.status, 410);
-    const intakeHtml = await intakeRes.text();
-    assert.match(intakeHtml, /Страница перенесена/);
-    assert.match(intakeHtml, /\/appointments\/new\?mode=walkin/);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });
 
 test("malformed JSON request body returns structured validation error", async () => {
-  const tempDb = createTempDatabase("auto-service-http-json-error-test");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  try {
-    const address = server.address();
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+  await withTestServer("auto-service-http-json-error-test", async ({ baseUrl }) => {
 
     const response = await fetch(`${baseUrl}/api/v1/appointments`, {
       method: "POST",
@@ -136,9 +110,5 @@ test("malformed JSON request body returns structured validation error", async ()
     const serialized = JSON.stringify(payload);
     assert.equal(serialized.includes("SyntaxError"), false);
     assert.equal(serialized.includes("/Users/"), false);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });

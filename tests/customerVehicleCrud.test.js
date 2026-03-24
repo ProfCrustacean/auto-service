@@ -1,24 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  closeServer,
-  createTempDatabase,
-  makeServer,
   requestJson,
-  waitForServer,
+  withTestServer,
 } from "./helpers/httpHarness.js";
 
 test("customer and vehicle CRUD APIs preserve ownership history and work-order snapshots", async () => {
-  const tempDb = createTempDatabase("auto-service-customer-vehicle-test");
-  const { databasePath, cleanup } = tempDb;
-  const { server, database } = makeServer({ databasePath });
-
-  await waitForServer(server);
-
-  const address = server.address();
-  const baseUrl = `http://127.0.0.1:${address.port}`;
-
-  try {
+  await withTestServer("auto-service-customer-vehicle-test", async ({ baseUrl }) => {
     const invalidCustomerCreate = await requestJson("POST", `${baseUrl}/api/v1/customers`, {
       phone: "+7 900 000 00 00",
     });
@@ -135,9 +123,5 @@ test("customer and vehicle CRUD APIs preserve ownership history and work-order s
     const allVehicles = await requestJson("GET", `${baseUrl}/api/v1/vehicles?includeInactive=true`);
     assert.equal(allVehicles.status, 200);
     assert.equal(allVehicles.json.items.some((item) => item.id === createdVehicle.id), true);
-  } finally {
-    await closeServer(server);
-    database.close();
-    cleanup();
-  }
+  });
 });

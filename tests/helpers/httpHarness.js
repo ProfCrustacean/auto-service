@@ -34,6 +34,7 @@ export function makeServer({
   port = 0,
   logger = createSilentLogger(),
   authConfig = {},
+  requestLogMode = "all",
 }) {
   const defaultAuthConfig = {
     enabled: process.env.TEST_AUTH_ENABLED !== "0",
@@ -48,6 +49,7 @@ export function makeServer({
   const config = {
     appEnv: "test",
     port,
+    requestLogMode,
     seedPath: "./data/seed-fixtures.json",
     databasePath,
     auth: {
