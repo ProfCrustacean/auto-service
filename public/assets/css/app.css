@@ -314,7 +314,7 @@ table {
 }
 
 .load-table-wrap {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .load-table {
@@ -325,26 +325,28 @@ table {
 
 .load-table th,
 .load-table td {
-  white-space: nowrap;
+  padding: 8px 6px;
 }
 
 .load-col-label {
-  width: 52%;
+  width: 41%;
 }
 
 .load-col-metric {
-  width: 16%;
+  width: 19.666%;
 }
 
 .load-table th:first-child,
 .load-table td:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .load-table th:nth-child(n + 2),
 .load-table td:nth-child(n + 2) {
   text-align: center;
+  white-space: nowrap;
 }
 
 th,
