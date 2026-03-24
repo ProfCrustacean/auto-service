@@ -22,6 +22,19 @@ function formatTimestamp(value) {
   }
 }
 
+function formatTodayDateLabel(value) {
+  try {
+    const dateLabel = new Intl.DateTimeFormat("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(value));
+    return `Сегодня: ${dateLabel}`;
+  } catch {
+    return "Сегодня: н/д";
+  }
+}
+
 function renderLoadRows(rows) {
   if (rows.length === 0) {
     return '<tr><td colspan="4">Нет данных</td></tr>';
@@ -230,6 +243,7 @@ function renderSearchWorkOrderRows(rows) {
 export function renderDashboardPage(model) {
   const { service, summary, appointments, queues, load, week, search, actions, generatedAt } = model;
   const title = `${service.displayNameRu} — Операционная доска`;
+  const todayLabel = formatTodayDateLabel(generatedAt);
   const body = `
   <main class="page-shell dashboard-page">
 
@@ -471,9 +485,12 @@ export function renderDashboardPage(model) {
 
     <section class="split-grid">
       <article class="panel">
-        <h2>Нагрузка по постам (день)</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="panel-title-row">
+          <h2>Нагрузка по постам (день)</h2>
+          <span class="panel-date">${escapeHtml(todayLabel)}</span>
+        </div>
+        <div class="table-wrap load-table-wrap">
+          <table class="load-table">
             <thead>
               <tr>
                 <th>Пост</th>
@@ -490,9 +507,12 @@ export function renderDashboardPage(model) {
       </article>
 
       <article class="panel">
-        <h2>Нагрузка по сотрудникам</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="panel-title-row">
+          <h2>Нагрузка по сотрудникам (день)</h2>
+          <span class="panel-date">${escapeHtml(todayLabel)}</span>
+        </div>
+        <div class="table-wrap load-table-wrap">
+          <table class="load-table">
             <thead>
               <tr>
                 <th>Сотрудник</th>

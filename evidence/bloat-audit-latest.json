@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-24T21:03:48.168Z",
+  "generatedAt": "2026-03-24T21:27:49.452Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1082420,
+      "totalBytes": 1083732,
       "byArea": {
-        "src": 490099,
-        "tests": 154999,
+        "src": 490785,
+        "tests": 154943,
         "scripts": 214993,
         "docs": 84928,
-        "evidence": 7638,
-        "other": 129763
+        "evidence": 7806,
+        "other": 130277
       }
     },
     "topTrackedFiles": [
@@ -72,7 +72,7 @@
       },
       {
         "path": "src/ui/dashboardPage.js",
-        "bytes": 18387
+        "bytes": 19073
       },
       {
         "path": "PLANS_ARCHIVE.md",
@@ -117,7 +117,7 @@
     ],
     "evidence": {
       "trackedFileCount": 3,
-      "totalBytes": 7638,
+      "totalBytes": 7806,
       "largestFile": {
         "path": "evidence/linear-aut73-81-done-sync.json",
         "bytes": 3567
@@ -132,12 +132,12 @@
       }
     },
     "duplication": {
-      "percentage": 5.07,
+      "percentage": 5.06,
       "duplicatedLines": 1228,
       "clones": 91,
       "sources": 135,
-      "lines": 24228,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-vjdYRJ/report/jscpd-report.json"
+      "lines": 24246,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-p5kYcn/report/jscpd-report.json"
     }
   },
   "violations": []

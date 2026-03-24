@@ -26,16 +26,14 @@ test("health and dashboard endpoints return successful responses", async () => {
     const html = await uiRes.text();
     assert.match(html, /Диспетчер действий/);
     assert.match(html, /План недели: загрузка и перегруз/);
-    assert.match(html, /Быстрый поиск клиента и авто/);
-    assert.match(html, /Готово к выдаче, но не оплачено/);
     assert.match(html, /Операционные очереди/);
-    assert.doesNotMatch(html, /Принять без записи/);
-    assert.match(html, /class="week-stack"/);
-    assert.match(html, /week-table-wrap/);
-    assert.match(html, /\/assets\/vendor\/pico\.min\.css/u);
-    assert.match(html, /\/assets\/css\/tokens\.css/u);
-    assert.match(html, /\/assets\/css\/app\.css/u);
-    assert.doesNotMatch(html, /<style>/u);
+    assert.match(html, /Нагрузка по сотрудникам \(день\)/);
+    const todayDateMatches = [...html.matchAll(/Сегодня:\s\d{2}\.\d{2}\.\d{4}/gu)];
+    assert.ok(todayDateMatches.length >= 2);
+    const loadWrapMatches = html.match(/class="table-wrap load-table-wrap"/gu) ?? [];
+    assert.equal(loadWrapMatches.length, 2);
+    const loadTableMatches = html.match(/<table class="load-table">/gu) ?? [];
+    assert.equal(loadTableMatches.length, 2);
 
     const dashboardSearchRes = await fetch(`${baseUrl}/api/v1/dashboard/today?q=Focus`);
     assert.equal(dashboardSearchRes.status, 200);

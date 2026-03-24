@@ -77,6 +77,25 @@ h3 {
   gap: var(--ui-space-3);
 }
 
+.panel-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  margin-bottom: var(--ui-space-3);
+}
+
+.panel-title-row h2 {
+  margin-bottom: 0;
+}
+
+.panel-date {
+  color: var(--ui-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .action-bar {
   display: flex;
   flex-wrap: wrap;
@@ -292,6 +311,22 @@ table {
   min-width: 0;
   width: 100%;
   table-layout: fixed;
+}
+
+.load-table-wrap {
+  overflow-x: clip;
+}
+
+.load-table {
+  min-width: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.load-table th,
+.load-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 th,
