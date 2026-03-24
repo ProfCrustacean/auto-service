@@ -44,6 +44,7 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-24 — Dispatch board reverse DnD unassign flow
 - 2026-03-24 — Pico UI baseline rollout + production verification (`AUT-120..AUT-132`)
 - 2026-03-24 — Honest bloat remediation (return helper ownership to scripts/tests + direct LOC/byte reduction)
+- 2026-03-24 — Unified dashboard queues table + production deploy verification
 
 ## Completed Plan — Linear harness simplification: Playwright-only full rewrite (2026-03-24)
 

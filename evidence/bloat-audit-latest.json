@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-24T20:54:46.208Z",
+  "generatedAt": "2026-03-24T21:03:48.168Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1079884,
+      "totalBytes": 1082420,
       "byArea": {
-        "src": 488491,
+        "src": 490099,
         "tests": 154999,
         "scripts": 214993,
         "docs": 84928,
         "evidence": 7638,
-        "other": 128835
+        "other": 129763
       }
     },
     "topTrackedFiles": [
@@ -99,16 +99,16 @@
         "bytes": 14043
       },
       {
+        "path": "STATUS.md",
+        "bytes": 14002
+      },
+      {
         "path": "README.md",
         "bytes": 13568
       },
       {
         "path": "src/http/appointmentPageRoutes.js",
         "bytes": 13451
-      },
-      {
-        "path": "STATUS.md",
-        "bytes": 13155
       },
       {
         "path": "src/ui/pageFormShared.js",
@@ -127,8 +127,8 @@
     "docs": {
       "lineCounts": {
         "README": 320,
-        "STATUS": 212,
-        "PLANS": 196
+        "STATUS": 221,
+        "PLANS": 197
       }
     },
     "duplication": {
@@ -137,7 +137,7 @@
       "clones": 91,
       "sources": 135,
       "lines": 24228,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-RM0lSE/report/jscpd-report.json"
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-vjdYRJ/report/jscpd-report.json"
     }
   },
   "violations": []

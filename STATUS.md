@@ -28,6 +28,10 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
   - `Неделя по постам` and `Неделя по сотрудникам` are stacked vertically (one above another),
   - week window now uses calendar week semantics `Пн–Вс` (instead of rolling `today+6`),
   - weekly table cells use fixed layout with wrapped meta text for denser, readable day columns.
+- Dashboard lifecycle queues are now unified into one table with subsection blocks:
+  - one heading panel (`Операционные очереди заказ-нарядов`) instead of separate queue panels,
+  - subsection headers for diagnosis/approval/parts/pause/ready-for-pickup,
+  - common row structure with optional parts columns (`—` for non-parts subsections).
 - Dispatch board is fully migrated to EventCalendar (`@event-calendar/build@5.5.1`) with owner-focused calendar-only controls:
   - vertical `resourceTimeGridDay` view (time top-to-bottom, resources as lanes),
   - removed top metric strips and removed bottom manual control panel,
@@ -108,9 +112,14 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
 
 ## Last accepted milestones
 
+- 2026-03-24: Unified dashboard queues + honest bloat remediation deployed and production-validated:
+  - commit: `d13e1c089be7506c74506c91475045418d8dfd9b`,
+  - dashboard queue panels merged into one subsectioned operational table,
+  - `audit:bloat` remains within unchanged area budgets (`scripts=214993`, `tests=154999`),
+  - Render deploy verification passed with smoke + non-destructive scenarios + log audit (`dep-d71fnhp5pdvs73c78ve0`).
 - 2026-03-24: Honest bloat remediation delivered without budget increases or area-evasion:
   - helper ownership restored to original areas (`scripts`/`tests`),
-  - `audit:bloat` passes with `scripts=215000`, `tests=154932`,
+  - `audit:bloat` passes with area budgets unchanged (`scripts=215000`, `tests=155000` caps),
   - render policy/preflight helpers deduped and page-form test helper reuse increased.
 - 2026-03-24: Pico UI baseline rollout completed and production-validated:
   - commit: `f94f7c6abbdf2204b0b211413994c4fc3bbbfcca`,
@@ -157,8 +166,8 @@ Most recent deploy-aware gate results:
 - `npm run verify:render -- --skip-deploy`: passed
 - `npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d70vvalactks738jmhrg`
-  - latest commit parity: `f94f7c6abbdf2204b0b211413994c4fc3bbbfcca`
+  - latest deploy id: `dep-d71fnhp5pdvs73c78ve0`
+  - latest commit parity: `d13e1c089be7506c74506c91475045418d8dfd9b`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 

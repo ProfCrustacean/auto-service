@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-03-24T03:06:58.875Z",
-  "startTime": "2026-03-24T03:05:49.095Z",
-  "endTime": "2026-03-24T03:06:57.874Z",
-  "deployId": "dep-d70vvalactks738jmhrg",
+  "generatedAt": "2026-03-24T21:02:52.536Z",
+  "startTime": "2026-03-24T21:01:30.059Z",
+  "endTime": "2026-03-24T21:02:51.229Z",
+  "deployId": "dep-d71fnhp5pdvs73c78ve0",
   "mode": "balanced",
   "escalated": false,
   "fetch": {
     "initialLimit": 200,
     "fullLimit": 200,
-    "rowsFetchedInitial": 49,
+    "rowsFetchedInitial": 55,
     "rowsFetchedExpanded": 0
   },
   "totals": {
-    "rows": 49,
+    "rows": 55,
     "bySeverity": {
-      "info": 49,
+      "info": 55,
       "warn": 0,
       "error": 0,
       "fatal": 0
@@ -34,7 +34,7 @@
       "hasMore": false
     },
     "app": {
-      "rows": 31,
+      "rows": 37,
       "hasMore": false
     }
   },
