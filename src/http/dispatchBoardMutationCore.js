@@ -350,34 +350,3 @@ export function executeDispatchQueueWalkInSchedule({
     laneMode,
   }, warnings);
 }
-
-export function executeDispatchUnassign({
-  appointmentService,
-  appointmentId,
-  changedBy,
-  reason,
-  actor,
-  dayLocal,
-  laneMode,
-}) {
-  const updated = appointmentService.updateAppointmentById(appointmentId, {
-    bayId: null,
-    primaryAssignee: null,
-  }, {
-    changedBy: changedBy ?? actor,
-    reason: reason ?? "Снято назначение на диспетчерской доске",
-    source: "dispatch_board_api_unassign",
-  });
-
-  if (!updated) {
-    return null;
-  }
-
-  const { item, warnings } = extractItemWarnings(updated);
-  return withWarnings({
-    unassigned: true,
-    item,
-    day: dayLocal,
-    laneMode,
-  }, warnings);
-}

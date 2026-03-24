@@ -22,11 +22,11 @@ function resolveAppointmentLaneKey(appointment, laneMode) {
     const assignee = String(appointment.primaryAssignee ?? "").trim();
     return assignee.length > 0 && assignee !== "Без ответственного"
       ? `tech:${assignee}`
-      : null;
+      : "tech:none";
   }
 
   const bayId = String(appointment.bayId ?? "").trim();
-  return bayId.length > 0 ? `bay:${bayId}` : null;
+  return bayId.length > 0 ? `bay:${bayId}` : "bay:none";
 }
 
 function sortByCodeAscending(left, right) {
@@ -83,18 +83,34 @@ export function buildDispatchBoard({ repository, day = null, laneMode = "bay" })
     .filter((item) => item.status === "waiting_diagnosis" || item.status === "waiting_approval");
 
   const lanes = normalizedLaneMode === "technician"
-    ? employees.map((employee) => ({
-      key: `tech:${employee.name}`,
-      label: employee.name,
-      type: "technician",
-      value: employee.name,
-    }))
-    : serviceMeta.bays.map((bay) => ({
-      key: `bay:${bay.id}`,
-      label: bay.name,
-      type: "bay",
-      value: bay.id,
-    }));
+    ? [
+      ...employees.map((employee) => ({
+        key: `tech:${employee.name}`,
+        label: employee.name,
+        type: "technician",
+        value: employee.name,
+      })),
+      {
+        key: "tech:none",
+        label: "Без ответственного",
+        type: "technician",
+        value: null,
+      },
+    ]
+    : [
+      ...serviceMeta.bays.map((bay) => ({
+        key: `bay:${bay.id}`,
+        label: bay.name,
+        type: "bay",
+        value: bay.id,
+      })),
+      {
+        key: "bay:none",
+        label: "Без поста",
+        type: "bay",
+        value: null,
+      },
+    ];
 
   const laneByKey = new Map(lanes.map((lane) => [lane.key, lane]));
   const appointmentCards = [];
@@ -137,20 +153,13 @@ export function buildDispatchBoard({ repository, day = null, laneMode = "bay" })
 
   appointmentCards.sort((left, right) => left.startMinute - right.startMinute || sortByCodeAscending(left, right));
 
-  const unscheduledAppointmentsQueue = allAppointments
+  const outsideOfDayQueue = allAppointments
     .filter((appointment) => {
       if (!WEEK_PLANNED_STATUSES.has(appointment.status)) {
         return false;
       }
       const slot = parseWeekSlot(appointment.plannedStartLocal, now);
-      const laneKey = resolveAppointmentLaneKey(appointment, normalizedLaneMode);
-      if (slot.kind !== "scheduled") {
-        return true;
-      }
-      if (slot.dayKey !== dayLocal) {
-        return true;
-      }
-      return laneKey === null;
+      return slot.kind === "scheduled" && slot.dayKey !== dayLocal;
     })
     .slice(0, 40)
     .sort((left, right) => String(left.plannedStartLocal).localeCompare(String(right.plannedStartLocal), "ru-RU"))
@@ -259,7 +268,7 @@ export function buildDispatchBoard({ repository, day = null, laneMode = "bay" })
     resources,
     events,
     queues: {
-      unscheduledAppointments: unscheduledAppointmentsQueue,
+      unscheduledAppointments: outsideOfDayQueue,
       walkIn: walkInQueueItems,
     },
     actions: {

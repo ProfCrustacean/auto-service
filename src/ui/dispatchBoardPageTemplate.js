@@ -37,12 +37,9 @@ function renderQueuePanel(model) {
   return `<aside class="queue-panel">
     <section class="queue-block">
       <header>
-        <h2>Неназначенные и переносы</h2>
+        <h2>Очередь переносов</h2>
         <p>Перетащите карточку на календарь, чтобы назначить слот и ленту.</p>
       </header>
-      <div id="dispatch-unassign-dropzone" class="unassign-dropzone">
-        Перетащите запись из календаря сюда, чтобы снять назначение
-      </div>
       <ul class="queue-list" id="dispatch-queue-appointments">
         ${renderQueueList(model.queues.unscheduledAppointments, "appointment")}
       </ul>

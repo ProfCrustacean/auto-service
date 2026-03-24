@@ -56,8 +56,4 @@ export function registerDispatchBoardPageRoutes(app, {
   app.post("/api/v1/dispatch/board/queue/walk-ins/:id/schedule", (req, res) => withUnexpectedError(logger, req, res, "dispatch_board_walkin_schedule_failed", () => {
     routeFactory.scheduleQueueWalkIn(req, res);
   }));
-
-  app.post("/api/v1/dispatch/board/events/:id/unassign", (req, res) => withUnexpectedError(logger, req, res, "dispatch_board_unassign_failed", () => {
-    routeFactory.unassign(req, res);
-  }));
 }

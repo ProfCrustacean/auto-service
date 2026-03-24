@@ -211,17 +211,6 @@ async function runDefault(mode) {
   });
   expectStatus(resizeCommit, 200, "dispatch_commit_resize");
 
-  const unassignCommit = await requestScenarioJson(baseUrl, `/api/v1/dispatch/board/events/${event.id}/unassign`, {
-    step: "dispatch_unassign",
-    method: "POST",
-    body: {
-      laneMode: before.laneMode,
-      dayLocal: before.dayLocal,
-      reason: "scenario_dispatch_unassign",
-    },
-  });
-  expectStatus(unassignCommit, 200, "dispatch_unassign");
-
   let walkInScheduled = false;
   const walkIn = before.queues?.walkIn?.[0];
   if (walkIn?.id) {
@@ -244,14 +233,6 @@ async function runDefault(mode) {
   }
 
   const after = await loadBoard("dispatch_board_default_load_after");
-  assertHarness(!after.events.some((item) => item.id === event.id), "unassigned event should be removed from board events", {
-    step: "dispatch_board_default_load_after",
-    responsePayload: after,
-  });
-  assertHarness(after.queues?.unscheduledAppointments?.some((item) => item.id === event.id), "unassigned event should appear in unscheduled queue", {
-    step: "dispatch_board_default_load_after",
-    responsePayload: after,
-  });
   process.stdout.write(`${JSON.stringify({
     status: "dispatch_board_scenario_passed",
     mode: mode.name,
@@ -265,7 +246,6 @@ async function runDefault(mode) {
       eventsAfter: after.events.length,
       movedEventId: event.id,
       resizedDurationMin: 75,
-      unassigned: true,
       walkInScheduled,
     },
   }, null, 2)}\n`);
