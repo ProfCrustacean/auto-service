@@ -32,6 +32,7 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
   - vertical `resourceTimeGridDay` view (time top-to-bottom, resources as lanes),
   - removed top metric strips and removed bottom manual control panel,
   - queue scheduling is drag-and-drop into calendar only,
+  - assigned events can be dragged back into the unassigned queue via dedicated drop-zone (reverse flow),
   - existing booking move/resize is calendar-native only,
   - event cards use high-contrast two-line layout (`time+code`, `customer+vehicle`) for readability,
   - overlap placements are allowed and surfaced as non-blocking warnings + `status-overlap` highlighting,
@@ -85,13 +86,17 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
   - `npm run cleanup:spring` (dry-run)
   - `npm run cleanup:spring:apply` (tracked/untracked evidence pruning)
   - canonical tracked evidence policy in `data/hygiene/evidence-canonical.json`
-- Linear harness supports probe/create/sync via Playwright fallback:
-  - `npm run linear:probe`
-  - `npm run linear:create`
-  - `npm run linear:sync`
+- Linear harness was rewritten to one deterministic Playwright-only command:
+  - `npm run linear:apply -- --spec <path> [--dry-run]`
+  - strict legacy surface rejection with migration hints (`probe/create/sync`, `--transport`, legacy env defaults)
 
 ## Last accepted milestones
 
+- 2026-03-24: Linear harness full rewrite delivered:
+  - single-command interface (`linear:apply`) with deterministic JSON output,
+  - strict Playwright transport resolution (`LINEAR_PLAYWRIGHT_CLI` or bundled wrapper, no `npx` fallback),
+  - apply orchestration now combines create + transition in one idempotent pass,
+  - legacy commands/flags/env defaults now fail fast with structured migration hints.
 - 2026-03-24: Refactor wave delivered (dashboard/service decomposition, validator dedupe, dispatch route/UI split, verify-render modular split) with no API/page/CLI contract changes.
 - 2026-03-24: Render deploy verification hardening delivered:
   - strict `verify:render` git+service preflight,

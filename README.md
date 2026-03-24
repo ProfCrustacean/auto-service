@@ -282,31 +282,35 @@ npm run db:backup-drill -- --db data/auto-service.sqlite --backup evidence/db-ba
 ```
 ### Linear task harness commands
 
-The harness includes a Playwright-backed Linear workflow (default transport) for environments where direct GraphQL access can be geo-blocked.
+The harness exposes a single Playwright-backed Linear workflow command for deterministic task reconciliation.
+Required:
+- `LINEAR_API_KEY`
+- optional `LINEAR_PLAYWRIGHT_CLI` (explicit path override for `playwright_cli.sh`)
 
-Required: `LINEAR_API_KEY` (harness auto-loads `.env` and `.env.local` without overriding already-exported env vars).
-Probe workspace/team/state connectivity:
+Harness auto-loads `.env` and `.env.local` without overriding already-exported environment variables.
+
+Apply spec-defined desired state (safe preview):
 
 ```bash
-LINEAR_API_KEY="<key>" npm run linear:probe -- --team-key AUT --state Backlog
+LINEAR_API_KEY="<key>" npm run linear:apply -- --spec data/linear/phase1-task-template.json --dry-run
 ```
 
-Create tasks from a spec file:
+Apply with explicit target state override:
 
 ```bash
-LINEAR_API_KEY="<key>" npm run linear:create -- --spec data/linear/phase1-task-template.json --dry-run
+LINEAR_API_KEY="<key>" npm run linear:apply -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done
 ```
 
-Sync existing tasks from a spec file into a target state:
+Apply with explicit team/state and output capture:
 
 ```bash
-LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done
+LINEAR_API_KEY="<key>" npm run linear:apply -- --spec data/linear/phase1-task-template.json --team-key AUT --state Backlog --output evidence/linear-apply.json
 ```
 
 - `data/linear/phase1-task-template.json`
 - `data/linear/workorder-epic-aut61-2026-03-22.json`
-- `linear:create` is idempotent by normalized title (skips existing tasks).
-- `linear:sync` transitions matching tasks to the selected workflow state.
+- `linear:apply` is idempotent by normalized title within the sampled issue window.
+- legacy commands/flags/env defaults were removed (`probe/create/sync`, `--transport`, `LINEAR_TRANSPORT`, `LINEAR_TEAM_KEY`, `LINEAR_STATE_NAME`, `LINEAR_OUTPUT_PATH`, `LINEAR_ISSUES_LIMIT`).
 
 ### Deployment docs
 

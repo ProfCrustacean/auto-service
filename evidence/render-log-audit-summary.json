@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-03-23T23:11:25.123Z",
-  "startTime": "2026-03-23T23:10:03.309Z",
-  "endTime": "2026-03-23T23:11:23.773Z",
-  "deployId": "dep-d70sgq95pdvs739hsk70",
+  "generatedAt": "2026-03-24T01:47:17.619Z",
+  "startTime": "2026-03-24T01:45:43.637Z",
+  "endTime": "2026-03-24T01:47:16.242Z",
+  "deployId": "dep-d70upp8ule4c73citnag",
   "mode": "balanced",
   "escalated": false,
   "fetch": {
     "initialLimit": 200,
     "fullLimit": 200,
-    "rowsFetchedInitial": 78,
+    "rowsFetchedInitial": 46,
     "rowsFetchedExpanded": 0
   },
   "totals": {
-    "rows": 78,
+    "rows": 46,
     "bySeverity": {
-      "info": 78,
+      "info": 46,
       "warn": 0,
       "error": 0,
       "fatal": 0
@@ -34,7 +34,7 @@
       "hasMore": false
     },
     "app": {
-      "rows": 60,
+      "rows": 28,
       "hasMore": false
     }
   },

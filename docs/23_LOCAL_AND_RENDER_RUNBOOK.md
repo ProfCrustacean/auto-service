@@ -147,20 +147,21 @@ Use the harness CLI when investigation findings need to be turned into Linear ca
 
 Required:
 - `LINEAR_API_KEY`
+- optional `LINEAR_PLAYWRIGHT_CLI` override for explicit `playwright_cli.sh` path
 - Harness auto-loads `.env` and `.env.local` (without overriding explicitly exported env vars).
 
-Commands:
+Command:
 
 ```bash
-LINEAR_API_KEY="<key>" npm run linear:probe -- --team-key AUT --state Backlog
-LINEAR_API_KEY="<key>" npm run linear:create -- --spec data/linear/phase1-task-template.json --dry-run
-LINEAR_API_KEY="<key>" npm run linear:sync -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done
+LINEAR_API_KEY="<key>" npm run linear:apply -- --spec data/linear/phase1-task-template.json --dry-run
+LINEAR_API_KEY="<key>" npm run linear:apply -- --spec data/linear/workorder-epic-aut61-2026-03-22.json --state Done
 ```
 
 Notes:
-- only `playwright` transport is supported (deterministic path for this environment).
-- `linear:create` is idempotent by issue title within the sampled team issue window (`--issues-limit`, default `250`); existing titles are skipped.
-- `linear:sync` matches issues by normalized title from the spec and transitions them to the selected workflow state.
+- harness is strict Playwright-only with deterministic CLI resolution (`LINEAR_PLAYWRIGHT_CLI` override or bundled skill wrapper); `npx` fallback is not used.
+- `linear:apply` creates missing issues and transitions existing issues into the target state in one pass.
+- `linear:apply` is idempotent by normalized issue title within the sampled team issue window (`--issues-limit`, default `250`).
+- removed legacy interfaces now fail fast with migration hint: `probe/create/sync`, `--transport`, `LINEAR_TRANSPORT`, `LINEAR_TEAM_KEY`, `LINEAR_STATE_NAME`, `LINEAR_OUTPUT_PATH`, `LINEAR_ISSUES_LIMIT`.
 
 ## Render deployment (temporary validation)
 
@@ -271,7 +272,7 @@ Treat this as an environment-specific workaround, not a product requirement.
 Direct requests to `api.linear.app/graphql` from this machine context can also be blocked with:
 - `RESTRICTED_COUNTRY_BLOCKED` / `Linear is not available in Russia.`
 
-Harness default (`--transport playwright`) is the documented workaround path for task creation and status probing.
+Harness `linear:apply` Playwright flow is the documented workaround path for task reconciliation and status updates.
 
 For log API queries, include `ownerId` explicitly, otherwise Render returns:
 `{"message":"ownerId is required"}`.

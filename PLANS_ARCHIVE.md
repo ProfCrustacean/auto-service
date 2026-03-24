@@ -344,3 +344,58 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-23 — Dispatch board UX simplification (calendar-only controls)
 - 2026-03-23 — Foundation hardening (`AUT-89..AUT-96`)
 
+## Archive Batch — 2026-03-24
+
+### Moved from PLANS.md
+
+- Completed Plan — Deterministic Render verify on new commit only (2026-03-24)
+
+## Completed Plan — Deterministic Render verify on new commit only (2026-03-24)
+
+### Objective
+
+Eliminate wasted first-pass Render verification against stale live commit by enforcing strict deploy readiness and manual deploy service policy.
+
+### Delivered
+
+- Added deploy-mode preflight module `scripts/render-verify-preflight.js` with testable checks for:
+  - clean worktree gating,
+  - expected commit parity with local `HEAD`,
+  - expected commit sync with `origin/main` (configurable remote/branch),
+  - strict Render manual deploy policy (`autoDeploy` off + `autoDeployTrigger` off).
+- Integrated preflight into `scripts/verify-render.js` before deploy trigger:
+  - new structured steps/logs: `git_preflight`, `render_service_policy_check`, `render_verify_preflight_passed`, `render_verify_preflight_failed`,
+  - deploy API trigger is skipped when preflight fails,
+  - `--skip-deploy` now emits explicit skipped-step logs for deploy-specific preflight.
+- Added Render service policy utility `scripts/render-service-policy.js` with one-command operations:
+  - `npm run render:policy:status`,
+  - `npm run render:policy:manual-deploy`.
+- Added strict preflight defaults and toggles:
+  - `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE`,
+  - `RENDER_VERIFY_REQUIRE_REMOTE_SYNC`,
+  - `RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY`,
+  - `RENDER_GIT_REMOTE`,
+  - `RENDER_GIT_BRANCH`.
+- Added infrastructure default in `render.yaml`: `autoDeployTrigger: off`.
+- Added unit tests: `tests/renderVerifyPreflight.test.js`.
+- Updated deployment documentation:
+  - `README.md`,
+  - `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
+  - `docs/20_ENVIRONMENT_DEPLOYMENT_AND_OPERATIONS.md`.
+
+### Verification
+
+- `npm test`: passed
+- `npm run lint`: passed
+- `npm run verify`: passed
+- `npm run secrets:scan`: passed
+- `npm run audit:bloat`: passed
+- `npm run render:policy:status`: passed (confirmed policy state)
+- `npm run render:policy:manual-deploy`: passed (service policy remediated to manual deploy)
+- `npm run verify:render`: failed fast as expected on dirty worktree preflight (no deploy trigger)
+- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render`: passed
+  - deploy id: `dep-d70r6ac9c44c73b7h07g`
+  - commit parity: `d73af5315c419cbcf30c474825e609b8f68d6623`
+  - smoke + non-destructive scenarios + post-deploy log audit: passed
+- Playwright production smoke on `/dispatch/board`: passed (title/content loaded, console warnings/errors: 0)
+

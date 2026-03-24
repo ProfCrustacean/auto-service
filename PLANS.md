@@ -40,6 +40,52 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-23 — Dispatch board full EventCalendar cutover
 - 2026-03-23 — Dispatch board DnD/readability hardening + global overlap warnings
 - 2026-03-23 — Dashboard week blocks cleanup (vertical stack + Monday week start)
+- 2026-03-24 — Deterministic Render verify on new commit only
+- 2026-03-24 — Dispatch board reverse DnD unassign flow
+
+## Completed Plan — Linear harness simplification: Playwright-only full rewrite (2026-03-24)
+
+### Objective
+
+Replace the legacy multi-command/transport Linear harness with one deterministic Playwright-only command surface and keep repository docs/status/tests synchronized.
+
+### Delivered
+
+- Rebuilt Linear harness into focused modules:
+  - `scripts/linear-harness.js` as thin entrypoint,
+  - `scripts/linear-harness-cli.js` for strict CLI/env contract parsing,
+  - `scripts/linear-harness-apply.js` for single-pass apply orchestration,
+  - `scripts/linear-harness-playwright-transport.js` for strict Playwright transport.
+- Replaced package command surface:
+  - removed `linear:probe`, `linear:create`, `linear:sync`,
+  - added `linear:apply` only.
+- Enforced strict legacy rejection with machine-readable failure payloads:
+  - rejected legacy commands (`probe/create/sync`),
+  - rejected `--transport`,
+  - rejected legacy env defaults (`LINEAR_TRANSPORT`, `LINEAR_TEAM_KEY`, `LINEAR_STATE_NAME`, `LINEAR_OUTPUT_PATH`, `LINEAR_ISSUES_LIMIT`).
+- Kept spec schema and idempotent normalized-title matching.
+- Implemented single-pass `apply` behavior:
+  - create missing issues,
+  - transition existing issues to target state,
+  - no-op issues already in target state,
+  - auto-create missing labels for new issues.
+- Kept dry-run symmetry (`--dry-run`) with deterministic summary and zero mutations.
+- Switched to strict Playwright CLI resolution:
+  - `LINEAR_PLAYWRIGHT_CLI` override or bundled wrapper only,
+  - removed `npx` fallback.
+- Added one critical rewrite-focused test:
+  - deterministic/idempotent apply orchestration test with mocked transport (`tests/linearHarnessApply.test.js`).
+- Updated operational docs/state pointers:
+  - `README.md`,
+  - `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
+  - `MASTER_CONTEXT_PACKET.md`,
+  - `STATUS.md`.
+
+### Verification
+
+- `npm run lint`: passed
+- `npm test`: passed
+- `npm run verify`: passed
 
 ## Completed Plan — Render log selectivity + request log noise control (2026-03-24)
 
@@ -134,55 +180,6 @@ Reduce operational noise and maintenance drag by removing dead UI routes, collap
 - `npm test`: passed
 - `npm run verify`: passed
 - `npm run audit:bloat`: passed
-
-## Completed Plan — Deterministic Render verify on new commit only (2026-03-24)
-
-### Objective
-
-Eliminate wasted first-pass Render verification against stale live commit by enforcing strict deploy readiness and manual deploy service policy.
-
-### Delivered
-
-- Added deploy-mode preflight module `scripts/render-verify-preflight.js` with testable checks for:
-  - clean worktree gating,
-  - expected commit parity with local `HEAD`,
-  - expected commit sync with `origin/main` (configurable remote/branch),
-  - strict Render manual deploy policy (`autoDeploy` off + `autoDeployTrigger` off).
-- Integrated preflight into `scripts/verify-render.js` before deploy trigger:
-  - new structured steps/logs: `git_preflight`, `render_service_policy_check`, `render_verify_preflight_passed`, `render_verify_preflight_failed`,
-  - deploy API trigger is skipped when preflight fails,
-  - `--skip-deploy` now emits explicit skipped-step logs for deploy-specific preflight.
-- Added Render service policy utility `scripts/render-service-policy.js` with one-command operations:
-  - `npm run render:policy:status`,
-  - `npm run render:policy:manual-deploy`.
-- Added strict preflight defaults and toggles:
-  - `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE`,
-  - `RENDER_VERIFY_REQUIRE_REMOTE_SYNC`,
-  - `RENDER_VERIFY_REQUIRE_MANUAL_DEPLOY`,
-  - `RENDER_GIT_REMOTE`,
-  - `RENDER_GIT_BRANCH`.
-- Added infrastructure default in `render.yaml`: `autoDeployTrigger: off`.
-- Added unit tests: `tests/renderVerifyPreflight.test.js`.
-- Updated deployment documentation:
-  - `README.md`,
-  - `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
-  - `docs/20_ENVIRONMENT_DEPLOYMENT_AND_OPERATIONS.md`.
-
-### Verification
-
-- `npm test`: passed
-- `npm run lint`: passed
-- `npm run verify`: passed
-- `npm run secrets:scan`: passed
-- `npm run audit:bloat`: passed
-- `npm run render:policy:status`: passed (confirmed policy state)
-- `npm run render:policy:manual-deploy`: passed (service policy remediated to manual deploy)
-- `npm run verify:render`: failed fast as expected on dirty worktree preflight (no deploy trigger)
-- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render`: passed
-  - deploy id: `dep-d70r6ac9c44c73b7h07g`
-  - commit parity: `d73af5315c419cbcf30c474825e609b8f68d6623`
-  - smoke + non-destructive scenarios + post-deploy log audit: passed
-- Playwright production smoke on `/dispatch/board`: passed (title/content loaded, console warnings/errors: 0)
 
 ## Maintenance rule
 

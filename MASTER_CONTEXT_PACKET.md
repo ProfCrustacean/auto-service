@@ -54,9 +54,7 @@ Deploy-aware gate:
 - `npm run verify:full`
 
 Linear harness:
-- `npm run linear:probe`
-- `npm run linear:create`
-- `npm run linear:sync`
+- `npm run linear:apply -- --spec <path> [--dry-run]`
 
 ## Maintenance Rules
 

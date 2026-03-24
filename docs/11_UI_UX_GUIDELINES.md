@@ -81,6 +81,7 @@ Must make it easy to answer:
   - no secondary manual scheduling controls outside the calendar for slot/duration changes.
   - scheduling board should use vertical resource time-grid (time top-to-bottom, resources as lanes),
   - queue assignment should be drag-and-drop into the calendar only (no fallback manual assign buttons).
+  - assigned calendar events should support reverse drag back to unassigned queue (no separate unassign form).
   - calendar event cards must keep high contrast and a deterministic two-line hierarchy (time/code, then customer/vehicle).
 - overlap scheduling must be visible to the owner via non-blocking warnings and event highlighting, not hidden failures.
 
