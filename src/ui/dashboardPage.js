@@ -491,6 +491,12 @@ export function renderDashboardPage(model) {
         </div>
         <div class="table-wrap load-table-wrap">
           <table class="load-table">
+            <colgroup>
+              <col class="load-col-label" />
+              <col class="load-col-metric" />
+              <col class="load-col-metric" />
+              <col class="load-col-metric" />
+            </colgroup>
             <thead>
               <tr>
                 <th>Пост</th>
@@ -513,6 +519,12 @@ export function renderDashboardPage(model) {
         </div>
         <div class="table-wrap load-table-wrap">
           <table class="load-table">
+            <colgroup>
+              <col class="load-col-label" />
+              <col class="load-col-metric" />
+              <col class="load-col-metric" />
+              <col class="load-col-metric" />
+            </colgroup>
             <thead>
               <tr>
                 <th>Сотрудник</th>

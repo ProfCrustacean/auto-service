@@ -314,15 +314,13 @@ table {
 }
 
 .load-table-wrap {
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 .load-table {
   min-width: 0;
-  width: auto;
-  max-width: 100%;
-  table-layout: auto;
-  margin-right: auto;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .load-table th,
@@ -330,17 +328,22 @@ table {
   white-space: nowrap;
 }
 
+.load-col-label {
+  width: 52%;
+}
+
+.load-col-metric {
+  width: 16%;
+}
+
 .load-table th:first-child,
 .load-table td:first-child {
-  max-width: 12ch;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 10px;
 }
 
 .load-table th:nth-child(n + 2),
 .load-table td:nth-child(n + 2) {
-  width: 5ch;
   text-align: center;
 }
 
