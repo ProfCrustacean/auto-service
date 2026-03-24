@@ -319,33 +319,29 @@ table {
 
 .load-table {
   min-width: 0;
-  width: 100%;
-  table-layout: fixed;
-  font-size: 0.8rem;
+  width: auto;
+  max-width: 100%;
+  table-layout: auto;
+  margin-right: auto;
 }
 
 .load-table th,
 .load-table td {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  padding: 5px 4px;
-  line-height: 1.15;
+  white-space: nowrap;
 }
 
 .load-table th:first-child,
 .load-table td:first-child {
-  width: 38%;
-  max-width: 0;
+  max-width: 12ch;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  padding-right: 10px;
 }
 
 .load-table th:nth-child(n + 2),
 .load-table td:nth-child(n + 2) {
-  width: 20%;
+  width: 5ch;
   text-align: center;
-  white-space: nowrap;
 }
 
 th,
