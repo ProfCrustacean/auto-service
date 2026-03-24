@@ -5,6 +5,7 @@ import {
   buildBoardPatchResponseMeta,
   deriveQueueDurationMinutes,
   executeDispatchCommit,
+  executeDispatchUnassign,
   executeDispatchPreview,
   executeDispatchQueueAppointmentSchedule,
   executeDispatchQueueWalkInSchedule,
@@ -169,6 +170,32 @@ export function createDispatchBoardRouteFactory({
           return;
         }
         res.status(201).json(result);
+      } catch (error) {
+        withMappedDomainError(res, mapDispatchDomainError, error);
+      }
+    },
+
+    unassign(req, res) {
+      const boardPayload = buildBoardPatchPayload(req.body ?? {}, req.query ?? {});
+      if (!boardPayload.ok) {
+        respondValidationFailure(res, boardPayload.errors);
+        return;
+      }
+
+      try {
+        const payload = executeDispatchUnassign({
+          appointmentService,
+          appointmentId: req.params.id,
+          changedBy: boardPayload.updates.changedBy,
+          reason: boardPayload.updates.reason,
+          actor: buildBoardPatchActor(req),
+          dayLocal: boardPayload.dayLocal,
+          laneMode: boardPayload.laneMode,
+        });
+        if (respondAppointmentNotFound(res, payload)) {
+          return;
+        }
+        res.status(200).json(payload);
       } catch (error) {
         withMappedDomainError(res, mapDispatchDomainError, error);
       }

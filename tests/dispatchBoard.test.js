@@ -11,9 +11,10 @@ test("dispatch board page and api render EventCalendar payload", async () => {
     assert.equal(pageRes.status, 200);
     const html = await pageRes.text();
     assert.match(html, /Диспетчерская доска/u);
-    assert.match(html, /Очередь переносов/u);
+    assert.match(html, /Неназначенные и переносы/u);
     assert.match(html, /Приемы без записи без слота/u);
     assert.match(html, /id="dispatch-calendar"/u);
+    assert.match(html, /id="dispatch-unassign-dropzone"/u);
     assert.match(html, /event-calendar\.min\.js/u);
     assert.match(html, /draggable="true"/u);
     assert.match(html, /dispatch-event-line primary/u);
@@ -30,6 +31,7 @@ test("dispatch board page and api render EventCalendar payload", async () => {
     assert.equal(boardApi.json.calendar.view, "resourceTimeGridDay");
     assert.equal(Array.isArray(boardApi.json.resources), true);
     assert.equal(Array.isArray(boardApi.json.events), true);
+    assert.equal(boardApi.json.resources.some((entry) => entry.id === "bay:none" || entry.id === "tech:none"), false);
     assert.equal(boardApi.json.timeline, undefined);
   });
 });
@@ -114,6 +116,16 @@ test("dispatch board scheduling flow supports preview, commit, history, and queu
     assert.equal(queueScheduleAppointment.json.scheduled, true);
     assert.equal(queueScheduleAppointment.json.item.plannedStartLocal, "2026-03-23 16:00");
 
+    const unassign = await requestJson("POST", `${baseUrl}/api/v1/dispatch/board/events/${createdId}/unassign`, {
+      laneMode: "bay",
+      dayLocal: "2026-03-23",
+      reason: "Возврат в неназначенные",
+    });
+    assert.equal(unassign.status, 200);
+    assert.equal(unassign.json.unassigned, true);
+    assert.equal(unassign.json.item.bayId, null);
+    assert.equal(unassign.json.item.primaryAssignee, null);
+
     const walkInCandidate = boardPayload.json.queues.walkIn[0];
     assert.ok(walkInCandidate?.id);
     const conflictResource = boardPayload.json.resources.find((entry) => entry.id === "bay:bay-1") ?? targetResource;
@@ -135,8 +147,9 @@ test("dispatch board scheduling flow supports preview, commit, history, and queu
 
     const boardAfter = await requestJson("GET", `${baseUrl}/api/v1/dispatch/board?day=2026-03-23&laneMode=bay`);
     assert.equal(boardAfter.status, 200);
-    assert.equal(boardAfter.json.events.some((entry) => entry.id === createdId), true);
+    assert.equal(boardAfter.json.events.some((entry) => entry.id === createdId), false);
     assert.equal(boardAfter.json.events.some((entry) => entry.id === carryOverId), true);
+    assert.equal(boardAfter.json.queues.unscheduledAppointments.some((entry) => entry.id === createdId), true);
     assert.equal(boardAfter.json.queues.walkIn.some((entry) => entry.id === walkInCandidate.id), false);
   });
 });

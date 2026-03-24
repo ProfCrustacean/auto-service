@@ -60,7 +60,7 @@ const UI_PAGES = [
   {
     step: "dispatch_board_ui",
     path: "/dispatch/board",
-    snippets: ["Диспетчерская доска", "Очередь переносов", 'id="dispatch-calendar"'],
+    snippets: ["Диспетчерская доска", "Неназначенные и переносы", 'id="dispatch-calendar"', 'id="dispatch-unassign-dropzone"'],
   },
 ];
 
