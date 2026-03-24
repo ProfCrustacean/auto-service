@@ -14,7 +14,7 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Dispatch board full vertical-calendar migration is delivered and verified; next priority remains Phase 4 (payments and reporting closure).
+Pico-based UI baseline standardization for SSR pages is delivered and production-validated; next priority returns to Phase 4 (payments and reporting closure).
 
 ## Current state (2026-03-24)
 
@@ -37,6 +37,15 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
   - event cards use high-contrast two-line layout (`time+code`, `customer+vehicle`) for readability,
   - overlap placements are allowed and surfaced as non-blocking warnings + `status-overlap` highlighting,
   - dispatch writes now use API-only routes under `/api/v1/dispatch/board/*`.
+- UI baseline is now standardized via Pico + shared SSR shell:
+  - static assets served from `/assets/*` (`public/assets`),
+  - global baseline: `/assets/vendor/pico.min.css` + `/assets/css/tokens.css` + `/assets/css/app.css`,
+  - shared HTML shell for page renderers: `src/ui/renderDocumentShell.js`,
+  - large inline `<style>` islands removed from dashboard/forms/detail/active-queue/dispatch template renderers.
+- Dispatch board runtime dependencies are now local and pinned (no CDN runtime dependency):
+  - `/assets/vendor/event-calendar-5.5.1.min.css`
+  - `/assets/vendor/event-calendar-5.5.1.min.js`
+  - page-specific board overrides in `/assets/css/dispatch-board.css`.
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
   - appointment lifecycle with global non-blocking overlap warnings (no blocking slot conflicts),
@@ -95,6 +104,11 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 
 ## Last accepted milestones
 
+- 2026-03-24: Pico UI baseline rollout completed and production-validated:
+  - commit: `7a2ec0581c06f7d436abf45afdf61974f6f69af1`,
+  - shared SSR document shell introduced across hot-path pages,
+  - static `/assets/*` contract introduced with local Pico/Event Calendar vendor assets,
+  - Render deploy verification passed with smoke + non-destructive scenarios + log audit (`dep-d70vtt6a2pns73eqajdg`).
 - 2026-03-24: Pico UI baseline planning epic and tasks created in Linear Backlog (`AUT-120..AUT-132`) with idempotent `linear:apply` flow.
 - 2026-03-24: Linear harness full rewrite delivered:
   - single-command interface (`linear:apply`) with deterministic JSON output,
@@ -127,19 +141,16 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 Most recent local gate results:
 - `npm test`: passed
 - `npm run verify`: passed
-- `npm run audit:bloat`: passed
 - `npm run lint`: passed
 - `npm run secrets:scan`: passed
 
 Most recent deploy-aware gate results:
-- `npm run verify:render`: fail-fast as expected when worktree is dirty (deploy not triggered)
-- `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render`: passed
+- `npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d70r6ac9c44c73b7h07g`
-  - latest commit parity: `d73af5315c419cbcf30c474825e609b8f68d6623`
+  - latest deploy id: `dep-d70vtt6a2pns73eqajdg`
+  - latest commit parity: `7a2ec0581c06f7d436abf45afdf61974f6f69af1`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-- Playwright production smoke on `/dispatch/board`: passed (page loaded, console warnings/errors: `0`)
 
 Primary evidence pointers:
 - `evidence/render-log-audit-summary.json`
