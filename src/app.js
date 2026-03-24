@@ -1,5 +1,6 @@
 import express from "express";
 import { randomUUID } from "node:crypto";
+import path from "node:path";
 import { renderDashboardPage } from "./ui/dashboardPage.js";
 import { renderSimpleDetailPage } from "./ui/detailPage.js";
 import { registerReferenceRoutes } from "./http/referenceRoutes.js";
@@ -118,6 +119,13 @@ export function createApp({
     logger,
     authConfig: config.auth,
   });
+
+  const staticAssetsPath = path.join(process.cwd(), "public", "assets");
+  app.use("/assets", express.static(staticAssetsPath, {
+    index: false,
+    immutable: true,
+    maxAge: "7d",
+  }));
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));

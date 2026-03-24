@@ -90,3 +90,19 @@ Must make it easy to answer:
 User-facing text should be ready for Russian-speaking staff from the beginning.
 
 Internal naming, docs, and product reasoning may remain in English.
+
+## UI baseline rule
+
+The UI baseline for SSR pages is:
+- Pico CSS (`/assets/vendor/pico.min.css`) as the foundation,
+- project tokens (`/assets/css/tokens.css`) for semantic values,
+- project bridge primitives (`/assets/css/app.css`) for reusable classes and page shells,
+- one shared HTML shell (`src/ui/renderDocumentShell.js`) for all server-rendered pages.
+
+Dispatch board remains a controlled special-case screen:
+- it uses the same shared shell and baseline links,
+- but keeps dedicated page overrides in `/assets/css/dispatch-board.css`,
+- and uses locally vendored Event Calendar assets under `/assets/vendor/*`.
+
+Reusable pattern examples:
+- `docs/UI_COOKBOOK.md`

@@ -89,9 +89,13 @@ Dispatch board full vertical-calendar migration is delivered and verified; next 
 - Linear harness was rewritten to one deterministic Playwright-only command:
   - `npm run linear:apply -- --spec <path> [--dry-run]`
   - strict legacy surface rejection with migration hints (`probe/create/sync`, `--transport`, legacy env defaults)
+- Pico UI baseline backlog is now registered in Linear:
+  - epic + 12 tasks created in Backlog via harness (`AUT-120..AUT-132`)
+  - source spec: `data/linear/pico-ui-baseline-epic-2026-03-24.json`
 
 ## Last accepted milestones
 
+- 2026-03-24: Pico UI baseline planning epic and tasks created in Linear Backlog (`AUT-120..AUT-132`) with idempotent `linear:apply` flow.
 - 2026-03-24: Linear harness full rewrite delivered:
   - single-command interface (`linear:apply`) with deterministic JSON output,
   - strict Playwright transport resolution (`LINEAR_PLAYWRIGHT_CLI` or bundled wrapper, no `npx` fallback),
@@ -142,6 +146,7 @@ Primary evidence pointers:
 - `evidence/bloat-audit-latest.json`
 - `evidence/linear-aut73-81-done-sync.json`
 - Linear sync audit (AUT-89..AUT-96): `/tmp/linear-aut89-96-sync-result.json`
+- Linear apply audit (Pico backlog AUT-120..AUT-132): `/tmp/pico-ui-baseline-apply.json`
 
 ## Environments
 

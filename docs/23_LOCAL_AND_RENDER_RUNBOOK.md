@@ -23,6 +23,13 @@ Service defaults:
 - URL: `http://127.0.0.1:3000`
 - Health: `GET /healthz`
 - Readiness: `GET /readyz`
+- Static UI assets: `GET /assets/*` served from `public/assets/`
+  - Pico baseline: `/assets/vendor/pico.min.css`
+  - Shared theme/primitives: `/assets/css/tokens.css`, `/assets/css/app.css`
+  - Dispatch board overrides: `/assets/css/dispatch-board.css`
+  - Event Calendar vendor assets:
+    - `/assets/vendor/event-calendar-5.5.1.min.css`
+    - `/assets/vendor/event-calendar-5.5.1.min.js`
 - Dashboard JSON: `GET /api/v1/dashboard/today`
 - Employee CRUD API: `GET|POST /api/v1/employees`, `GET|PATCH|DELETE /api/v1/employees/:id`
 - Bay CRUD API: `GET|POST /api/v1/bays`, `GET|PATCH|DELETE /api/v1/bays/:id`
@@ -129,6 +136,12 @@ CI gate:
 - executes `npm ci`, `npm run secrets:scan`, `npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`, `npm run audit:bloat`
 - does not require external secrets for default path
 - uploads `evidence/ci-*.txt`, `evidence/bloat-audit-latest.json`, and `evidence/verify-server.log` when checks fail
+
+UI architecture baseline (current):
+- SSR pages share one document shell helper: `src/ui/renderDocumentShell.js`
+- page renderers should not embed large inline `<style>` blocks
+- dispatch board remains a special-case page with dedicated overrides
+- architecture ADR: `docs/adr/2026-03-24-pico-ui-baseline.md`
 
 Scenario fixture assumptions (current):
 - Smoke checks validate API/UI contracts (including unified lookup) and summary-to-array consistency instead of fixed seeded counts.

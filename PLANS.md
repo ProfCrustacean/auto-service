@@ -42,6 +42,7 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-23 — Dashboard week blocks cleanup (vertical stack + Monday week start)
 - 2026-03-24 — Deterministic Render verify on new commit only
 - 2026-03-24 — Dispatch board reverse DnD unassign flow
+- 2026-03-24 — Pico UI baseline epic/task backlog creation in Linear (`AUT-120..AUT-132`)
 
 ## Completed Plan — Linear harness simplification: Playwright-only full rewrite (2026-03-24)
 

@@ -1,0 +1,85 @@
+{
+  "teamKey": "AUT",
+  "stateName": "Backlog",
+  "defaultLabels": ["Improvement", "UI", "SSR"],
+  "issues": [
+    {
+      "title": "Epic: UI baseline standardization with Pico CSS for SSR pages",
+      "description": "Goal:\n- Introduce one shared UI baseline for server-rendered pages without SPA rewrite and without business-logic changes.\n\nScope:\n- Pico as baseline + project tokens + bridge primitives.\n- Shared document shell and static assets layer.\n- Progressive migration of forms, dashboard, detail pages, and dispatch board shell.\n\nOut of scope:\n- React/Vue adoption.\n- Business workflow redesign.\n- Full dispatch board rewrite.\n\nSuccess criteria:\n- [ ] No new inline style islands in SSR page renderers.\n- [ ] Shared shell is used by dashboard/forms/detail/dispatch pages.\n- [ ] Dispatch board DnD and Event Calendar behavior remain intact.\n- [ ] Local and Render verification/evidence updated and passing.",
+      "labels": ["Pico", "Frontend"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-1 ADR: SSR UI baseline strategy (Pico + bridge layer, no classless global switch)",
+      "description": "Deliverables:\n- One ADR/tech note describing exact rollout model.\n\nDecisions to lock:\n- Pico is baseline CSS only (no blind classless override across all pages).\n- SSR HTML-string architecture remains unchanged.\n- Dispatch board remains a special-case page with isolated overrides.\n\nAcceptance:\n- [ ] ADR exists and is linked from runbook/docs.\n- [ ] Explicitly lists what is intentionally out of scope.",
+      "labels": ["Architecture"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-2 Platform: static assets layer for CSS/JS/fonts under /assets",
+      "description": "Implement:\n- Add Express static middleware for `public/assets/*`.\n- Create deterministic asset folders (`vendor`, `css`, optional `fonts`).\n- Replace page-level CSS embedding dependencies with linked asset files where applicable.\n\nAcceptance:\n- [ ] `GET /assets/...` works in local and Render environments.\n- [ ] Pico baseline is loaded from local assets, not inline or CDN.",
+      "labels": ["Platform"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-3 UI infra: shared SSR document shell helper for all page renderers",
+      "description": "Implement:\n- Add shared renderer helper (for doctype/html/head/body/meta/title/common links).\n- Migrate `dashboardPage`, `pageFormShared`, `detailPage`, `dispatchBoardPageTemplate`, and `workOrderLifecyclePage` to use this shell.\n\nAcceptance:\n- [ ] One source of truth for document structure and global stylesheet/script links.\n- [ ] Page renderers no longer duplicate full HTML shell boilerplate.",
+      "labels": ["Refactor"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-4 Design system layer: tokens.css + app.css bridge primitives",
+      "description": "Implement:\n- Add `tokens.css` for shared semantic variables (surface, text, accent, warning, danger, spacing, radius, shadow).\n- Add `app.css` primitives (`page-shell`, `page-header`, `panel`, `callout`, `action-bar`, `status-badge`, `table-wrap`, `empty-state`, etc.).\n- Map existing ad-hoc variables (`--bg`, `--surface`, `--accent`, `--font`) into one canonical set.\n\nAcceptance:\n- [ ] Shared token set is referenced by all migrated pages.\n- [ ] At least 8 reusable primitives replace duplicated page-specific definitions.",
+      "labels": ["Design-System"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-5 Forms foundation: migrate pageFormShared.js to Pico-first markup and external CSS",
+      "description": "Implement:\n- Remove the large inline `<style>` from `pageFormShared.js`.\n- Keep existing business helpers and validation UX while switching to shared shell + linked CSS + Pico-friendly semantics.\n- Preserve lookup, entity selection, summary cards, field errors, and submit-busy behavior.\n\nAcceptance:\n- [ ] No inline page-wide style block remains in `pageFormShared.js`.\n- [ ] Existing appointment/work-order form flows remain functionally equivalent.",
+      "labels": ["Forms"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-6 Forms rollout: align appointment and work-order lifecycle pages to shared primitives",
+      "description": "Implement:\n- Migrate `appointmentBookingPage.js` and `workOrderLifecyclePage.js` to shared primitives and shell contracts.\n- Remove per-page visual divergence and local style islands.\n\nAcceptance:\n- [ ] Both pages render through shared shell/styles only.\n- [ ] Error callouts, tables, action buttons, and section layouts are standardized.",
+      "labels": ["Forms"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-7 Dashboard migration: replace dashboard inline style block with shared UI baseline",
+      "description": "Implement:\n- Remove dashboard-specific large inline `<style>` block.\n- Rebuild header/KPI/actions/tables using shared shell/tokens/primitives.\n- Keep dashboard content and behavior unchanged.\n\nAcceptance:\n- [ ] Dashboard visual patterns match form pages.\n- [ ] Existing dashboard API/UI assertions still pass after adaptation.",
+      "labels": ["Dashboard"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-8 Detail pages: migrate detailPage.js and residual standalone page styles",
+      "description": "Implement:\n- Remove remaining isolated style islands from detail-like pages (`detailPage.js` and any fallback branches in lifecycle pages).\n- Reuse shared shell and bridge primitives for consistency and maintainability.\n\nAcceptance:\n- [ ] Detail/not-found style definitions no longer duplicate bespoke CSS blocks.\n- [ ] Navigation/actions styling matches baseline conventions.",
+      "labels": ["Refactor"],
+      "priority": 3
+    },
+    {
+      "title": "PICO-9 Dispatch board integration: shared shell/topbar alignment with protected Event Calendar behavior",
+      "description": "Implement:\n- Keep dispatch board as special-case screen.\n- Move only safe shared concerns (shell/topbar/base buttons/typography) to common layer.\n- Keep board-specific layout and interaction styling isolated where required.\n- Add explicit overrides for Pico baseline conflicts.\n\nAcceptance:\n- [ ] Drag/drop scheduling and reverse unassign continue to work.\n- [ ] Calendar event readability/status highlighting remains intact.\n- [ ] Board looks visually aligned with the rest of the app.",
+      "labels": ["Dispatch"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-10 Dependency hardening: vendorize Event Calendar CSS/JS and remove CDN runtime dependency",
+      "description": "Implement:\n- Replace Event Calendar CDN links in dispatch template with local pinned assets under `/assets/vendor`.\n- Document upgrade process for vendor asset bump.\n\nAcceptance:\n- [ ] Dispatch page does not depend on public CDN availability at runtime.\n- [ ] Version pin remains explicit and reproducible in repo.",
+      "labels": ["Dispatch", "Ops"],
+      "priority": 2
+    },
+    {
+      "title": "PICO-11 UI dedup: normalize button/panel/callout/table patterns + lightweight cookbook",
+      "description": "Implement:\n- Eliminate duplicated `.btn/.panel/.callout` definitions where shared primitives suffice.\n- Create a compact cookbook (markdown or internal page) with canonical usage patterns.\n\nAcceptance:\n- [ ] Each common UI pattern has one recommended markup/style path.\n- [ ] New pages can be implemented without copying CSS from existing renderers.",
+      "labels": ["Design-System"],
+      "priority": 3
+    },
+    {
+      "title": "PICO-12 Verification and evidence: update tests/scenarios/render checks for new UI baseline",
+      "description": "Implement:\n- Update tests that assert legacy inline CSS fragments.\n- Run full relevant gate (`lint`, `test`, `verify`, `scenario:dispatch-board`, `verify:render` as applicable).\n- Capture updated evidence artifacts/screenshots for dashboard, booking, work-order, dispatch board.\n- Update `STATUS.md`, `PLANS.md`, and affected docs (`11`, `23`) to reflect the new UI baseline path.\n\nAcceptance:\n- [ ] Verification suite passes with updated assertions.\n- [ ] Evidence artifacts are attached and reviewable.\n- [ ] State documents reflect accepted rollout status and caveats.",
+      "labels": ["Verification", "Docs"],
+      "priority": 2
+    }
+  ]
+}

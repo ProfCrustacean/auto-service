@@ -1,6 +1,6 @@
 import { escapeHtml } from "./pageFormShared.js";
-import { DISPATCH_BOARD_PAGE_STYLES } from "./dispatchBoardPageStyles.js";
 import { DISPATCH_BOARD_PAGE_CLIENT_SCRIPT } from "./dispatchBoardPageClient.js";
+import { DEFAULT_DOCUMENT_STYLESHEETS, renderDocumentShell } from "./renderDocumentShell.js";
 
 function renderQueueItem(item, kind) {
   const statusLabel = kind === "walkin"
@@ -93,20 +93,7 @@ function renderRangeLabel(calendarModel) {
 export function renderDispatchBoardPageTemplate(model) {
   const pageModelJson = JSON.stringify(model).replaceAll("</script", "<\\/script");
   const rangeLabel = renderRangeLabel(model.calendar);
-
-  return `<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Диспетчерская доска</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@event-calendar/build@5.5.1/dist/event-calendar.min.css" />
-    <style>
-${DISPATCH_BOARD_PAGE_STYLES}
-    </style>
-  </head>
-  <body>
-    <main class="shell">
+  const body = `<main class="page-shell wide shell">
       ${renderShell(model)}
       <section class="layout">
         ${renderQueuePanel(model)}
@@ -128,12 +115,23 @@ ${DISPATCH_BOARD_PAGE_STYLES}
         <span id="dispatch-toast-text"></span>
         <button id="dispatch-toast-close" class="toast-close" type="button" aria-label="Закрыть уведомление">×</button>
       </div>
-    </div>
-    <script id="dispatch-board-model" type="application/json">${pageModelJson}</script>
-    <script src="https://cdn.jsdelivr.net/npm/@event-calendar/build@5.5.1/dist/event-calendar.min.js"></script>
+    </div>`;
+
+  const scriptsHtml = `<script id="dispatch-board-model" type="application/json">${pageModelJson}</script>
+    <script src="/assets/vendor/event-calendar-5.5.1.min.js"></script>
     <script>
 ${DISPATCH_BOARD_PAGE_CLIENT_SCRIPT}
-    </script>
-  </body>
-</html>`;
+    </script>`;
+
+  return renderDocumentShell({
+    title: "Диспетчерская доска",
+    bodyClass: "dispatch-board-page",
+    stylesheets: [
+      ...DEFAULT_DOCUMENT_STYLESHEETS,
+      "/assets/vendor/event-calendar-5.5.1.min.css",
+      "/assets/css/dispatch-board.css",
+    ],
+    body,
+    scriptsHtml,
+  });
 }

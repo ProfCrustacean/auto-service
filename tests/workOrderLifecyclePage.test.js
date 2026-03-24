@@ -60,8 +60,9 @@ test("work-order workspace page renders lifecycle controls and history", async (
     const queueHtml = await queueRes.text();
     assert.match(queueHtml, /Активная очередь заказ-нарядов/u);
     assert.match(queueHtml, /WO-1004/u);
-    assert.match(queueHtml, /grid-template-columns: minmax\(0, 1fr\);/u);
-    assert.match(queueHtml, /@media \(max-width: 760px\)/u);
+    assert.match(queueHtml, /\/assets\/vendor\/pico\.min\.css/u);
+    assert.match(queueHtml, /\/assets\/css\/app\.css/u);
+    assert.doesNotMatch(queueHtml, /<style>/u);
   } finally {
     await closeServer(server);
     database.close();

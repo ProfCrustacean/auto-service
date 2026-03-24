@@ -31,9 +31,10 @@ test("health and dashboard endpoints return successful responses", async () => {
     assert.doesNotMatch(html, /Принять без записи/);
     assert.match(html, /class="week-stack"/);
     assert.match(html, /week-table-wrap/);
-    assert.match(html, /overflow-x: clip;/);
-    assert.match(html, /grid-template-columns: minmax\(0, 1fr\);/);
-    assert.match(html, /min-width: 0;/);
+    assert.match(html, /\/assets\/vendor\/pico\.min\.css/u);
+    assert.match(html, /\/assets\/css\/tokens\.css/u);
+    assert.match(html, /\/assets\/css\/app\.css/u);
+    assert.doesNotMatch(html, /<style>/u);
 
     const dashboardSearchRes = await fetch(`${baseUrl}/api/v1/dashboard/today?q=Focus`);
     assert.equal(dashboardSearchRes.status, 200);
@@ -83,6 +84,14 @@ test("health and dashboard endpoints return successful responses", async () => {
     const walkInModeHtml = await walkInModeRes.text();
     assert.match(walkInModeHtml, /Форма приема/);
     assert.match(walkInModeHtml, /Принять без записи/);
+
+    const picoAssetRes = await fetch(`${baseUrl}/assets/vendor/pico.min.css`);
+    assert.equal(picoAssetRes.status, 200);
+    assert.match(picoAssetRes.headers.get("content-type") ?? "", /text\/css/u);
+
+    const appAssetRes = await fetch(`${baseUrl}/assets/css/app.css`);
+    assert.equal(appAssetRes.status, 200);
+    assert.match(appAssetRes.headers.get("content-type") ?? "", /text\/css/u);
   });
 });
 

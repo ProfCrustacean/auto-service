@@ -1,0 +1,42 @@
+:root {
+  --ui-bg: #f4f7f3;
+  --ui-surface: #ffffff;
+  --ui-surface-soft: #fbfcfa;
+  --ui-ink: #1d2c22;
+  --ui-muted: #5b6d61;
+  --ui-line: #d3ddd4;
+  --ui-accent: #1f7a55;
+  --ui-accent-soft: #d9efe3;
+  --ui-warn-bg: #fff2dc;
+  --ui-warn-ink: #8f5e00;
+  --ui-danger-bg: #f9e6de;
+  --ui-danger-ink: #9a4020;
+  --ui-money: #8a2d17;
+
+  --ui-radius-card: 14px;
+  --ui-radius-pill: 999px;
+  --ui-radius-md: 10px;
+  --ui-shadow-soft: 0 10px 24px rgba(23, 47, 33, 0.16);
+
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 10px;
+  --ui-space-4: 12px;
+  --ui-space-5: 14px;
+  --ui-space-6: 20px;
+
+  --ui-font: "Manrope", "Segoe UI", sans-serif;
+
+  --pico-font-family: var(--ui-font);
+  --pico-background-color: var(--ui-bg);
+  --pico-color: var(--ui-ink);
+  --pico-muted-color: var(--ui-muted);
+  --pico-primary: var(--ui-accent);
+  --pico-primary-hover: #196545;
+  --pico-primary-focus: rgba(31, 122, 85, 0.25);
+  --pico-primary-inverse: #ffffff;
+  --pico-border-color: var(--ui-line);
+  --pico-border-radius: 9px;
+  --pico-form-element-spacing-vertical: 0.55rem;
+  --pico-form-element-spacing-horizontal: 0.7rem;
+}

@@ -5,6 +5,7 @@ import {
   renderFormPageDocument,
   formatGlobalError,
 } from "./pageFormShared.js";
+import { renderDocumentShell } from "./renderDocumentShell.js";
 import { getWorkOrderStatusLabel, listAllowedWorkOrderTransitions } from "../domain/workOrderLifecycle.js";
 import {
   getPartsPurchaseActionStatusLabel,
@@ -627,34 +628,8 @@ function renderActiveStatusRows(items) {
 }
 
 export function renderActiveWorkOrderQueuePage({ items }) {
-  return `<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Активная очередь заказ-нарядов</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: "Manrope", "Segoe UI", sans-serif; background: #f4f7f3; color: #1d2c22; }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    .panel { background: #fff; border: 1px solid #d3ddd4; border-radius: 14px; padding: 14px; min-width: 0; }
-    .btn { text-decoration: none; border: 1px solid #d3ddd4; border-radius: 999px; padding: 6px 12px; color: #1d2c22; display: inline-block; }
-    .table-wrap { overflow-x: auto; border: 1px solid #d3ddd4; border-radius: 10px; }
-    table { width: 100%; border-collapse: collapse; min-width: 680px; }
-    th, td { text-align: left; padding: 8px; border-top: 1px solid #d3ddd4; vertical-align: top; word-break: break-word; }
-    th { border-top: none; background: #f8fbf8; color: #5b6d61; }
-    td a { color: #1f7a55; text-decoration: none; font-weight: 600; }
-    @media (max-width: 760px) {
-      .wrap { padding: 12px; }
-      table { min-width: 0; table-layout: fixed; }
-      th:nth-child(4), td:nth-child(4),
-      th:nth-child(5), td:nth-child(5) { display: none; }
-    }
-  </style>
-</head>
-<body>
-  <main class="wrap">
-    <section class="panel">
+  const body = `<main class="page-shell active-queue-page">
+    <section class="panel row queue-table">
       <a class="btn" href="/">← Назад на доску</a>
       <h1>Активная очередь заказ-нарядов</h1>
       <p>Всего активных: <strong>${items.length}</strong></p>
@@ -675,7 +650,11 @@ export function renderActiveWorkOrderQueuePage({ items }) {
         </table>
       </div>
     </section>
-  </main>
-</body>
-</html>`;
+  </main>`;
+
+  return renderDocumentShell({
+    title: "Активная очередь заказ-нарядов",
+    bodyClass: "active-queue-page",
+    body,
+  });
 }

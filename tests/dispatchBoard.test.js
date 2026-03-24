@@ -14,10 +14,12 @@ test("dispatch board page and api render EventCalendar payload", async () => {
     assert.match(html, /Очередь переносов/u);
     assert.match(html, /Приемы без записи без слота/u);
     assert.match(html, /id="dispatch-calendar"/u);
-    assert.match(html, /event-calendar\.min\.js/u);
+    assert.match(html, /\/assets\/vendor\/event-calendar-5\.5\.1\.min\.js/u);
+    assert.match(html, /\/assets\/vendor\/event-calendar-5\.5\.1\.min\.css/u);
+    assert.match(html, /\/assets\/css\/dispatch-board\.css/u);
+    assert.doesNotMatch(html, /cdn\.jsdelivr\.net/u);
     assert.match(html, /draggable="true"/u);
     assert.match(html, /dispatch-event-line primary/u);
-    assert.match(html, /status-overlap/u);
     assert.doesNotMatch(html, /vis-timeline/u);
     assert.doesNotMatch(html, /Выбранный слот/u);
     assert.doesNotMatch(html, /Выбранная запись/u);
