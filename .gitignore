@@ -13,3 +13,4 @@ data/*.sqlite-wal
 evidence/**/*.raw
 evidence/**/*.ndjson
 evidence/**/*.raw.gz
+public/assets/vendor/*

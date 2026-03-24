@@ -23,13 +23,9 @@ Service defaults:
 - URL: `http://127.0.0.1:3000`
 - Health: `GET /healthz`
 - Readiness: `GET /readyz`
-- Static UI assets: `GET /assets/*` served from `public/assets/`
-  - Pico baseline: `/assets/vendor/pico.min.css`
-  - Shared theme/primitives: `/assets/css/tokens.css`, `/assets/css/app.css`
-  - Dispatch board overrides: `/assets/css/dispatch-board.css`
-  - Event Calendar vendor assets:
-    - `/assets/vendor/event-calendar-5.5.1.min.css`
-    - `/assets/vendor/event-calendar-5.5.1.min.js`
+- Static UI assets: `GET /assets/*` from `public/assets/` (generated via `npm run assets:sync`).
+  - baseline: `/assets/vendor/pico.min.css`, `/assets/css/tokens.css`, `/assets/css/app.css`
+  - dispatch: `/assets/css/dispatch-board.css`, `/assets/vendor/event-calendar-5.5.1.min.css`, `/assets/vendor/event-calendar-5.5.1.min.js`
 - Dashboard JSON: `GET /api/v1/dashboard/today`
 - Employee CRUD API: `GET|POST /api/v1/employees`, `GET|PATCH|DELETE /api/v1/employees/:id`
 - Bay CRUD API: `GET|POST /api/v1/bays`, `GET|PATCH|DELETE /api/v1/bays/:id`
@@ -97,8 +93,7 @@ npm run cleanup:spring
 npm run cleanup:spring:apply
 ```
 
-Harness scripts auto-load `.env` and `.env.local` without overriding explicitly exported environment variables.
-Harness outputs written to stdout/stderr/files are redacted before persistence to avoid credential leakage.
+Harness scripts auto-load `.env`/`.env.local`; persisted outputs are redacted.
 
 `npm run verify` is self-contained:
 - does not require a pre-started local server,
@@ -137,11 +132,10 @@ CI gate:
 - does not require external secrets for default path
 - uploads `evidence/ci-*.txt`, `evidence/bloat-audit-latest.json`, and `evidence/verify-server.log` when checks fail
 
-UI architecture baseline (current):
-- SSR pages share one document shell helper: `src/ui/renderDocumentShell.js`
-- page renderers should not embed large inline `<style>` blocks
-- dispatch board remains a special-case page with dedicated overrides
-- architecture ADR: `docs/adr/2026-03-24-pico-ui-baseline.md`
+UI baseline:
+- shared shell: `src/ui/renderDocumentShell.js`
+- no large inline `<style>` blocks in page renderers
+- dispatch board keeps dedicated overrides
 
 Scenario fixture assumptions (current):
 - Smoke checks validate API/UI contracts (including unified lookup) and summary-to-array consistency instead of fixed seeded counts.

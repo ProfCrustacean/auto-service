@@ -8,6 +8,9 @@
     "node": "22.x"
   },
   "scripts": {
+    "assets:sync": "node src/ui/syncVendorAssets.js",
+    "prestart": "npm run assets:sync",
+    "pretest": "npm run assets:sync",
     "bootstrap": "npm ci",
     "db:init": "node scripts/db-init.js",
     "db:backup-drill": "node scripts/db-backup-restore-drill.js",
@@ -39,6 +42,8 @@
     "up:full": "npm ci && npm run verify:full"
   },
   "dependencies": {
+    "@event-calendar/build": "5.5.1",
+    "@picocss/pico": "2.0.6",
     "express": "^4.21.2"
   }
 }

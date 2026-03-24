@@ -4,37 +4,9 @@ import {
   closeServer,
   createTempDatabase,
   makeServer,
+  submitUrlEncodedForm,
   waitForServer,
 } from "./helpers/httpHarness.js";
-
-function toFormBody(payload) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(payload)) {
-    if (value === undefined || value === null) {
-      continue;
-    }
-    params.set(key, String(value));
-  }
-  return params.toString();
-}
-
-async function submitWorkOrderForm(url, payload, { redirect = "follow" } = {}) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded",
-    },
-    body: toFormBody(payload),
-    redirect,
-  });
-
-  const text = await response.text();
-  return {
-    status: response.status,
-    location: response.headers.get("location"),
-    text,
-  };
-}
 
 test("work-order workspace page renders lifecycle controls and history", async () => {
   const tempDb = createTempDatabase("auto-service-work-order-page-render");
@@ -81,7 +53,7 @@ test("work-order workspace updates lifecycle state and keeps validation feedback
     const address = server.address();
     const baseUrl = `http://127.0.0.1:${address.port}`;
 
-    const invalidSubmit = await submitWorkOrderForm(`${baseUrl}/work-orders/wo-1004`, {
+    const invalidSubmit = await submitUrlEncodedForm(`${baseUrl}/work-orders/wo-1004`, {
       status: "ready_pickup",
       balanceDueRub: "abc",
       reason: "Проверка формы",
@@ -90,7 +62,7 @@ test("work-order workspace updates lifecycle state and keeps validation feedback
     assert.match(invalidSubmit.text, /Исправьте ошибки перед сохранением/u);
     assert.match(invalidSubmit.text, /balanceDueRub must be an integer/u);
 
-    const validSubmit = await submitWorkOrderForm(
+    const validSubmit = await submitUrlEncodedForm(
       `${baseUrl}/work-orders/wo-1004`,
       {
         status: "ready_pickup",
@@ -127,7 +99,7 @@ test("work-order workspace allows parts request and purchase actions from the sa
     const address = server.address();
     const baseUrl = `http://127.0.0.1:${address.port}`;
 
-    const createRequest = await submitWorkOrderForm(
+    const createRequest = await submitUrlEncodedForm(
       `${baseUrl}/work-orders/wo-1002/parts-requests`,
       {
         partName: "Катушка зажигания тест",
@@ -156,7 +128,7 @@ test("work-order workspace allows parts request and purchase actions from the sa
     const createdRequest = detailPayload.item.partsRequests.find((item) => item.partName === "Катушка зажигания тест");
     assert.ok(createdRequest);
 
-    const updateRequest = await submitWorkOrderForm(
+    const updateRequest = await submitUrlEncodedForm(
       `${baseUrl}/work-orders/wo-1002/parts-requests/${createdRequest.id}`,
       {
         status: "ordered",
@@ -167,7 +139,7 @@ test("work-order workspace allows parts request and purchase actions from the sa
     assert.equal(updateRequest.status, 303);
     assert.equal(updateRequest.location, "/work-orders/wo-1002?partsUpdated=1");
 
-    const createPurchaseAction = await submitWorkOrderForm(
+    const createPurchaseAction = await submitUrlEncodedForm(
       `${baseUrl}/work-orders/wo-1002/parts-requests/${createdRequest.id}/purchase-actions`,
       {
         supplierName: "Склад-Тест",

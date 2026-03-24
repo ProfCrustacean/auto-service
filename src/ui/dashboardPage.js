@@ -62,12 +62,21 @@ function renderAppointmentRows(rows) {
     .join("\n");
 }
 
-function renderQueueRows(rows) {
+function renderUnifiedQueueSectionRows(title, rows, { showPartsMetrics = false } = {}) {
+  const headerRow = `
+    <tr class="queue-subsection">
+      <th scope="colgroup" colspan="10">${escapeHtml(title)} (${rows.length})</th>
+    </tr>
+  `;
+
   if (rows.length === 0) {
-    return '<tr><td colspan="8">Нет записей</td></tr>';
+    return `${headerRow}
+    <tr class="queue-empty">
+      <td colspan="10">Нет записей</td>
+    </tr>`;
   }
 
-  return rows
+  const bodyRows = rows
     .map(
       (row) => `
       <tr>
@@ -79,6 +88,8 @@ function renderQueueRows(rows) {
         <td>${escapeHtml(row.vehicleLabel)}</td>
         <td>${escapeHtml(row.bayName)}</td>
         <td>${escapeHtml(row.statusLabelRu)}</td>
+        <td>${showPartsMetrics ? escapeHtml(String(row.pendingPartsCount ?? 0)) : "—"}</td>
+        <td>${showPartsMetrics ? escapeHtml(row.oldestPendingPartsAgeLabel ?? "н/д") : "—"}</td>
         <td>${escapeHtml(row.blockedDurationLabel)}</td>
         <td class="money">${escapeHtml(row.balanceDueLabel)}</td>
         <td>${escapeHtml(row.nextActionLabel)}</td>
@@ -86,34 +97,18 @@ function renderQueueRows(rows) {
     `,
     )
     .join("\n");
+
+  return `${headerRow}\n${bodyRows}`;
 }
 
-function renderWaitingPartsQueueRows(rows) {
-  if (rows.length === 0) {
-    return '<tr><td colspan="10">Нет записей</td></tr>';
-  }
-
-  return rows
-    .map(
-      (row) => `
-      <tr>
-        <td><a href="${escapeHtml(row.detailHref)}">${escapeHtml(row.code)}</a></td>
-        <td>
-          <strong>${escapeHtml(row.customerName)}</strong>
-          <div class="muted small">${escapeHtml(row.customerPhone)}</div>
-        </td>
-        <td>${escapeHtml(row.vehicleLabel)}</td>
-        <td>${escapeHtml(row.bayName)}</td>
-        <td>${escapeHtml(row.statusLabelRu)}</td>
-        <td>${escapeHtml(String(row.pendingPartsCount ?? 0))}</td>
-        <td>${escapeHtml(row.oldestPendingPartsAgeLabel ?? "н/д")}</td>
-        <td>${escapeHtml(row.blockedDurationLabel)}</td>
-        <td class="money">${escapeHtml(row.balanceDueLabel)}</td>
-        <td>${escapeHtml(row.nextActionLabel)}</td>
-      </tr>
-    `,
-    )
-    .join("\n");
+function renderUnifiedQueueRows(queues) {
+  return [
+    renderUnifiedQueueSectionRows("Ожидают диагностику", queues.waitingDiagnosis),
+    renderUnifiedQueueSectionRows("Ожидают согласование", queues.waitingApproval),
+    renderUnifiedQueueSectionRows("Ожидание запчастей", queues.waitingParts, { showPartsMetrics: true }),
+    renderUnifiedQueueSectionRows("Пауза", queues.paused),
+    renderUnifiedQueueSectionRows("Готово к выдаче", queues.readyPickup),
+  ].join("\n");
 }
 
 function renderWeekHeaderCells(days) {
@@ -535,54 +530,9 @@ export function renderDashboardPage(model) {
       </div>
     </section>
 
-    <section class="panel">
-      <h2>Очередь: ожидают диагностику</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Код</th>
-              <th>Клиент</th>
-              <th>Авто</th>
-              <th>Пост</th>
-              <th>Статус</th>
-              <th>Блокировка</th>
-              <th>Долг</th>
-              <th>Следующий шаг</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${renderQueueRows(queues.waitingDiagnosis)}
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Очередь: ожидают согласование</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Код</th>
-              <th>Клиент</th>
-              <th>Авто</th>
-              <th>Пост</th>
-              <th>Статус</th>
-              <th>Блокировка</th>
-              <th>Долг</th>
-              <th>Следующий шаг</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${renderQueueRows(queues.waitingApproval)}
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Очередь: ожидание запчастей</h2>
+    <section class="panel queue-table queue-unified-table">
+      <h2>Операционные очереди заказ-нарядов</h2>
+      <p class="muted small">Единая таблица очередей с подразделами по статусу.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -600,53 +550,7 @@ export function renderDashboardPage(model) {
             </tr>
           </thead>
           <tbody>
-            ${renderWaitingPartsQueueRows(queues.waitingParts)}
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Очередь: пауза</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Код</th>
-              <th>Клиент</th>
-              <th>Авто</th>
-              <th>Пост</th>
-              <th>Статус</th>
-              <th>Блокировка</th>
-              <th>Долг</th>
-              <th>Следующий шаг</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${renderQueueRows(queues.paused)}
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Очередь: готово к выдаче</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Код</th>
-              <th>Клиент</th>
-              <th>Авто</th>
-              <th>Пост</th>
-              <th>Статус</th>
-              <th>Блокировка</th>
-              <th>Долг</th>
-              <th>Следующий шаг</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${renderQueueRows(queues.readyPickup)}
+            ${renderUnifiedQueueRows(queues)}
           </tbody>
         </table>
       </div>

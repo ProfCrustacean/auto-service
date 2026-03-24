@@ -70,6 +70,10 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
 ### Harness/operations
 - Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
 - Harness logging is summary-first by default (`HARNESS_LOG_LEVEL=summary`), with verbose child logs available via `HARNESS_LOG_LEVEL=verbose`.
+- Bloat governance now remains honest after helper ownership rollback:
+  - render preflight helper returned to `scripts/render-verify-preflight.js`,
+  - test harness helper returned to `tests/helpers/httpHarness.js`,
+  - bloat pass achieved via direct scripts/tests byte reduction (no threshold increase, no area reclassification).
 - Internal refactor wave completed with no external contract changes:
   - dashboard projections split into `src/services/dashboard/*` with `DashboardService` as thin orchestrator,
   - dispatch mutation HTTP path now runs through `src/http/dispatchBoardRouteFactory.js`,
@@ -104,6 +108,10 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
 
 ## Last accepted milestones
 
+- 2026-03-24: Honest bloat remediation delivered without budget increases or area-evasion:
+  - helper ownership restored to original areas (`scripts`/`tests`),
+  - `audit:bloat` passes with `scripts=215000`, `tests=154932`,
+  - render policy/preflight helpers deduped and page-form test helper reuse increased.
 - 2026-03-24: Pico UI baseline rollout completed and production-validated:
   - commit: `f94f7c6abbdf2204b0b211413994c4fc3bbbfcca`,
   - shared SSR document shell introduced across hot-path pages,
@@ -142,9 +150,11 @@ Most recent local gate results:
 - `npm test`: passed
 - `npm run verify`: passed
 - `npm run lint`: passed
+- `npm run audit:bloat`: passed
 - `npm run secrets:scan`: passed
 
 Most recent deploy-aware gate results:
+- `npm run verify:render -- --skip-deploy`: passed
 - `npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
   - latest deploy id: `dep-d70vvalactks738jmhrg`

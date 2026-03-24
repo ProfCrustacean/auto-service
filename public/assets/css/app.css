@@ -456,6 +456,24 @@ td a {
   min-width: 680px;
 }
 
+.queue-unified-table .queue-subsection th {
+  background: #eef5ef;
+  color: var(--ui-ink);
+  border-top: 1px solid var(--ui-line);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.queue-unified-table .queue-subsection:first-child th {
+  border-top: none;
+}
+
+.queue-unified-table .queue-empty td {
+  color: var(--ui-muted);
+  font-size: 0.84rem;
+}
+
 @media (max-width: 960px) {
   .split,
   .split-grid,

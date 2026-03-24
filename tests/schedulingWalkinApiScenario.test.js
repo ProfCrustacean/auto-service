@@ -2,21 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   closeServer,
+  buildUniqueSlot,
   createTempDatabase,
   makeServer,
   requestJson,
   waitForServer,
 } from "./helpers/httpHarness.js";
-
-function buildUniqueSlot(token, hour = 14) {
-  const date = new Date();
-  const minute = Number.parseInt(token.slice(-2), 10) % 60;
-  date.setHours(hour, minute, 0, 0);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
 
 test("API acceptance scenario covers appointment scheduling and walk-in intake", async () => {
   const tempDb = createTempDatabase("auto-service-api-scheduling-walkin");

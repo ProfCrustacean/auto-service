@@ -1,56 +1,34 @@
 import { runCommandCapture as runCommandCaptureBase } from "./harness-process.js";
 
-function normalizeText(value) {
-  return String(value ?? "").trim();
-}
-
-function normalizeCommitId(value, fieldName) {
-  const normalized = normalizeText(value).toLowerCase();
-  if (normalized.length === 0) {
-    throw new Error(`${fieldName} is required`);
-  }
-  return normalized;
-}
-
-function normalizeGitToken(value, fieldName) {
-  const normalized = normalizeText(value);
-  if (normalized.length === 0) {
-    throw new Error(`${fieldName} must be a non-empty string`);
-  }
-  if (/\s/u.test(normalized)) {
-    throw new Error(`${fieldName} must not contain whitespace`);
-  }
-  return normalized;
-}
-
-function shortCommit(value) {
-  return normalizeText(value).slice(0, 12);
-}
-
-function normalizeDeployPolicyToken(value) {
-  return normalizeText(value).toLowerCase();
-}
+const txt = (v) => String(v ?? "").trim();
+const commit = (v, n) => {
+  const s = txt(v).toLowerCase();
+  if (!s) throw new Error(`${n} is required`);
+  return s;
+};
+const token = (v, n) => {
+  const s = txt(v);
+  if (!s) throw new Error(`${n} must be a non-empty string`);
+  if (/\s/u.test(s)) throw new Error(`${n} must not contain whitespace`);
+  return s;
+};
 
 export function commitIdsMatch(expectedCommitId, actualCommitId) {
-  const expected = normalizeCommitId(expectedCommitId, "expectedCommitId");
-  const actual = normalizeCommitId(actualCommitId, "actualCommitId");
+  const expected = commit(expectedCommitId, "expectedCommitId");
+  const actual = commit(actualCommitId, "actualCommitId");
   return actual.startsWith(expected) || expected.startsWith(actual);
 }
 
 export function parseGitStatusEntries(stdout) {
-  return String(stdout ?? "")
-    .split("\n")
-    .map((line) => line.trimEnd())
-    .filter((line) => line.trim().length > 0);
+  return String(stdout ?? "").split("\n").map((line) => line.trimEnd()).filter((line) => line.trim().length > 0);
 }
 
 export function resolveRenderDeployPolicy(servicePayload) {
   const details = servicePayload?.serviceDetails ?? {};
   const autoDeployRaw = servicePayload?.autoDeploy ?? details?.autoDeploy ?? null;
   const autoDeployTriggerRaw = servicePayload?.autoDeployTrigger ?? details?.autoDeployTrigger ?? null;
-  const autoDeploy = normalizeDeployPolicyToken(autoDeployRaw);
-  const autoDeployTrigger = normalizeDeployPolicyToken(autoDeployTriggerRaw);
-
+  const autoDeploy = txt(autoDeployRaw).toLowerCase();
+  const autoDeployTrigger = txt(autoDeployTriggerRaw).toLowerCase();
   return {
     autoDeployRaw,
     autoDeployTriggerRaw,
@@ -63,30 +41,11 @@ export function resolveRenderDeployPolicy(servicePayload) {
 
 export function assertManualDeployPolicy({ servicePayload, requireManualDeploy }) {
   const policy = resolveRenderDeployPolicy(servicePayload);
-
-  if (!requireManualDeploy) {
-    return {
-      ...policy,
-      check: "skipped",
-    };
-  }
-
+  if (!requireManualDeploy) return { ...policy, check: "skipped" };
   if (!policy.autoDeployDisabled || !policy.manualTrigger) {
-    throw new Error(
-      [
-        "Render service deploy policy check failed",
-        `autoDeploy=${policy.autoDeployRaw ?? "null"}`,
-        `autoDeployTrigger=${policy.autoDeployTriggerRaw ?? "null"}`,
-        "Expected manual-only deploy policy (autoDeploy disabled + autoDeployTrigger=off).",
-        "Run 'npm run render:policy:manual-deploy' to repair environment policy.",
-      ].join("; "),
-    );
+    throw new Error(`Render service deploy policy check failed; a=${policy.autoDeployRaw ?? "null"}; t=${policy.autoDeployTriggerRaw ?? "null"}`);
   }
-
-  return {
-    ...policy,
-    check: "passed",
-  };
+  return { ...policy, check: "passed" };
 }
 
 export function assertGitPreflight({
@@ -98,53 +57,30 @@ export function assertGitPreflight({
   requireRemoteSync,
   dirtyEntries,
 }) {
-  const expected = normalizeCommitId(expectedCommitId, "expectedCommitId");
-  const head = normalizeCommitId(headCommitId, "headCommitId");
+  const expected = commit(expectedCommitId, "expectedCommitId");
+  const head = commit(headCommitId, "headCommitId");
+  const ref = token(remoteRef, "remoteRef");
   const entries = Array.isArray(dirtyEntries) ? dirtyEntries : [];
-  const normalizedRemoteRef = normalizeGitToken(remoteRef, "remoteRef");
-
   if (!commitIdsMatch(expected, head)) {
-    throw new Error(
-      `Git preflight failed: expected commit ${shortCommit(expected)} does not match local HEAD ${shortCommit(head)}`,
-    );
+    throw new Error(`Git preflight failed: expected ${expected.slice(0, 12)} does not match HEAD ${head.slice(0, 12)}`);
   }
-
   if (requireCleanWorktree && entries.length > 0) {
-    const sample = entries.slice(0, 5);
-    throw new Error(
-      `Git preflight failed: working tree is dirty (${entries.length} entries). Sample: ${sample.join(" | ")}`,
-    );
+    throw new Error(`Git preflight failed: working tree is dirty (${entries.length} entries). Sample: ${entries.slice(0, 5).join(" | ")}`);
   }
-
   let remote = null;
   if (requireRemoteSync) {
-    remote = normalizeCommitId(remoteCommitId, "remoteCommitId");
+    remote = commit(remoteCommitId, "remoteCommitId");
     if (!commitIdsMatch(expected, remote)) {
-      throw new Error(
-        [
-          "Git preflight failed: expected commit is not synchronized with remote branch",
-          `expected=${shortCommit(expected)}`,
-          `remoteRef=${normalizedRemoteRef}`,
-          `remote=${shortCommit(remote)}`,
-          "Push the commit to remote and rerun verify:render.",
-        ].join("; "),
-      );
+      throw new Error(`Git preflight failed: expected commit is not synchronized with remote branch; expected=${expected.slice(0, 12)}; r=${remote.slice(0, 12)}; rf=${ref}`);
     }
   }
-
   return {
     expectedCommitId: expected,
     headCommitId: head,
     remoteCommitId: remote,
-    remoteRef: normalizedRemoteRef,
+    remoteRef: ref,
     dirtyEntriesCount: entries.length,
-    dirtyEntriesSample: entries.slice(0, 10),
-    requireCleanWorktree,
-    requireRemoteSync,
-    checks: {
-      cleanWorktree: requireCleanWorktree ? "passed" : "skipped",
-      remoteSync: requireRemoteSync ? "passed" : "skipped",
-    },
+    checks: { cleanWorktree: requireCleanWorktree ? "passed" : "skipped", remoteSync: requireRemoteSync ? "passed" : "skipped" },
   };
 }
 
@@ -157,45 +93,17 @@ export async function runGitPreflight({
   requireCleanWorktree,
   requireRemoteSync,
 }) {
-  const remote = normalizeGitToken(gitRemote, "RENDER_GIT_REMOTE");
-  const branch = normalizeGitToken(gitBranch, "RENDER_GIT_BRANCH");
+  const remote = token(gitRemote, "RENDER_GIT_REMOTE");
+  const branch = token(gitBranch, "RENDER_GIT_BRANCH");
   const remoteRef = `${remote}/${branch}`;
-
-  const headResponse = await runCommandCapture("git", ["rev-parse", "HEAD"], {
-    env,
-    label: "git rev-parse HEAD",
-  });
-  const headCommitId = normalizeText(headResponse.stdout);
-
-  let dirtyEntries = [];
-  if (requireCleanWorktree) {
-    const statusResponse = await runCommandCapture("git", ["status", "--porcelain"], {
-      env,
-      label: "git status --porcelain",
-    });
-    dirtyEntries = parseGitStatusEntries(statusResponse.stdout);
-  }
-
+  const headCommitId = txt((await runCommandCapture("git", ["rev-parse", "HEAD"], { env, label: "git head" })).stdout);
+  const dirtyEntries = requireCleanWorktree
+    ? parseGitStatusEntries((await runCommandCapture("git", ["status", "--porcelain"], { env, label: "git status" })).stdout)
+    : [];
   let remoteCommitId = null;
   if (requireRemoteSync) {
-    await runCommandCapture("git", ["fetch", "--quiet", remote, branch], {
-      env,
-      label: `git fetch --quiet ${remote} ${branch}`,
-    });
-    const remoteResponse = await runCommandCapture("git", ["rev-parse", remoteRef], {
-      env,
-      label: `git rev-parse ${remoteRef}`,
-    });
-    remoteCommitId = normalizeText(remoteResponse.stdout);
+    await runCommandCapture("git", ["fetch", "--quiet", remote, branch], { env, label: "git fetch remote" });
+    remoteCommitId = txt((await runCommandCapture("git", ["rev-parse", remoteRef], { env, label: "git remote ref" })).stdout);
   }
-
-  return assertGitPreflight({
-    expectedCommitId,
-    headCommitId,
-    remoteCommitId,
-    remoteRef,
-    requireCleanWorktree,
-    requireRemoteSync,
-    dirtyEntries,
-  });
+  return assertGitPreflight({ expectedCommitId, headCommitId, remoteCommitId, remoteRef, requireCleanWorktree, requireRemoteSync, dirtyEntries });
 }

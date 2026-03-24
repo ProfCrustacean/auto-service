@@ -25,7 +25,7 @@ import {
   resolveLatestDeploy,
   waitForDeployLive,
 } from "./render-verify/api.js";
-import { resolveRawAuditOutputPath, runPostDeployLogAudit } from "./render-verify/logAuditFlow.js";
+import { runPostDeployLogAudit } from "./render-verify/logAuditFlow.js";
 import { runRenderDeployFlow } from "./render-verify/deployFlow.js";
 import { buildNonDestructiveScenarios, runScenarioWithRetries } from "./render-verify/scenarioFlow.js";
 
@@ -193,10 +193,7 @@ async function main() {
   logJson({
     status: "render_verify_started",
     serviceId,
-    apiBaseUrl,
     skipDeploy,
-    cliDeployMode,
-    harnessLogLevel: activeHarnessLogLevel,
     includeScenario,
     includeIntakeBookingScenario,
     includeIntakeWalkInScenario,
@@ -205,26 +202,26 @@ async function main() {
     requireCleanWorktree,
     requireRemoteSync,
     requireManualDeploy,
-    gitRemote,
-    gitBranch,
     verifyCommitParity,
     enableLogAudit,
     logAuditMode,
-    writeRawAuditLogs,
-    gzipRawAuditOutput,
-    logAuditSummaryPath: summaryOutputPath,
-    logAuditRawPath: writeRawAuditLogs ? resolveRawAuditOutputPath(rawOutputPath, gzipRawAuditOutput) : null,
-    logAuditLimit: logLimit,
-    logAuditInitialLimit: logInitialLimit,
-    maxWarnings,
-    maxErrors,
-    maxRepoWarnings,
-    failOnLogTruncation,
-    expectedCommitSource: expectedCommitOverride.length > 0 ? "env" : "git",
-    useResolve,
-    resolveIp: useResolve ? resolveIp : null,
-    smokeMaxAttempts,
-    smokeRetryDelayMs,
+    harnessLogLevel: activeHarnessLogLevel,
+    deployMode: cliDeployMode,
+    api: { baseUrl: apiBaseUrl, useResolve, resolveIp: useResolve ? resolveIp : null },
+    git: { remote: gitRemote, branch: gitBranch, expectedCommitSource: expectedCommitOverride.length > 0 ? "env" : "git" },
+    smoke: { maxAttempts: smokeMaxAttempts },
+    logAudit: {
+      writeRawAuditLogs,
+      gzipRawAuditOutput,
+      summaryOutputPath,
+      rawOutputPath,
+      logLimit,
+      logInitialLimit,
+      maxWarnings,
+      maxErrors,
+      maxRepoWarnings,
+      failOnLogTruncation,
+    },
   });
 
   const requestRenderApi = (requestInput) => renderApiRequest({
