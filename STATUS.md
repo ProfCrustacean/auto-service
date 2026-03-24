@@ -32,6 +32,10 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
   - one heading panel (`Операционные очереди заказ-нарядов`) instead of separate queue panels,
   - subsection headers for diagnosis/approval/parts/pause/ready-for-pickup,
   - common row structure with optional parts columns (`—` for non-parts subsections).
+- Dashboard daily load sections are now compact and day-explicit:
+  - both day-load tables (`по постам`, `по сотрудникам`) render without horizontal scrolling,
+  - both section headers show explicit date label in top-right (`Сегодня: DD.MM.YYYY`),
+  - second header is renamed to `Нагрузка по сотрудникам (день)`.
 - Dispatch board is fully migrated to EventCalendar (`@event-calendar/build@5.5.1`) with owner-focused calendar-only controls:
   - vertical `resourceTimeGridDay` view (time top-to-bottom, resources as lanes),
   - removed top metric strips and removed bottom manual control panel,
@@ -112,6 +116,11 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
 
 ## Last accepted milestones
 
+- 2026-03-24: Dashboard day-load UX patch deployed and production-validated:
+  - commit: `3666c40b7676e9cf9b89ba6e61e7b78fa7761ef5`,
+  - removed horizontal scroll from both day-load sections without changing other table sections,
+  - added explicit `Сегодня: DD.MM.YYYY` date labels and renamed section title to `Нагрузка по сотрудникам (день)`,
+  - Render deploy verification passed with smoke + non-destructive scenarios + log audit (`dep-d71g48i4d50c73bnetl0`).
 - 2026-03-24: Unified dashboard queues + honest bloat remediation deployed and production-validated:
   - commit: `d13e1c089be7506c74506c91475045418d8dfd9b`,
   - dashboard queue panels merged into one subsectioned operational table,
@@ -166,8 +175,8 @@ Most recent deploy-aware gate results:
 - `npm run verify:render -- --skip-deploy`: passed
 - `npm run verify:render`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d71fnhp5pdvs73c78ve0`
-  - latest commit parity: `d13e1c089be7506c74506c91475045418d8dfd9b`
+  - latest deploy id: `dep-d71g48i4d50c73bnetl0`
+  - latest commit parity: `3666c40b7676e9cf9b89ba6e61e7b78fa7761ef5`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 

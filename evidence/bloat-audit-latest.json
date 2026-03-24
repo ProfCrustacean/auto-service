@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-24T21:27:49.452Z",
+  "generatedAt": "2026-03-24T21:31:45.671Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1083732,
+      "totalBytes": 1084516,
       "byArea": {
         "src": 490785,
         "tests": 154943,
         "scripts": 214993,
         "docs": 84928,
-        "evidence": 7806,
-        "other": 130277
+        "evidence": 7638,
+        "other": 131229
       }
     },
     "topTrackedFiles": [
@@ -95,12 +95,12 @@
         "bytes": 15655
       },
       {
-        "path": "src/services/appointmentService.js",
-        "bytes": 14043
+        "path": "STATUS.md",
+        "bytes": 14866
       },
       {
-        "path": "STATUS.md",
-        "bytes": 14002
+        "path": "src/services/appointmentService.js",
+        "bytes": 14043
       },
       {
         "path": "README.md",
@@ -117,7 +117,7 @@
     ],
     "evidence": {
       "trackedFileCount": 3,
-      "totalBytes": 7806,
+      "totalBytes": 7638,
       "largestFile": {
         "path": "evidence/linear-aut73-81-done-sync.json",
         "bytes": 3567
@@ -127,8 +127,8 @@
     "docs": {
       "lineCounts": {
         "README": 320,
-        "STATUS": 221,
-        "PLANS": 197
+        "STATUS": 230,
+        "PLANS": 198
       }
     },
     "duplication": {
@@ -137,7 +137,7 @@
       "clones": 91,
       "sources": 135,
       "lines": 24246,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-p5kYcn/report/jscpd-report.json"
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-n8fH4J/report/jscpd-report.json"
     }
   },
   "violations": []
