@@ -5,7 +5,7 @@
     {
       "id": "AC1",
       "status": "PASS",
-      "reason": "Render deploy dep-d71qhcogjchc739nj70g is live and pinned to commit fd151d53e1529f9d746e23d745adc0fcfc39bee5."
+      "reason": "Render deploy dep-d71qtkfgi27c73fm0bp0 is live and pinned to commit 0037d01eb8e97524a19858f7a7ad62383a09b0ad."
     },
     {
       "id": "AC2",
@@ -15,7 +15,7 @@
     {
       "id": "AC3",
       "status": "PASS",
-      "reason": "Deploy-window logs show successful build/start/live events and warn/error-filtered query returned no entries."
+      "reason": "Post-deploy warn/error-filtered log query returned no entries."
     },
     {
       "id": "AC4",
@@ -29,15 +29,15 @@
     "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id core-reset-render-deploy-validation"
   ],
   "artifacts_used": [
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0926Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-trigger-20260325T0945Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0946Z.txt",
     ".agent/tasks/core-reset-render-deploy-validation/raw/test-integration.txt",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0937Z.png",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0937Z.png",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0937Z.png",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0937Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0948Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0948Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0948Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0948Z.png",
     ".agent/tasks/core-reset-render-deploy-validation/raw/remote-route-text-checks.txt",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-logs-deploy-20260325T0920Z.txt",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0926Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0947Z.txt",
     ".agent/tasks/core-reset-render-deploy-validation/raw/validate-status.txt"
   ]
 }

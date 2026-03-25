@@ -14,7 +14,7 @@
 Deploy latest core-reset commit to Render and validate remotely with evidence
 
 ## Acceptance criteria
-- AC1: Latest repository commit (`fd151d53e1529f9d746e23d745adc0fcfc39bee5`) is deployed to Render web service `auto-service-foundation` (`srv-d6vcmt7diees73d0j04g`) and reaches `live` status.
+- AC1: Latest repository commit (`0037d01eb8e97524a19858f7a7ad62383a09b0ad`) is deployed to Render web service `auto-service-foundation` (`srv-d6vcmt7diees73d0j04g`) and reaches `live` status.
 - AC2: Remote runtime validation passes against `https://auto-service-foundation.onrender.com`:
   - smoke checks pass for health/api/core UI routes,
   - browser QA confirms dashboard, booking page, walk-in page, and active work-orders page are reachable and render expected Russian UI text.

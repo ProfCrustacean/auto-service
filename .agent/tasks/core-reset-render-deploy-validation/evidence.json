@@ -4,13 +4,18 @@
   "acceptance_criteria": [
     {
       "id": "AC1",
-      "text": "Latest repository commit (fd151d53e1529f9d746e23d745adc0fcfc39bee5) is deployed to Render web service auto-service-foundation (srv-d6vcmt7diees73d0j04g) and reaches live status.",
+      "text": "Latest repository commit (0037d01eb8e97524a19858f7a7ad62383a09b0ad) is deployed to Render web service auto-service-foundation (srv-d6vcmt7diees73d0j04g) and reaches live status.",
       "status": "PASS",
       "proof": [
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0926Z.txt",
-          "summary": "Latest deploy dep-d71qhcogjchc739nj70g is live and points to commit fd151d53e1529f9d746e23d745adc0fcfc39bee5."
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-trigger-20260325T0945Z.txt",
+          "summary": "Deploy trigger response created dep-d71qtkfgi27c73fm0bp0 for commit 0037d01eb8e97524a19858f7a7ad62383a09b0ad."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0946Z.txt",
+          "summary": "Deploy dep-d71qtkfgi27c73fm0bp0 progressed to live for commit 0037d01eb8e97524a19858f7a7ad62383a09b0ad."
         }
       ],
       "gaps": []
@@ -29,22 +34,22 @@
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0937Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0948Z.png",
           "summary": "Browser screenshot for dashboard route /."
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0937Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0948Z.png",
           "summary": "Browser screenshot for /appointments/new."
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0937Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0948Z.png",
           "summary": "Browser screenshot for /appointments/new?mode=walkin."
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0937Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0948Z.png",
           "summary": "Browser screenshot for /work-orders/active."
         },
         {
@@ -62,13 +67,8 @@
       "proof": [
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-logs-deploy-20260325T0920Z.txt",
-          "summary": "Deploy window logs show checkout of target commit, successful build, server start, and live transition."
-        },
-        {
-          "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0926Z.txt",
-          "summary": "Warn/error filtered query returned logs=null for deploy window."
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0947Z.txt",
+          "summary": "Warn/error filtered query returned logs=null after deploy."
         }
       ],
       "gaps": []
@@ -94,15 +94,15 @@
     ".agent/tasks/core-reset-render-deploy-validation/evidence.json",
     ".agent/tasks/core-reset-render-deploy-validation/verdict.json",
     ".agent/tasks/core-reset-render-deploy-validation/problems.md",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0926Z.txt",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-logs-deploy-20260325T0920Z.txt",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0926Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-trigger-20260325T0945Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0946Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0947Z.txt",
     ".agent/tasks/core-reset-render-deploy-validation/raw/remote-route-text-checks.txt",
     ".agent/tasks/core-reset-render-deploy-validation/raw/test-integration.txt",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0937Z.png",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0937Z.png",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0937Z.png",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0937Z.png"
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0948Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0948Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0948Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0948Z.png"
   ],
   "commands_for_fresh_verifier": [
     "APP_BASE_URL='https://auto-service-foundation.onrender.com' npm run smoke",

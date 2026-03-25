@@ -1,0 +1,8 @@
+Render log query
+resource: srv-d6vcmt7diees73d0j04g
+level filter: warn,error
+direction: backward
+limit: 50
+checked_at: 2026-03-25T09:47:52Z
+
+{"hasMore":false,"logs":null,"nextEndTime":"2026-03-25T09:47:52.807553206Z","nextStartTime":"2026-03-18T09:47:52.807553035Z"}

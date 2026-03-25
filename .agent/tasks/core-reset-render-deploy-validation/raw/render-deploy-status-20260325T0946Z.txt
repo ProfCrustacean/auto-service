@@ -1,0 +1,15 @@
+[2026-03-25T09:46:06Z] poll=1 status=build_in_progress
+{"id":"dep-d71qtkfgi27c73fm0bp0","commit":{"id":"0037d01eb8e97524a19858f7a7ad62383a09b0ad","message":"Refresh Render QA evidence for phase-4 proof loop","createdAt":"2026-03-25T09:43:12Z"},"status":"build_in_progress","trigger":"api","createdAt":"2026-03-25T09:45:54.499897Z","updatedAt":"2026-03-25T09:45:54.499897Z","startedAt":"2026-03-25T09:45:54.436645Z"}
+
+[2026-03-25T09:46:18Z] poll=2 status=build_in_progress
+{"id":"dep-d71qtkfgi27c73fm0bp0","commit":{"id":"0037d01eb8e97524a19858f7a7ad62383a09b0ad","message":"Refresh Render QA evidence for phase-4 proof loop","createdAt":"2026-03-25T09:43:12Z"},"status":"build_in_progress","trigger":"api","createdAt":"2026-03-25T09:45:54.499897Z","updatedAt":"2026-03-25T09:45:54.499897Z","startedAt":"2026-03-25T09:45:54.436645Z"}
+
+[2026-03-25T09:46:29Z] poll=3 status=build_in_progress
+{"id":"dep-d71qtkfgi27c73fm0bp0","commit":{"id":"0037d01eb8e97524a19858f7a7ad62383a09b0ad","message":"Refresh Render QA evidence for phase-4 proof loop","createdAt":"2026-03-25T09:43:12Z"},"status":"build_in_progress","trigger":"api","createdAt":"2026-03-25T09:45:54.499897Z","updatedAt":"2026-03-25T09:45:54.499897Z","startedAt":"2026-03-25T09:45:54.436645Z"}
+
+[2026-03-25T09:46:40Z] poll=4 status=update_in_progress
+{"id":"dep-d71qtkfgi27c73fm0bp0","commit":{"id":"0037d01eb8e97524a19858f7a7ad62383a09b0ad","message":"Refresh Render QA evidence for phase-4 proof loop","createdAt":"2026-03-25T09:43:12Z"},"status":"update_in_progress","trigger":"api","createdAt":"2026-03-25T09:45:54.499897Z","updatedAt":"2026-03-25T09:46:37.794997Z","startedAt":"2026-03-25T09:45:54.436645Z"}
+
+[2026-03-25T09:46:50Z] poll=5 status=live
+{"id":"dep-d71qtkfgi27c73fm0bp0","commit":{"id":"0037d01eb8e97524a19858f7a7ad62383a09b0ad","message":"Refresh Render QA evidence for phase-4 proof loop","createdAt":"2026-03-25T09:43:12Z"},"status":"live","trigger":"api","createdAt":"2026-03-25T09:45:54.499897Z","updatedAt":"2026-03-25T09:46:49.37013Z","startedAt":"2026-03-25T09:45:54.436645Z","finishedAt":"2026-03-25T09:46:49.369997Z"}
+
