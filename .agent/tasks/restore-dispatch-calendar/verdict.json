@@ -34,7 +34,10 @@
     "npm run verify",
     "BASE_URL=http://127.0.0.1:3000 npm run smoke",
     "curl -s -o /tmp/dispatch_board.html -w \"%{http_code}\\n\" http://127.0.0.1:3000/dispatch/board",
-    "curl -s -o /tmp/dispatch_board_api.json -w \"%{http_code}\\n\" http://127.0.0.1:3000/api/v1/dispatch/board"
+    "curl -s -o /tmp/dispatch_board_api.json -w \"%{http_code}\\n\" http://127.0.0.1:3000/api/v1/dispatch/board",
+    "APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke",
+    "curl -s -o /tmp/render_dispatch_board.html -w \"%{http_code}\\n\" https://auto-service-foundation.onrender.com/dispatch/board",
+    "curl -s -o /tmp/render_dispatch_api.json -w \"%{http_code}\\n\" https://auto-service-foundation.onrender.com/api/v1/dispatch/board"
   ],
   "artifacts_used": [
     ".agent/tasks/restore-dispatch-calendar/evidence.md",
@@ -44,6 +47,9 @@
     ".agent/tasks/restore-dispatch-calendar/raw/test-unit.txt",
     ".agent/tasks/restore-dispatch-calendar/raw/test-integration.txt",
     ".agent/tasks/restore-dispatch-calendar/raw/build.txt",
-    ".agent/tasks/restore-dispatch-calendar/raw/screenshot-1.png"
+    ".agent/tasks/restore-dispatch-calendar/raw/screenshot-1.png",
+    ".agent/tasks/restore-dispatch-calendar/raw/render-runtime-checks.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/render-smoke.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/render-e2e-dispatch-board.png"
   ]
 }

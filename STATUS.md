@@ -41,7 +41,11 @@ Core-reset baseline is delivered: keep only product-core scheduling/intake/work-
   - global baseline: `/assets/vendor/pico.min.css` + `/assets/css/tokens.css` + `/assets/css/app.css`,
   - shared HTML shell for page renderers: `src/ui/renderDocumentShell.js`,
   - large inline `<style>` islands removed from dashboard/forms/detail/active-queue renderers.
-- Dispatch board runtime and API surface are removed from the core-reset baseline.
+- Dispatch board runtime and API surface are restored:
+  - dispatch page: `GET /dispatch/board`,
+  - dispatch API: `GET /api/v1/dispatch/board`,
+  - dispatch mutations: preview/commit + queue scheduling endpoints,
+  - dashboard dispatch CTA and Event Calendar assets are wired and verified.
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
   - appointment lifecycle with global non-blocking overlap warnings (no blocking slot conflicts),
@@ -85,6 +89,12 @@ Core-reset baseline is delivered: keep only product-core scheduling/intake/work-
 
 ## Last accepted milestones
 
+- 2026-03-25: Dispatch calendar restoration deployed and production-validated:
+  - commit: `1d0f9186a416de610a2f50ec3a3b5528ff27a4cc`,
+  - deploy id: `dep-d71sp4n5r7bs73e46qsg` (`status=live`),
+  - production checks passed: `/healthz`, `/dispatch/board`, `/api/v1/dispatch/board`,
+  - production smoke passed with dispatch checks (`APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke`),
+  - browser E2E navigation passed (dashboard -> dispatch board) with screenshot evidence in `.agent/tasks/restore-dispatch-calendar/raw/render-e2e-dispatch-board.png`.
 - 2026-03-25: First-principles core reset completed (`core-reset-loc-reduction`):
   - JavaScript LOC reduced from `27,549` to `19,118` (`-8,431`, `-30.60%`) across `src + scripts + tests`,
   - dispatch board runtime/API/UI surface removed,
@@ -173,7 +183,7 @@ Most recent local gate results:
 - `npm run verify`: passed
 - `npm run lint`: passed
 - `npm run hygiene:check`: passed
-- `npm run audit:bloat`: passed
+- `npm run audit:bloat`: failed (`tracked_bytes_total`, `actual=16515487`, `threshold=1220000`)
 - `npm run secrets:scan`: passed
 - `/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py validate --task-id core-reset-loc-reduction`: passed
 - `/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id core-reset-loc-reduction`: passed (`evidence=PASS`, `verdict=PASS`)
@@ -183,13 +193,17 @@ Most recent local gate results:
 
 Deploy-aware gate status:
 - Render verify/policy harness commands were intentionally removed in `core-reset-loc-reduction`.
-- Last remote deploy verification remains historical evidence from pre-reset milestones only.
+- Manual Render deploy verification is active via MCP/API fallback:
+  - latest deploy: `dep-d71sp4n5r7bs73e46qsg` (live),
+  - latest verified commit: `1d0f9186a416de610a2f50ec3a3b5528ff27a4cc`,
+  - smoke + runtime checks + browser proof recorded in `.agent/tasks/restore-dispatch-calendar/raw/`.
 
 Primary evidence pointers:
 - `evidence/bloat-audit-latest.json`
 - `.agent/tasks/core-reset-loc-reduction/` (spec/evidence/verdict/problem artifacts + raw command logs)
 - `.agent/tasks/proof-loop-bootstrap/` (spec/evidence/verdict/problem artifacts + raw placeholders)
 - `.agent/tasks/cleanup-brittle-outdated-loc/` (cleanup spec/evidence/verdict + raw verification logs)
+- `.agent/tasks/restore-dispatch-calendar/` (restore spec/evidence/verdict + local and production deploy verification artifacts)
 
 ## Environments
 
@@ -201,15 +215,16 @@ Primary evidence pointers:
 ### render-validation
 - URL: `https://auto-service-foundation.onrender.com`
 - service id: `srv-d6vcmt7diees73d0j04g`
-- status: historical Phase 4 validation environment (not part of current core-reset harness)
+- status: live and validated on 2026-03-25 for dispatch restore commit `1d0f9186a416de610a2f50ec3a3b5528ff27a4cc`
 - deploy policy: last known `autoDeploy=no`, `autoDeployTrigger=off`
-- caveat: no active repo-local Render verification command in core-reset baseline
+- caveat: no repo-local one-command Render deploy script; deploy trigger currently uses MCP/API env-update fallback.
 
 ## Known caveats
 
 - Deploy automation coverage was intentionally reduced in this slice; remote verification requires a future replacement flow.
 - Token auth remains baseline-level (no IdP/session/rotation service yet).
 - SQLite remains single-node file persistence.
+- `audit:bloat` currently fails on total tracked bytes budget and needs follow-up cleanup/retention pass.
 
 ## Active work focus
 

@@ -119,6 +119,23 @@
           "command": "BASE_URL=http://127.0.0.1:3000 npm run smoke",
           "exit_code": 0,
           "summary": "Smoke includes dispatch_board_api and dispatch_board_ui in passed checks."
+        },
+        {
+          "type": "deploy",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/render-runtime-checks.txt",
+          "summary": "Render deploy dep-d71sp4n5r7bs73e46qsg is live on commit 1d0f9186a416de610a2f50ec3a3b5528ff27a4cc."
+        },
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/render-smoke.txt",
+          "command": "APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke",
+          "exit_code": 0,
+          "summary": "Production smoke passed including dispatch_board_api and dispatch_board_ui."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/render-e2e-dispatch-board.png",
+          "summary": "Browser E2E proof for production dispatch board page."
         }
       ],
       "gaps": []
@@ -153,7 +170,10 @@
     ".agent/tasks/restore-dispatch-calendar/raw/test-unit.txt",
     ".agent/tasks/restore-dispatch-calendar/raw/test-integration.txt",
     ".agent/tasks/restore-dispatch-calendar/raw/screenshot-1.png",
-    ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt"
+    ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/render-runtime-checks.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/render-smoke.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/render-e2e-dispatch-board.png"
   ],
   "commands_for_fresh_verifier": [
     "npm run lint",
@@ -161,7 +181,8 @@
     "npm run verify",
     "BASE_URL=http://127.0.0.1:3000 npm run smoke",
     "curl -s -o /tmp/dispatch_board.html -w \"%{http_code}\\n\" http://127.0.0.1:3000/dispatch/board",
-    "curl -s -o /tmp/dispatch_board_api.json -w \"%{http_code}\\n\" http://127.0.0.1:3000/api/v1/dispatch/board"
+    "curl -s -o /tmp/dispatch_board_api.json -w \"%{http_code}\\n\" http://127.0.0.1:3000/api/v1/dispatch/board",
+    "APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke"
   ],
   "known_gaps": []
 }

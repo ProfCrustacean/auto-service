@@ -20,9 +20,18 @@ Steps:
 6. Update proof-loop artifacts for `restore-dispatch-calendar` and synchronize `STATUS.md`/`PLANS.md`.
 
 Status:
-- In progress (2026-03-25): spec initialized and frozen; restoration build in progress.
+- Completed (2026-03-25):
+  - proof-loop task artifacts finalized under `.agent/tasks/restore-dispatch-calendar/` (`evidence=PASS`, `verdict=PASS`);
+  - local verification passed: `npm run secrets:scan`, `npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`;
+  - manual production deploy completed on Render: `dep-d71sp4n5r7bs73e46qsg` (`live`) for commit `1d0f9186a416de610a2f50ec3a3b5528ff27a4cc`;
+  - production validation passed: curl runtime checks, `APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke`, and browser E2E dashboard -> dispatch board.
 
 Most recent completed non-trivial slice:
+- 2026-03-25 — Restore dispatch calendar (`restore-dispatch-calendar`) completed:
+  - dispatch page/API/mutations/assets restored (`/dispatch/board`, `/api/v1/dispatch/board`, mutation routes, Event Calendar assets),
+  - dashboard dispatch entry re-enabled and runtime wiring restored,
+  - local and production verification evidence captured in `.agent/tasks/restore-dispatch-calendar/raw/`,
+  - Render deploy `dep-d71sp4n5r7bs73e46qsg` is live on commit `1d0f9186a416de610a2f50ec3a3b5528ff27a4cc`.
 - 2026-03-25 — First-principles core reset (`core-reset-loc-reduction`) completed:
   - removed non-core harness/orchestration scripts (Render verify/policy flows, Linear apply harness, cleanup/report helper scripts, scenario runners),
   - removed dispatch board runtime and mutation surface (`src/http/dispatchBoard*`, `src/ui/dispatchBoard*`, `src/services/dashboard/dispatchProjection.js`, dispatch CSS),

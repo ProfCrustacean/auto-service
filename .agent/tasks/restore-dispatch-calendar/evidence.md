@@ -43,6 +43,10 @@
   - `npm test` passed (`raw/test-unit.txt`).
   - `npm run verify` passed (`raw/test-integration.txt`).
   - `BASE_URL=http://127.0.0.1:3000 npm run smoke` passed with `dispatch_board_api` and `dispatch_board_ui` checks (`raw/build.txt`).
+  - Render deploy `dep-d71sp4n5r7bs73e46qsg` for commit `1d0f9186a416de610a2f50ec3a3b5528ff27a4cc` reached `live` status.
+  - Production runtime checks passed on `https://auto-service-foundation.onrender.com` (`raw/render-runtime-checks.txt`).
+  - Production smoke passed with dispatch checks (`raw/render-smoke.txt`).
+  - Browser E2E navigation dashboard -> dispatch board passed (`raw/render-e2e-dispatch-board.png`).
 
 ## Commands run
 - `npm run lint` (exit `0`)
@@ -58,6 +62,9 @@
 - .agent/tasks/restore-dispatch-calendar/raw/lint.txt
 - .agent/tasks/restore-dispatch-calendar/raw/screenshot-1.png
 - .agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt
+- .agent/tasks/restore-dispatch-calendar/raw/render-runtime-checks.txt
+- .agent/tasks/restore-dispatch-calendar/raw/render-smoke.txt
+- .agent/tasks/restore-dispatch-calendar/raw/render-e2e-dispatch-board.png
 
 ## Known gaps
 - None.

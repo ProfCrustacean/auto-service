@@ -1,0 +1,16 @@
+deploy_id=dep-d71sp4n5r7bs73e46qsg
+deploy_commit=1d0f9186a416de610a2f50ec3a3b5528ff27a4cc
+deploy_status=live
+deploy_finished_at=2026-03-25T11:53:32.398986Z
+
+[curl checks @ https://auto-service-foundation.onrender.com]
+healthz_http=200
+dispatch_board_http=200
+dispatch_api_http=200
+6:  <title>Диспетчерская доска</title>
+19:      <h1>Диспетчерская доска</h1>
+35:        <h2>Очередь переносов</h2>
+91:          <div id="dispatch-calendar" class="calendar-host" aria-label="Календарная доска"></div>
+109:        const calendarHost = document.getElementById("dispatch-calendar");
+calendar.engine=event_calendar
+resources=3
