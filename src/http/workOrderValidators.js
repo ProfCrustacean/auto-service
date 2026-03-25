@@ -17,6 +17,10 @@ import {
   PARTS_PURCHASE_ACTION_STATUS_CODES,
   PARTS_REQUEST_STATUS_CODES,
 } from "../domain/partsRequestLifecycle.js";
+import {
+  WORK_ORDER_PAYMENT_METHOD_CODES,
+  WORK_ORDER_PAYMENT_TYPE_CODES,
+} from "../domain/workOrderPayment.js";
 
 function normalizeStatus(value, field, errors) {
   return normalizeEnum(value, field, errors, {
@@ -63,6 +67,20 @@ function normalizePartsPurchaseActionStatus(value, field, errors) {
   return normalizeEnum(value, field, errors, {
     allowedValues: PARTS_PURCHASE_ACTION_STATUS_CODES,
     enumMessage: `${field} must be one of: ${PARTS_PURCHASE_ACTION_STATUS_CODES.join(", ")}`,
+  });
+}
+
+function normalizeWorkOrderPaymentType(value, field, errors) {
+  return normalizeEnum(value, field, errors, {
+    allowedValues: WORK_ORDER_PAYMENT_TYPE_CODES,
+    enumMessage: `${field} must be one of: ${WORK_ORDER_PAYMENT_TYPE_CODES.join(", ")}`,
+  });
+}
+
+function normalizeWorkOrderPaymentMethod(value, field, errors) {
+  return normalizeEnum(value, field, errors, {
+    allowedValues: WORK_ORDER_PAYMENT_METHOD_CODES,
+    enumMessage: `${field} must be one of: ${WORK_ORDER_PAYMENT_METHOD_CODES.join(", ")}`,
   });
 }
 
@@ -161,6 +179,16 @@ export function validateWorkOrderUpdate(body) {
     value.balanceDueRub = balanceDueRub;
   }
 
+  const laborTotalRub = normalizeNonNegativeInteger(body.laborTotalRub, "laborTotalRub", errors);
+  if (laborTotalRub !== undefined) {
+    value.laborTotalRub = laborTotalRub;
+  }
+
+  const outsideServiceCostRub = normalizeNonNegativeInteger(body.outsideServiceCostRub, "outsideServiceCostRub", errors);
+  if (outsideServiceCostRub !== undefined) {
+    value.outsideServiceCostRub = outsideServiceCostRub;
+  }
+
   const reason = normalizeOptionalString(body.reason, "reason", errors);
   if (reason !== undefined) {
     value.reason = reason;
@@ -180,6 +208,8 @@ export function validateWorkOrderUpdate(body) {
     "internalNotes",
     "customerNotes",
     "balanceDueRub",
+    "laborTotalRub",
+    "outsideServiceCostRub",
     "reason",
     "changedBy",
   ]);
@@ -196,6 +226,8 @@ export function validateWorkOrderUpdate(body) {
     "internalNotes",
     "customerNotes",
     "balanceDueRub",
+    "laborTotalRub",
+    "outsideServiceCostRub",
   ].some((field) => Object.hasOwn(value, field));
 
   if (!hasMutableField) {
@@ -515,6 +547,70 @@ export function validateCreatePartsPurchaseAction(body) {
     "status",
     "notes",
     "reason",
+    "changedBy",
+  ]);
+  for (const field of unknownFields) {
+    errors.push({ field, message: "unknown field" });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, value };
+}
+
+export function validateCreateWorkOrderPayment(body) {
+  const errors = [];
+  const value = {};
+
+  const paymentType = normalizeWorkOrderPaymentType(body.paymentType, "paymentType", errors);
+  if (paymentType === undefined) {
+    errors.push({ field: "paymentType", message: "paymentType is required" });
+  } else {
+    value.paymentType = paymentType;
+  }
+
+  const paymentMethod = normalizeWorkOrderPaymentMethod(body.paymentMethod, "paymentMethod", errors);
+  if (paymentMethod === undefined) {
+    errors.push({ field: "paymentMethod", message: "paymentMethod is required" });
+  } else {
+    value.paymentMethod = paymentMethod;
+  }
+
+  const amountRub = normalizePositiveInteger(body.amountRub, "amountRub", errors);
+  if (amountRub === undefined) {
+    errors.push({ field: "amountRub", message: "amountRub is required and must be > 0" });
+  } else {
+    value.amountRub = amountRub;
+  }
+
+  const note = normalizeOptionalString(body.note, "note", errors);
+  if (note !== undefined) {
+    value.note = note;
+  }
+
+  const recordedAt = normalizeOptionalString(body.recordedAt, "recordedAt", errors);
+  if (recordedAt !== undefined) {
+    const parsed = new Date(recordedAt);
+    if (Number.isNaN(parsed.getTime())) {
+      errors.push({ field: "recordedAt", message: "recordedAt must be a valid ISO timestamp" });
+    } else {
+      value.recordedAt = recordedAt;
+    }
+  }
+
+  const changedBy = normalizeOptionalString(body.changedBy, "changedBy", errors);
+  if (changedBy !== undefined) {
+    value.changedBy = changedBy;
+  }
+
+  const unknownFields = collectUnknownFields(body, [
+    "paymentType",
+    "paymentMethod",
+    "amountRub",
+    "note",
+    "recordedAt",
     "changedBy",
   ]);
   for (const field of unknownFields) {

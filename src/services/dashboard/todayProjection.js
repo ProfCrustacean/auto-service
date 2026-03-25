@@ -14,6 +14,13 @@ function formatRub(value) {
   return `${new Intl.NumberFormat("ru-RU").format(value)} руб.`;
 }
 
+function toLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function formatBlockedDuration(blockedSinceIso, now) {
   if (!blockedSinceIso) {
     return "н/д";
@@ -125,6 +132,9 @@ function incrementLoad(map, key, field) {
 export function buildTodayDashboard({ repository, searchQuery = "" }) {
   const now = new Date();
   const todayDayKey = toDayKey(startOfLocalDay(now));
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const reportPeriodFrom = toLocalDateKey(monthStart);
+  const reportPeriodTo = toLocalDateKey(now);
   const customers = repository.listCustomers();
   const appointments = repository.listAppointments();
   const workOrders = repository.listWorkOrders();
@@ -206,6 +216,10 @@ export function buildTodayDashboard({ repository, searchQuery = "" }) {
     serviceMeta,
     employees,
   });
+  const operationsReport = repository.getOperationsReport({
+    dateFromLocal: reportPeriodFrom,
+    dateToLocal: reportPeriodTo,
+  });
 
   const appointmentRows = appointmentsToday.map((appointment) => ({
     ...appointment,
@@ -243,6 +257,18 @@ export function buildTodayDashboard({ repository, searchQuery = "" }) {
       ),
     },
     week,
+    reporting: {
+      ...operationsReport,
+      laborRevenueLabel: formatRub(operationsReport.laborRevenueRub ?? 0),
+      partsRevenueLabel: formatRub(operationsReport.partsRevenueRub ?? 0),
+      totalRevenueLabel: formatRub(operationsReport.totalRevenueRub ?? 0),
+      averageTicketLabel: formatRub(operationsReport.averageTicketRub ?? 0),
+      grossMarginLabel: formatRub(operationsReport.grossMarginRub ?? 0),
+      openBalancesLabel: formatRub(operationsReport.openBalancesRub ?? 0),
+      readyPickupUnpaidLabel: formatRub(operationsReport.readyPickupUnpaidRub ?? 0),
+      partsCostLabel: formatRub(operationsReport.partsCostRub ?? 0),
+      outsideServiceCostLabel: formatRub(operationsReport.outsideServiceCostRub ?? 0),
+    },
     search,
     queues: {
       waitingDiagnosis,

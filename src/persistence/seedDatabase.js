@@ -32,6 +32,7 @@ function getSummaryCounts(database) {
     intakeEvents: getRowCount(database, "intake_events"),
     workOrders: getRowCount(database, "work_orders"),
     workOrderStatusHistory: getRowCount(database, "work_order_status_history"),
+    workOrderPayments: getRowCount(database, "work_order_payments"),
     workOrderPartsRequests: getRowCount(database, "work_order_parts_requests"),
     partsPurchaseActions: getRowCount(database, "parts_purchase_actions"),
     workOrderPartsHistory: getRowCount(database, "work_order_parts_history"),
@@ -101,6 +102,7 @@ export function validateSeedFixtures(fixtures) {
   const appointments = validateCollection(fixtures ?? {}, "appointments", errors);
   const intakeEvents = validateCollection(fixtures ?? {}, "intakeEvents", errors);
   const workOrders = validateCollection(fixtures ?? {}, "workOrders", errors);
+  const payments = validateCollection(fixtures ?? {}, "payments", errors);
 
   const customerIds = new Set(customers.map((item) => item.id));
   const vehicleIds = new Set(vehicles.map((item) => item.id));
@@ -148,6 +150,22 @@ export function validateSeedFixtures(fixtures) {
     }
   }
 
+  const workOrderIds = new Set(workOrders.map((item) => item.id));
+  for (const [index, payment] of payments.entries()) {
+    if (!workOrderIds.has(payment.workOrderId)) {
+      errors.push(`payments[${index}] references unknown workOrderId '${payment.workOrderId}'`);
+    }
+    if (!isNonEmptyString(payment.paymentType)) {
+      errors.push(`payments[${index}].paymentType must be a non-empty string`);
+    }
+    if (!isNonEmptyString(payment.paymentMethod)) {
+      errors.push(`payments[${index}].paymentMethod must be a non-empty string`);
+    }
+    if (!Number.isInteger(payment.amountRub) || payment.amountRub <= 0) {
+      errors.push(`payments[${index}].amountRub must be an integer > 0`);
+    }
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -155,6 +173,7 @@ export function validateSeedFixtures(fixtures) {
 }
 
 function clearAllData(database) {
+  database.exec("DELETE FROM work_order_payments;");
   database.exec("DELETE FROM work_order_parts_history;");
   database.exec("DELETE FROM parts_purchase_actions;");
   database.exec("DELETE FROM work_order_parts_requests;");
@@ -328,10 +347,12 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
       customer_notes,
       blocked_since_iso,
       balance_due_rub,
+      labor_total_rub,
+      outside_service_cost_rub,
       created_at,
       closed_at,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const insertWorkOrderStatusHistory = database.prepare(
     `INSERT INTO work_order_status_history(
@@ -345,6 +366,20 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
       changed_by,
       reason,
       source
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const insertWorkOrderPayment = database.prepare(
+    `INSERT INTO work_order_payments(
+      id,
+      work_order_id,
+      payment_type,
+      payment_method,
+      amount_rub,
+      note,
+      recorded_at,
+      recorded_by,
+      created_at,
+      updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const insertWorkOrderPartsRequest = database.prepare(
@@ -495,6 +530,8 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
         order.primaryAssignee ?? null,
         order.blockedSinceIso ?? null,
         order.balanceDueRub ?? 0,
+        order.laborTotalRub ?? 0,
+        order.outsideServiceCostRub ?? 0,
         orderCreatedAt,
         closedAt,
         nowIso,
@@ -526,6 +563,22 @@ export function seedDatabase({ database, seedPath, logger, force = false }) {
           nowIso,
         );
       }
+    }
+
+    for (const payment of fixtures.payments ?? []) {
+      const recordedAt = payment.recordedAt ?? nowIso;
+      insertWorkOrderPayment.run(
+        payment.id,
+        payment.workOrderId,
+        payment.paymentType,
+        payment.paymentMethod,
+        payment.amountRub,
+        payment.note ?? null,
+        recordedAt,
+        payment.recordedBy ?? "seed",
+        recordedAt,
+        nowIso,
+      );
     }
 
     const waitingPartsOrder = (fixtures.workOrders ?? []).find((order) => order.status === "waiting_parts");

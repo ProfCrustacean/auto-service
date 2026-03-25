@@ -143,6 +143,34 @@ test("work-order mutations keep API/page role parity for technician", async () =
       );
       assert.equal(apiTechnician.status, 200);
       assert.equal(apiTechnician.json.item.status, "in_progress");
+
+      const pagePaymentTechnician = await submitUrlEncodedForm(
+        `${baseUrl}/work-orders/wo-1005/payments`,
+        {
+          paymentType: "partial",
+          paymentMethod: "cash",
+          amountRub: 500,
+        },
+        {
+          redirect: "manual",
+          headers: authHeader("technician-dev-token"),
+        },
+      );
+      assert.equal(pagePaymentTechnician.status, 303);
+
+      const apiPaymentTechnician = await requestJson(
+        "POST",
+        `${baseUrl}/api/v1/work-orders/wo-1005/payments`,
+        {
+          paymentType: "partial",
+          paymentMethod: "cash",
+          amountRub: 100,
+        },
+        {
+          token: "technician-dev-token",
+        },
+      );
+      assert.equal(apiPaymentTechnician.status, 201);
     },
     {
       authConfig: {

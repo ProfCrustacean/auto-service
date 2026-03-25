@@ -241,7 +241,18 @@ function renderSearchWorkOrderRows(rows) {
 }
 
 export function renderDashboardPage(model) {
-  const { service, summary, appointments, queues, load, week, search, actions, generatedAt } = model;
+  const {
+    service,
+    summary,
+    appointments,
+    queues,
+    load,
+    week,
+    reporting,
+    search,
+    actions,
+    generatedAt,
+  } = model;
   const title = `${service.displayNameRu} — Операционная доска`;
   const todayLabel = formatTodayDateLabel(generatedAt);
   const body = `
@@ -418,6 +429,47 @@ export function renderDashboardPage(model) {
         <article class="triage-card">
           Просроченные блокировки
           <strong>${summary.overdueItemsCount}</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Финансовый срез (месяц)</h2>
+      <p class="muted small">Период: ${escapeHtml(reporting.period.dateFromLocal ?? "н/д")} → ${escapeHtml(reporting.period.dateToLocal ?? "н/д")}</p>
+      <div class="triage-grid">
+        <article class="triage-card">
+          Завершенных заказ-нарядов
+          <strong>${reporting.completedWorkOrdersCount}</strong>
+        </article>
+        <article class="triage-card">
+          Выручка по работам
+          <strong>${escapeHtml(reporting.laborRevenueLabel)}</strong>
+        </article>
+        <article class="triage-card">
+          Выручка по запчастям
+          <strong>${escapeHtml(reporting.partsRevenueLabel)}</strong>
+        </article>
+        <article class="triage-card">
+          Общая выручка
+          <strong>${escapeHtml(reporting.totalRevenueLabel)}</strong>
+        </article>
+        <article class="triage-card">
+          Средний чек
+          <strong>${escapeHtml(reporting.averageTicketLabel)}</strong>
+        </article>
+        <article class="triage-card">
+          Валовая маржа
+          <strong>${escapeHtml(reporting.grossMarginLabel)}</strong>
+          <div class="small">Себестоимость: ${escapeHtml(reporting.partsCostLabel)} · Внешние услуги: ${escapeHtml(reporting.outsideServiceCostLabel)}</div>
+        </article>
+        <article class="triage-card danger">
+          Открытые долги
+          <strong>${reporting.openBalancesCount}</strong>
+          <div class="small">${escapeHtml(reporting.openBalancesLabel)}</div>
+        </article>
+        <article class="triage-card ${reporting.waitingPartsCount > 0 ? "warn" : ""}">
+          Ожидание запчастей
+          <strong>${reporting.waitingPartsCount}</strong>
         </article>
       </div>
     </section>

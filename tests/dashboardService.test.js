@@ -75,6 +75,11 @@ test("DashboardService returns expected queue counts from fixtures", () => {
     assert.equal(typeof payload.week.summary.unscheduledAppointmentsCount, "number");
     assert.equal(payload.search.performed, false);
     assert.equal(payload.search.totals.all, 0);
+    assert.equal(typeof payload.reporting.completedWorkOrdersCount, "number");
+    assert.equal(payload.reporting.completedWorkOrdersCount >= 4, true);
+    assert.equal(typeof payload.reporting.totalRevenueRub, "number");
+    assert.equal(payload.reporting.totalRevenueRub >= payload.reporting.laborRevenueRub, true);
+    assert.equal(payload.reporting.openBalancesRub, 27000);
   });
 });
 

@@ -88,6 +88,52 @@ test("work-order workspace updates lifecycle state and keeps validation feedback
   }
 });
 
+test("work-order workspace records payments and shows updated balance feedback", async () => {
+  const tempDb = createTempDatabase("auto-service-work-order-page-payments");
+  const { databasePath, cleanup } = tempDb;
+  const { server, database } = makeServer({ databasePath });
+
+  await waitForServer(server);
+
+  try {
+    const address = server.address();
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    const invalidSubmit = await submitUrlEncodedForm(`${baseUrl}/work-orders/wo-1005/payments`, {
+      paymentType: "partial",
+      paymentMethod: "cash",
+      amountRub: "abc",
+    });
+    assert.equal(invalidSubmit.status, 400);
+    assert.match(invalidSubmit.text, /Исправьте ошибки в операции оплаты/u);
+    assert.match(invalidSubmit.text, /amountRub must be an integer/u);
+
+    const validSubmit = await submitUrlEncodedForm(
+      `${baseUrl}/work-orders/wo-1005/payments`,
+      {
+        paymentType: "partial",
+        paymentMethod: "cash",
+        amountRub: 500,
+        note: "Оплата на выдаче",
+      },
+      { redirect: "manual" },
+    );
+    assert.equal(validSubmit.status, 303);
+    assert.equal(validSubmit.location, "/work-orders/wo-1005?paymentAdded=1");
+
+    const afterRes = await fetch(`${baseUrl}${validSubmit.location}`);
+    assert.equal(afterRes.status, 200);
+    const afterHtml = await afterRes.text();
+    assert.match(afterHtml, /Платеж добавлен и баланс обновлен/u);
+    assert.match(afterHtml, /Оплата на выдаче/u);
+    assert.match(afterHtml, /6\s*000 руб\./u);
+  } finally {
+    await closeServer(server);
+    database.close();
+    cleanup();
+  }
+});
+
 test("work-order workspace allows parts request and purchase actions from the same page", async () => {
   const tempDb = createTempDatabase("auto-service-work-order-page-parts");
   const { databasePath, cleanup } = tempDb;

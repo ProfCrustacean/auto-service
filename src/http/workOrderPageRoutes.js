@@ -4,6 +4,7 @@ import {
   renderWorkOrderLifecyclePage,
 } from "../ui/workOrderLifecyclePage.js";
 import {
+  validateCreateWorkOrderPayment,
   validateCreatePartsPurchaseAction,
   validateCreatePartsRequest,
   validateUpdatePartsRequest,
@@ -72,6 +73,12 @@ function buildWorkOrderFormValues(body = {}, item = null) {
   const balanceDueRub = body.balanceDueRub !== undefined
     ? parseBalanceDueRub(body.balanceDueRub)
     : (item?.balanceDueRub ?? 0);
+  const laborTotalRub = body.laborTotalRub !== undefined
+    ? parseIntegerOrRaw(body.laborTotalRub)
+    : (item?.laborTotalRub ?? 0);
+  const outsideServiceCostRub = body.outsideServiceCostRub !== undefined
+    ? parseIntegerOrRaw(body.outsideServiceCostRub)
+    : (item?.outsideServiceCostRub ?? 0);
 
   return {
     status,
@@ -82,6 +89,8 @@ function buildWorkOrderFormValues(body = {}, item = null) {
     internalNotes,
     customerNotes,
     balanceDueRub,
+    laborTotalRub,
+    outsideServiceCostRub,
     reason,
   };
 }
@@ -96,6 +105,8 @@ function normalizeWorkOrderFormPayload(values) {
     internalNotes: values.internalNotes.length > 0 ? values.internalNotes : null,
     customerNotes: values.customerNotes.length > 0 ? values.customerNotes : null,
     balanceDueRub: values.balanceDueRub,
+    laborTotalRub: values.laborTotalRub,
+    outsideServiceCostRub: values.outsideServiceCostRub,
     reason: values.reason.length > 0 ? values.reason : null,
   };
 }
@@ -240,6 +251,36 @@ function normalizePurchaseActionPayload(values) {
   return payload;
 }
 
+function buildPaymentFormValues(body = {}) {
+  return {
+    paymentType: normalizeFormValue(body.paymentType) || "partial",
+    paymentMethod: normalizeFormValue(body.paymentMethod) || "cash",
+    amountRub: normalizeFormValue(body.amountRub),
+    note: normalizeFormValue(body.note),
+    recordedAt: normalizeFormValue(body.recordedAt),
+  };
+}
+
+function normalizePaymentPayload(values) {
+  const payload = {
+    paymentType: values.paymentType,
+    paymentMethod: values.paymentMethod,
+    amountRub: parseIntegerOrRaw(values.amountRub),
+  };
+
+  const note = normalizeOptionalValue(values.note);
+  if (note !== undefined) {
+    payload.note = note;
+  }
+
+  const recordedAt = normalizeOptionalValue(values.recordedAt);
+  if (recordedAt !== undefined) {
+    payload.recordedAt = recordedAt;
+  }
+
+  return payload;
+}
+
 function buildDefaultPartsUi() {
   return {
     errors: [],
@@ -259,6 +300,19 @@ function buildDefaultPartsUi() {
     },
     updateValuesByRequestId: {},
     purchaseValuesByRequestId: {},
+  };
+}
+
+function buildDefaultPaymentsUi() {
+  return {
+    errors: [],
+    values: {
+      paymentType: "partial",
+      paymentMethod: "cash",
+      amountRub: "",
+      note: "",
+      recordedAt: "",
+    },
   };
 }
 
@@ -379,6 +433,38 @@ function mapPartsDomainError(error) {
   return null;
 }
 
+function mapPaymentDomainError(error) {
+  if (error.code === "work_order_payment_type_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "paymentType", message: "Некорректный тип платежа" }],
+    };
+  }
+
+  if (error.code === "work_order_payment_method_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "paymentMethod", message: "Некорректный способ оплаты" }],
+    };
+  }
+
+  if (error.code === "work_order_payment_amount_invalid") {
+    return {
+      statusCode: 400,
+      errors: [{ field: "amountRub", message: "Сумма платежа должна быть целым числом > 0" }],
+    };
+  }
+
+  if (error.code === "work_order_payment_balance_conflict" || error.code === "work_order_payment_final_amount_conflict") {
+    return {
+      statusCode: 409,
+      errors: [{ field: "amountRub", message: "Сумма платежа конфликтует с текущим остатком долга" }],
+    };
+  }
+
+  return null;
+}
+
 function collectMessages(query) {
   const messages = [];
   if (String(query.created ?? "") === "1") {
@@ -402,6 +488,9 @@ function collectMessages(query) {
   if (String(query.partsPurchase ?? "") === "1") {
     messages.push("Событие поставки запчасти добавлено.");
   }
+  if (String(query.paymentAdded ?? "") === "1") {
+    messages.push("Платеж добавлен и баланс обновлен.");
+  }
   return messages;
 }
 
@@ -423,6 +512,7 @@ function renderWorkOrderPage(res, {
   messages = [],
   values = null,
   partsUi = null,
+  paymentsUi = null,
 }) {
   const page = renderWorkOrderLifecyclePage({
     item,
@@ -431,6 +521,7 @@ function renderWorkOrderPage(res, {
     messages,
     values,
     partsUi: partsUi ?? buildDefaultPartsUi(),
+    paymentsUi: paymentsUi ?? buildDefaultPaymentsUi(),
   });
   res.status(statusCode).send(page);
 }
@@ -756,6 +847,72 @@ export function registerWorkOrderPageRoutes(app, {
         item,
         statusCode: 500,
         partsUi,
+      });
+    }
+  });
+
+  app.post("/work-orders/:id/payments", (req, res) => {
+    const item = workOrderService.getWorkOrderById(req.params.id);
+    if (!item) {
+      renderNotFoundWorkOrder(res, req.params.id);
+      return;
+    }
+
+    const paymentValues = buildPaymentFormValues(req.body ?? {});
+    const normalizedPayload = normalizePaymentPayload(paymentValues);
+    const validation = validateCreateWorkOrderPayment(normalizedPayload);
+    const paymentsUi = {
+      errors: [],
+      values: paymentValues,
+    };
+
+    if (!validation.ok) {
+      paymentsUi.errors = validation.errors;
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 400,
+        paymentsUi,
+      });
+      return;
+    }
+
+    try {
+      const actor = resolveUiActor(req);
+      const result = workOrderService.createWorkOrderPayment(req.params.id, validation.value, {
+        changedBy: `${actor}_ui`,
+        source: "ui_work_order_payment_create",
+      });
+      if (!result) {
+        renderNotFoundWorkOrder(res, req.params.id);
+        return;
+      }
+
+      res.redirect(303, `/work-orders/${encodeURIComponent(req.params.id)}?paymentAdded=1`);
+    } catch (error) {
+      const mapped = mapPaymentDomainError(error);
+      if (mapped) {
+        const freshItem = workOrderService.getWorkOrderById(req.params.id) ?? item;
+        paymentsUi.errors = mapped.errors;
+        renderWorkOrderPage(res, {
+          referenceDataService,
+          item: freshItem,
+          statusCode: mapped.statusCode,
+          paymentsUi,
+        });
+        return;
+      }
+
+      logger.error("work_order_payment_create_page_failed", {
+        id: req.params.id,
+        message: error.message,
+      });
+      paymentsUi.errors = [{ field: "form", message: "Не удалось добавить платеж. Повторите попытку." }];
+      renderWorkOrderPage(res, {
+        referenceDataService,
+        item,
+        statusCode: 500,
+        paymentsUi,
       });
     }
   });

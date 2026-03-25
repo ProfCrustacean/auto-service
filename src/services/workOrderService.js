@@ -17,6 +17,12 @@ import {
   isPartsRequestTransitionAllowed,
   listAllowedPartsRequestTransitions,
 } from "../domain/partsRequestLifecycle.js";
+import {
+  getWorkOrderPaymentMethodLabel,
+  getWorkOrderPaymentTypeLabel,
+  isKnownWorkOrderPaymentMethod,
+  isKnownWorkOrderPaymentType,
+} from "../domain/workOrderPayment.js";
 
 const APPOINTMENT_BLOCKED_STATUSES = new Set(["cancelled", "no-show"]);
 
@@ -132,6 +138,11 @@ export class WorkOrderService {
     const statusHistory = this.repository.listWorkOrderStatusHistory(id);
     const partsRequests = this.hydratePartsRequests(id, { includeResolved: true });
     const partsHistory = this.repository.listWorkOrderPartsHistory(id);
+    const payments = this.repository.listWorkOrderPayments(id).map((payment) => ({
+      ...payment,
+      paymentTypeLabelRu: getWorkOrderPaymentTypeLabel(payment.paymentType),
+      paymentMethodLabelRu: getWorkOrderPaymentMethodLabel(payment.paymentMethod),
+    }));
     const openBlockingRequestsCount = partsRequests.filter(
       (request) => request.isBlocking && isBlockingPartsRequestStatus(request.status),
     ).length;
@@ -141,6 +152,7 @@ export class WorkOrderService {
       statusHistory,
       partsRequests,
       partsHistory,
+      payments,
       parts: {
         totalRequests: partsRequests.length,
         openBlockingRequestsCount,
@@ -225,6 +237,14 @@ export class WorkOrderService {
       patch.balanceDueRub = updates.balanceDueRub;
     }
 
+    if (updates.laborTotalRub !== undefined) {
+      patch.laborTotalRub = updates.laborTotalRub;
+    }
+
+    if (updates.outsideServiceCostRub !== undefined) {
+      patch.outsideServiceCostRub = updates.outsideServiceCostRub;
+    }
+
     const statusChanged = nextStatus !== existing.status;
     const nowIso = new Date().toISOString();
     if (statusChanged) {
@@ -256,6 +276,85 @@ export class WorkOrderService {
     });
 
     return this.getWorkOrderById(id);
+  }
+
+  listWorkOrderPayments(workOrderId) {
+    const workOrder = this.repository.getWorkOrderRecordById(workOrderId);
+    if (!workOrder) {
+      return null;
+    }
+
+    return this.repository.listWorkOrderPayments(workOrderId).map((payment) => ({
+      ...payment,
+      paymentTypeLabelRu: getWorkOrderPaymentTypeLabel(payment.paymentType),
+      paymentMethodLabelRu: getWorkOrderPaymentMethodLabel(payment.paymentMethod),
+    }));
+  }
+
+  createWorkOrderPayment(
+    workOrderId,
+    {
+      paymentType,
+      paymentMethod,
+      amountRub,
+      note = null,
+      recordedAt = null,
+    },
+    { changedBy = "api", source = "api_work_order_payment_create" } = {},
+  ) {
+    const workOrder = this.repository.getWorkOrderRecordById(workOrderId);
+    if (!workOrder) {
+      return null;
+    }
+
+    if (!isKnownWorkOrderPaymentType(paymentType)) {
+      throw makeDomainError("work_order_payment_type_invalid", "Unsupported work-order payment type");
+    }
+    if (!isKnownWorkOrderPaymentMethod(paymentMethod)) {
+      throw makeDomainError("work_order_payment_method_invalid", "Unsupported work-order payment method");
+    }
+    if (!isPositiveInteger(amountRub)) {
+      throw makeDomainError("work_order_payment_amount_invalid", "Payment amount must be > 0");
+    }
+
+    const currentBalance = workOrder.balanceDueRub ?? 0;
+    if (currentBalance <= 0) {
+      throw makeDomainError("work_order_payment_balance_conflict", "Work order balance is already zero");
+    }
+    if (amountRub > currentBalance) {
+      throw makeDomainError("work_order_payment_balance_conflict", "Payment amount exceeds outstanding balance", {
+        amountRub,
+        balanceDueRub: currentBalance,
+      });
+    }
+    if (paymentType === "final" && amountRub !== currentBalance) {
+      throw makeDomainError("work_order_payment_final_amount_conflict", "Final payment must close outstanding balance", {
+        amountRub,
+        balanceDueRub: currentBalance,
+      });
+    }
+
+    const payment = this.repository.recordWorkOrderPayment({
+      id: toId("wop"),
+      workOrderId,
+      paymentType,
+      paymentMethod,
+      amountRub,
+      note: normalizeNullableString(note) ?? null,
+      recordedAt: normalizeNullableString(recordedAt) ?? null,
+      recordedBy: normalizeChangedBy(changedBy),
+      source,
+      nextBalanceRub: currentBalance - amountRub,
+    });
+
+    return {
+      item: {
+        ...payment,
+        paymentTypeLabelRu: getWorkOrderPaymentTypeLabel(payment.paymentType),
+        paymentMethodLabelRu: getWorkOrderPaymentMethodLabel(payment.paymentMethod),
+      },
+      workOrder: this.getWorkOrderById(workOrderId),
+    };
   }
 
   listWorkOrderPartsRequests(workOrderId, { includeResolved = true } = {}) {

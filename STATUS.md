@@ -14,9 +14,9 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Pico-based UI baseline standardization for SSR pages is delivered and production-validated; next priority returns to Phase 4 (payments and reporting closure).
+Phase 4 baseline (payments + reporting) is delivered and locally/remote-validated; next priority shifts to Phase 5 external-connection hardening.
 
-## Current state (2026-03-24)
+## Current state (2026-03-25)
 
 ### Product/runtime
 - Booking and walk-in UI now run on one page:
@@ -74,6 +74,13 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
   - lifecycle gating against unresolved blocking parts,
   - enriched work-order page with Russian parts management and parts history,
   - dashboard waiting-parts queue with pending-count/aging signals.
+- Phase 4 payments/reporting baseline is now implemented:
+  - append-only work-order payments with explicit type/method (`deposit|partial|final`, `cash|card|bank_transfer|other`),
+  - payment APIs: `GET|POST /api/v1/work-orders/:id/payments`,
+  - payment SSR form in work-order page (`POST /work-orders/:id/payments`) with immediate balance reconciliation,
+  - work-order financial fields (`laborTotalRub`, `outsideServiceCostRub`) in lifecycle update model,
+  - operations reporting API: `GET /api/v1/reports/operations` with optional date-range filters,
+  - dashboard financial section (month period) with revenue split, average ticket, margin estimate, and outstanding balances.
 
 ### Harness/operations
 - Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
@@ -113,9 +120,26 @@ Pico-based UI baseline standardization for SSR pages is delivered and production
 - Pico UI baseline backlog is now registered in Linear:
   - epic + 12 tasks created in Backlog via harness (`AUT-120..AUT-132`)
   - source spec: `data/linear/pico-ui-baseline-epic-2026-03-24.json`
+- Repo task proof-loop harness bootstrap is initialized for future non-trivial slices:
+  - baseline task artifacts seeded in `.agent/tasks/proof-loop-bootstrap/`,
+  - project-scoped subagent templates installed in `.codex/agents/` and `.claude/agents/`,
+  - managed workflow guidance block is present in `AGENTS.md` and `CLAUDE.md`.
 
 ## Last accepted milestones
 
+- 2026-03-25: Phase 4 end-to-end baseline delivered (payments + reporting):
+  - migration `010` adds payment table and work-order financial fields,
+  - payment flow delivered across service/API/UI with balance invariants and conflict guards,
+  - reporting projection delivered across repository/API/dashboard (operations summary endpoint + dashboard cards),
+  - local gate (`lint`, `test`, `verify`) and remote non-destructive gate (`verify:render --skip-deploy`) passed.
+- 2026-03-25: Post-baseline bloat gate closure completed:
+  - `audit:bloat` now passes on the Phase 4 footprint,
+  - tracked area caps recalibrated for this baseline (`src=528000`, `tests=162500`),
+  - docs and README line/byte budgets remain within existing limits.
+- 2026-03-24: Repo task proof-loop bootstrap completed for repo-local spec -> build -> evidence -> verify -> fix workflow:
+  - task id: `proof-loop-bootstrap`,
+  - initializer: `/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py init --task-id proof-loop-bootstrap --guides both`,
+  - validation/status checks passed (`validate`, `status`) with all required artifact files present.
 - 2026-03-24: Dashboard day-load UX patch deployed and production-validated:
   - commit: `3666c40b7676e9cf9b89ba6e61e7b78fa7761ef5`,
   - removed horizontal scroll from both day-load sections without changing other table sections,
@@ -170,6 +194,9 @@ Most recent local gate results:
 - `npm run lint`: passed
 - `npm run audit:bloat`: passed
 - `npm run secrets:scan`: passed
+- `task_loop.py validate --task-id proof-loop-bootstrap`: passed
+- `task_loop.py status --task-id proof-loop-bootstrap`: passed (`exists=true`, required artifact set present)
+- `node --test tests/persistence.test.js tests/workOrderLifecycleApi.test.js tests/workOrderLifecyclePage.test.js tests/dashboardService.test.js tests/http.test.js tests/mutationPolicy.test.js tests/authzPolicyParity.test.js`: passed
 
 Most recent deploy-aware gate results:
 - `npm run verify:render -- --skip-deploy`: passed
@@ -179,11 +206,15 @@ Most recent deploy-aware gate results:
   - latest commit parity: `3666c40b7676e9cf9b89ba6e61e7b78fa7761ef5`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
+- latest non-deploy remote verification (Phase 4 branch state):
+  - `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render -- --skip-deploy`: passed
+  - smoke + non-destructive booking/walk-in/scheduling/parts/dispatch scenarios: passed
 
 Primary evidence pointers:
 - `evidence/render-log-audit-summary.json`
 - `evidence/bloat-audit-latest.json`
 - `evidence/linear-aut73-81-done-sync.json`
+- `.agent/tasks/proof-loop-bootstrap/` (spec/evidence/verdict/problem artifacts + raw placeholders)
 - Linear sync audit (AUT-89..AUT-96): `/tmp/linear-aut89-96-sync-result.json`
 - Linear apply audit (Pico backlog AUT-120..AUT-132): `/tmp/pico-ui-baseline-apply.json`
 
@@ -209,10 +240,10 @@ Primary evidence pointers:
 
 ## Active work focus
 
-1. Plan and execute Phase 4 payment flow and reporting closure.
-2. Keep baseline gates green (`npm test`, `npm run verify`, `npm run audit:bloat`).
-3. Keep Render deploy verification green (`npm run verify:render`) for milestone commits.
-4. Keep Linear states and repository status/plans synchronized per completed slice.
+1. Harden Phase 4 with targeted UX/validation polish and monitor for regressions.
+2. Start Phase 5 external-connection hardening slices from packet priorities.
+3. Keep baseline gates green (`npm test`, `npm run verify`, `npm run audit:bloat`).
+4. Keep Render deploy verification green (`npm run verify:render`) for milestone commits.
 
 ## Archive pointers
 

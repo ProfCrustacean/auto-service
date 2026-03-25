@@ -29,6 +29,10 @@ export class DashboardService {
     });
   }
 
+  getOperationsReport({ dateFromLocal = null, dateToLocal = null } = {}) {
+    return this.repository.getOperationsReport({ dateFromLocal, dateToLocal });
+  }
+
   getWorkOrderById(id) {
     return this.repository.getWorkOrderRecordById(id);
   }

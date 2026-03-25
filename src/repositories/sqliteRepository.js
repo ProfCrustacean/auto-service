@@ -3,6 +3,7 @@ import {
   mapAppointmentRecord,
   mapIntakeEventRecord,
   mapPartsPurchaseActionRecord,
+  mapWorkOrderPaymentRecord,
   mapWorkOrderPartsHistoryRecord,
   mapWorkOrderPartsRequestRecord,
   mapWorkOrderRecord,
@@ -751,6 +752,8 @@ export class SqliteRepository {
           w.customer_notes AS customerNotes,
           w.blocked_since_iso AS blockedSinceIso,
           w.balance_due_rub AS balanceDueRub,
+          w.labor_total_rub AS laborTotalRub,
+          w.outside_service_cost_rub AS outsideServiceCostRub,
           w.created_at AS createdAt,
           w.closed_at AS closedAt,
           w.updated_at AS updatedAt
@@ -786,6 +789,8 @@ export class SqliteRepository {
           w.customer_notes AS customerNotes,
           w.blocked_since_iso AS blockedSinceIso,
           w.balance_due_rub AS balanceDueRub,
+          w.labor_total_rub AS laborTotalRub,
+          w.outside_service_cost_rub AS outsideServiceCostRub,
           w.created_at AS createdAt,
           w.closed_at AS closedAt,
           w.updated_at AS updatedAt
@@ -868,6 +873,8 @@ export class SqliteRepository {
           w.internal_notes AS internalNotes,
           w.customer_notes AS customerNotes,
           w.balance_due_rub AS balanceDueRub,
+          w.labor_total_rub AS laborTotalRub,
+          w.outside_service_cost_rub AS outsideServiceCostRub,
           w.blocked_since_iso AS blockedSinceIso,
           w.created_at AS createdAt,
           w.closed_at AS closedAt,
@@ -901,6 +908,194 @@ export class SqliteRepository {
       )
       .all(workOrderId)
       .map(mapWorkOrderStatusHistoryRecord);
+  }
+
+  listWorkOrderPayments(workOrderId) {
+    return this.database
+      .prepare(
+        `SELECT
+          id,
+          work_order_id AS workOrderId,
+          payment_type AS paymentType,
+          payment_method AS paymentMethod,
+          amount_rub AS amountRub,
+          note,
+          recorded_at AS recordedAt,
+          recorded_by AS recordedBy,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+         FROM work_order_payments
+         WHERE work_order_id = ?
+         ORDER BY recorded_at DESC, id DESC`,
+      )
+      .all(workOrderId)
+      .map(mapWorkOrderPaymentRecord);
+  }
+
+  recordWorkOrderPayment({
+    id,
+    workOrderId,
+    paymentType,
+    paymentMethod,
+    amountRub,
+    note = null,
+    recordedAt = null,
+    recordedBy = null,
+    nextBalanceRub,
+  }) {
+    const nowIso = new Date().toISOString();
+    const effectiveRecordedAt = recordedAt ?? nowIso;
+
+    this.runInTransaction(() => {
+      this.database
+        .prepare(
+          `INSERT INTO work_order_payments(
+            id,
+            work_order_id,
+            payment_type,
+            payment_method,
+            amount_rub,
+            note,
+            recorded_at,
+            recorded_by,
+            created_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          id,
+          workOrderId,
+          paymentType,
+          paymentMethod,
+          amountRub,
+          note,
+          effectiveRecordedAt,
+          recordedBy,
+          nowIso,
+          nowIso,
+        );
+
+      this.database
+        .prepare(
+          `UPDATE work_orders
+           SET balance_due_rub = ?, updated_at = ?
+           WHERE id = ?`,
+        )
+        .run(nextBalanceRub, nowIso, workOrderId);
+    }, { immediate: true });
+
+    const row = this.database
+      .prepare(
+        `SELECT
+          id,
+          work_order_id AS workOrderId,
+          payment_type AS paymentType,
+          payment_method AS paymentMethod,
+          amount_rub AS amountRub,
+          note,
+          recorded_at AS recordedAt,
+          recorded_by AS recordedBy,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+         FROM work_order_payments
+         WHERE id = ?`,
+      )
+      .get(id);
+
+    return mapWorkOrderPaymentRecord(row);
+  }
+
+  getOperationsReport({ dateFromLocal = null, dateToLocal = null } = {}) {
+    const conditions = ["w.status = 'completed'"];
+    const values = [];
+
+    if (dateFromLocal) {
+      conditions.push("substr(COALESCE(w.closed_at, w.updated_at, w.created_at), 1, 10) >= ?");
+      values.push(dateFromLocal);
+    }
+    if (dateToLocal) {
+      conditions.push("substr(COALESCE(w.closed_at, w.updated_at, w.created_at), 1, 10) <= ?");
+      values.push(dateToLocal);
+    }
+
+    const completed = this.database
+      .prepare(
+        `SELECT
+          COUNT(1) AS completedCount,
+          COALESCE(SUM(w.labor_total_rub), 0) AS laborRevenueRub,
+          COALESCE(SUM(w.outside_service_cost_rub), 0) AS outsideServiceCostRub,
+          COALESCE(SUM(COALESCE(parts.partsRevenueRub, 0)), 0) AS partsRevenueRub,
+          COALESCE(SUM(COALESCE(parts.partsCostRub, 0)), 0) AS partsCostRub
+         FROM work_orders w
+         LEFT JOIN (
+           SELECT
+             work_order_id AS workOrderId,
+             SUM(CASE WHEN status IN ('ordered', 'received') THEN requested_qty * sale_price_rub ELSE 0 END) AS partsRevenueRub,
+             SUM(CASE WHEN status IN ('ordered', 'received') THEN requested_qty * requested_unit_cost_rub ELSE 0 END) AS partsCostRub
+           FROM work_order_parts_requests
+           GROUP BY work_order_id
+         ) parts
+           ON parts.workOrderId = w.id
+         WHERE ${conditions.join(" AND ")}`,
+      )
+      .get(...values);
+
+    const openBalances = this.database
+      .prepare(
+        `SELECT
+          COUNT(1) AS openBalancesCount,
+          COALESCE(SUM(balance_due_rub), 0) AS openBalancesRub
+         FROM work_orders
+         WHERE status <> 'cancelled'
+           AND balance_due_rub > 0`,
+      )
+      .get();
+
+    const readyPickupUnpaid = this.database
+      .prepare(
+        `SELECT
+          COUNT(1) AS readyPickupUnpaidCount,
+          COALESCE(SUM(balance_due_rub), 0) AS readyPickupUnpaidRub
+         FROM work_orders
+         WHERE status = 'ready_pickup'
+           AND balance_due_rub > 0`,
+      )
+      .get();
+
+    const waitingParts = this.database
+      .prepare(
+        `SELECT COUNT(1) AS waitingPartsCount
+         FROM work_orders
+         WHERE status = 'waiting_parts'`,
+      )
+      .get();
+
+    const completedCount = completed?.completedCount ?? 0;
+    const laborRevenueRub = completed?.laborRevenueRub ?? 0;
+    const partsRevenueRub = completed?.partsRevenueRub ?? 0;
+    const totalRevenueRub = laborRevenueRub + partsRevenueRub;
+    const partsCostRub = completed?.partsCostRub ?? 0;
+    const outsideServiceCostRub = completed?.outsideServiceCostRub ?? 0;
+
+    return {
+      period: {
+        dateFromLocal: dateFromLocal ?? null,
+        dateToLocal: dateToLocal ?? null,
+      },
+      completedWorkOrdersCount: completedCount,
+      laborRevenueRub,
+      partsRevenueRub,
+      totalRevenueRub,
+      averageTicketRub: completedCount > 0 ? Math.round(totalRevenueRub / completedCount) : 0,
+      partsCostRub,
+      outsideServiceCostRub,
+      grossMarginRub: totalRevenueRub - partsCostRub - outsideServiceCostRub,
+      openBalancesCount: openBalances?.openBalancesCount ?? 0,
+      openBalancesRub: openBalances?.openBalancesRub ?? 0,
+      readyPickupUnpaidCount: readyPickupUnpaid?.readyPickupUnpaidCount ?? 0,
+      readyPickupUnpaidRub: readyPickupUnpaid?.readyPickupUnpaidRub ?? 0,
+      waitingPartsCount: waitingParts?.waitingPartsCount ?? 0,
+    };
   }
 
   listWorkOrderPartsRequests(workOrderId, { includeResolved = true } = {}) {
@@ -1514,6 +1709,16 @@ export class SqliteRepository {
     if (updates.balanceDueRub !== undefined) {
       assignments.push("balance_due_rub = ?");
       values.push(updates.balanceDueRub);
+    }
+
+    if (updates.laborTotalRub !== undefined) {
+      assignments.push("labor_total_rub = ?");
+      values.push(updates.laborTotalRub);
+    }
+
+    if (updates.outsideServiceCostRub !== undefined) {
+      assignments.push("outside_service_cost_rub = ?");
+      values.push(updates.outsideServiceCostRub);
     }
 
     if (updates.blockedSinceIso !== undefined) {

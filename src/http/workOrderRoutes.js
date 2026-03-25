@@ -8,6 +8,7 @@ import {
 } from "./routePrimitives.js";
 import {
   validateConvertAppointmentToWorkOrder,
+  validateCreateWorkOrderPayment,
   validateCreatePartsPurchaseAction,
   validateCreatePartsRequest,
   validateListPartsRequestsQuery,
@@ -79,6 +80,53 @@ export function registerWorkOrderRoutes(app, { logger, workOrderService }) {
         items,
         count: items.length,
       });
+    } catch (error) {
+      if (mapWorkOrderDomainApiError(res, error)) {
+        return;
+      }
+      throw error;
+    }
+  }));
+
+  app.get("/api/v1/work-orders/:id/payments", (req, res) => withUnexpectedError(logger, req, res, "work_order_payments_list_failed", () => {
+    try {
+      const items = workOrderService.listWorkOrderPayments(req.params.id);
+      if (!items) {
+        sendApiError(res, notFoundError("Work order"));
+        return;
+      }
+
+      res.status(200).json({
+        items,
+        count: items.length,
+      });
+    } catch (error) {
+      if (mapWorkOrderDomainApiError(res, error)) {
+        return;
+      }
+      throw error;
+    }
+  }));
+
+  app.post("/api/v1/work-orders/:id/payments", (req, res) => withUnexpectedError(logger, req, res, "work_order_payment_create_failed", () => {
+    const validation = validateCreateWorkOrderPayment(req.body ?? {});
+    if (!validation.ok) {
+      respondValidationFailure(res, validation.errors);
+      return;
+    }
+
+    const { changedBy, ...input } = validation.value;
+    try {
+      const result = workOrderService.createWorkOrderPayment(req.params.id, input, {
+        changedBy: changedBy ?? req.auth?.role ?? "api",
+        source: "api_work_order_payment_create",
+      });
+      if (!result) {
+        sendApiError(res, notFoundError("Work order"));
+        return;
+      }
+
+      res.status(201).json(result);
     } catch (error) {
       if (mapWorkOrderDomainApiError(res, error)) {
         return;

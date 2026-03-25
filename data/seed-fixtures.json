@@ -54,7 +54,9 @@
       "status": "waiting_diagnosis",
       "statusLabelRu": "Ожидает диагностики",
       "primaryAssignee": "Дмитрий Орлов",
-      "balanceDueRub": 0
+      "balanceDueRub": 0,
+      "laborTotalRub": 0,
+      "outsideServiceCostRub": 0
     },
     {
       "id": "wo-1003",
@@ -68,7 +70,9 @@
       "statusLabelRu": "Ожидает запчасти",
       "primaryAssignee": "Сергей Кузнецов",
       "blockedSinceIso": "2026-03-18T08:00:00.000Z",
-      "balanceDueRub": 12000
+      "balanceDueRub": 12000,
+      "laborTotalRub": 10500,
+      "outsideServiceCostRub": 0
     },
     {
       "id": "wo-1004",
@@ -81,7 +85,9 @@
       "status": "in_progress",
       "statusLabelRu": "В работе",
       "primaryAssignee": "Алексей Соколов",
-      "balanceDueRub": 8500
+      "balanceDueRub": 8500,
+      "laborTotalRub": 9000,
+      "outsideServiceCostRub": 0
     },
     {
       "id": "wo-1005",
@@ -94,7 +100,9 @@
       "status": "ready_pickup",
       "statusLabelRu": "Готово к выдаче",
       "primaryAssignee": "Иван Петров",
-      "balanceDueRub": 6500
+      "balanceDueRub": 6500,
+      "laborTotalRub": 12500,
+      "outsideServiceCostRub": 0
     },
     {
       "id": "wo-0091",
@@ -106,7 +114,9 @@
       "status": "completed",
       "statusLabelRu": "Завершен",
       "primaryAssignee": "Алексей Соколов",
-      "balanceDueRub": 0
+      "balanceDueRub": 0,
+      "laborTotalRub": 8000,
+      "outsideServiceCostRub": 0
     },
     {
       "id": "wo-0092",
@@ -118,7 +128,9 @@
       "status": "completed",
       "statusLabelRu": "Завершен",
       "primaryAssignee": "Дмитрий Орлов",
-      "balanceDueRub": 0
+      "balanceDueRub": 0,
+      "laborTotalRub": 6700,
+      "outsideServiceCostRub": 800
     },
     {
       "id": "wo-0093",
@@ -130,7 +142,9 @@
       "status": "completed",
       "statusLabelRu": "Завершен",
       "primaryAssignee": "Иван Петров",
-      "balanceDueRub": 0
+      "balanceDueRub": 0,
+      "laborTotalRub": 11200,
+      "outsideServiceCostRub": 0
     },
     {
       "id": "wo-0094",
@@ -142,7 +156,31 @@
       "status": "completed",
       "statusLabelRu": "Завершен",
       "primaryAssignee": "Сергей Кузнецов",
-      "balanceDueRub": 0
+      "balanceDueRub": 0,
+      "laborTotalRub": 7400,
+      "outsideServiceCostRub": 0
+    }
+  ],
+  "payments": [
+    {
+      "id": "wop-1005-1",
+      "workOrderId": "wo-1005",
+      "paymentType": "deposit",
+      "paymentMethod": "bank_transfer",
+      "amountRub": 6000,
+      "recordedAt": "2026-03-19T10:00:00.000Z",
+      "recordedBy": "seed-front-desk",
+      "note": "Предоплата от клиента"
+    },
+    {
+      "id": "wop-0093-1",
+      "workOrderId": "wo-0093",
+      "paymentType": "final",
+      "paymentMethod": "card",
+      "amountRub": 15400,
+      "recordedAt": "2026-03-12T15:30:00.000Z",
+      "recordedBy": "seed-front-desk",
+      "note": "Полная оплата при выдаче"
     }
   ]
 }

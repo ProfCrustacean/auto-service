@@ -41,6 +41,8 @@ Service defaults:
   - `POST /api/v1/work-orders/:id/parts-requests`
   - `PATCH /api/v1/work-orders/:id/parts-requests/:requestId`
   - `POST /api/v1/work-orders/:id/parts-requests/:requestId/purchase-actions`
+- Work-order payments API: `GET|POST /api/v1/work-orders/:id/payments`
+- Operations reporting API: `GET /api/v1/reports/operations` (`dateFromLocal`/`dateToLocal` optional)
 - Unified lookup API: `GET /api/v1/search?q=<term>` (customer/phone/plate/VIN/model)
 - Dispatch board API:
   - `GET /api/v1/dispatch/board`
@@ -49,17 +51,17 @@ Service defaults:
   - `POST /api/v1/dispatch/board/queue/appointments/:id/schedule`
   - `POST /api/v1/dispatch/board/queue/walk-ins/:id/schedule`
 - Russian dashboard UI: `GET /`
-- Work-order lifecycle/parts UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`, plus parts forms under `/work-orders/:id/parts-requests*`
+- Work-order lifecycle/parts/payments UI: `GET /work-orders/active`, `GET|POST /work-orders/:id`, `POST /work-orders/:id/payments`
 - DB path: `data/auto-service.sqlite` (override with `DB_PATH`)
-- SQLite runtime pragmas: `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=1000ms` (override timeout via `SQLITE_BUSY_TIMEOUT_MS`)
-- request logging mode: `APP_REQUEST_LOG_MODE=all|mutations|errors` (default `errors` in production, `all` in non-production)
+- SQLite pragmas: `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=1000ms` (`SQLITE_BUSY_TIMEOUT_MS` override)
+- request logging mode: `APP_REQUEST_LOG_MODE=all|mutations|errors` (`errors` in production)
 - Unified mutation policy baseline for API + page form mutations:
   - send `Authorization: Bearer <token>` (or `x-api-token`)
   - form fallback token (`authToken`) is accepted for HTML POST flows
   - default local tokens: `owner-dev-token`, `frontdesk-dev-token`, `technician-dev-token`
   - override via `AUTH_OWNER_TOKEN`, `AUTH_FRONT_DESK_TOKEN`, `AUTH_TECHNICIAN_TOKEN`
-  - `AUTH_UI_IMPLICIT_ROLE` controls UI fallback actor (`front_desk` default, `none` disables implicit UI role)
-  - disable only for local diagnostics with `AUTH_ENABLED=0`
+  - `AUTH_UI_IMPLICIT_ROLE`: `front_desk` by default, `none` disables implicit UI role
+  - local diagnostics only: `AUTH_ENABLED=0`
 
 ## Local verification
 

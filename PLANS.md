@@ -6,11 +6,34 @@ Hot-path execution plan file for current non-trivial work.
 
 Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-## Active Plan — None
+## Active Plan — Phase 4 Render deploy + QA + fix (`phase4-render-deploy-qa-fix`)
 
-No active multi-step implementation plan is open right now.
+Objective:
+- Deploy the current Phase 4 baseline to Render with deploy-mode verification, run full QA, and close any discovered issues with proof-loop evidence.
 
-Create a new active plan before the next non-trivial feature/refactor/deployment slice.
+Steps:
+1. Freeze spec and align task artifacts (`phase4-render-deploy-qa-fix`) with explicit ACs/constraints.
+2. Run full local QA gate (`secrets`, `lint`, `hygiene`, `test`, `verify`, `audit:bloat`) and capture raw outputs.
+3. Execute deploy-mode Render verification (`npm run verify:render -- --deploy`) and inspect smoke/scenario/log-audit outcomes.
+4. Fix any discovered issues using smallest safe changes, then rerun affected local + deploy checks.
+5. Update proof artifacts (`evidence.*`, `verdict.json`, `problems.md`) and synchronize `STATUS.md` + `PLANS.md`.
+
+Status:
+- In progress (2026-03-25): init complete, spec freeze complete, QA/deploy/fix loop in progress.
+
+Most recent completed non-trivial slice:
+- 2026-03-25 — Phase 4 end-to-end baseline (`phase4-e2e-implementation`) delivered:
+  - persistence migration `010` adds `work_order_payments` plus `labor_total_rub` / `outside_service_cost_rub`,
+  - payment flow implemented across service/API/UI (`/api/v1/work-orders/:id/payments`, `/work-orders/:id/payments`),
+  - reporting API and dashboard financial section implemented (`/api/v1/reports/operations`),
+  - bloat governance tuned to Phase 4 baseline footprint (`data/bloat/budgets.json`: `src=528000`, `tests=162500`) with docs/README budgets still enforced,
+  - proof-loop artifacts updated under `.agent/tasks/phase4-e2e-implementation/`,
+  - verification commands passed: `npm run lint`, `npm test`, `npm run verify`, `npm run hygiene:check`, `npm run secrets:scan`, `npm run audit:bloat`, `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render -- --skip-deploy`.
+- 2026-03-24 — Repo task proof-loop bootstrap (`proof-loop-bootstrap`) initialized and validated:
+  - task artifacts seeded under `.agent/tasks/proof-loop-bootstrap/`,
+  - project-scoped subagent templates installed/refreshed under `.codex/agents/` and `.claude/agents/`,
+  - managed workflow guidance block upserted in `AGENTS.md` and created in `CLAUDE.md`,
+  - validation commands: `task_loop.py validate --task-id proof-loop-bootstrap`, `task_loop.py status --task-id proof-loop-bootstrap`.
 
 ## Archived plan skeleton
 
@@ -46,6 +69,8 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-24 — Honest bloat remediation (return helper ownership to scripts/tests + direct LOC/byte reduction)
 - 2026-03-24 — Unified dashboard queues table + production deploy verification
 - 2026-03-24 — Dashboard day-load no-scroll/date-label UX patch + deploy verification
+- 2026-03-25 — Phase 4 end-to-end baseline implementation (`phase4-e2e-implementation`)
+- 2026-03-24 — Repo task proof-loop bootstrap initialization (`proof-loop-bootstrap`)
 
 ## Completed Plan — Linear harness simplification: Playwright-only full rewrite (2026-03-24)
 

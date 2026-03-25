@@ -1,0 +1,30 @@
+✔ UI mutation routes require token when implicit UI role is disabled (78.7375ms)
+✔ appointment mutations keep API/page role parity for front_desk and technician (42.727042ms)
+✔ work-order mutations keep API/page role parity for technician (38.933084ms)
+✔ DashboardService returns expected queue counts from fixtures (23.683333ms)
+✔ DashboardService today metrics include only current local-day appointments (14.662375ms)
+✔ DashboardService week plan highlights overbooking and unscheduled appointments (11.938375ms)
+✔ DashboardService search lookup supports customer, phone, plate, VIN and model (12.231834ms)
+✔ health and dashboard endpoints return successful responses (128.0275ms)
+✔ malformed JSON request body returns structured validation error (26.325791ms)
+✔ mutation policy resolves API and UI write routes deterministically (2.017584ms)
+✔ mutation policy metadata remains explicit and machine-readable (0.158083ms)
+✔ isMutatingMethod normalizes HTTP methods (0.094375ms)
+✔ migrations are idempotent and seed runs only once by default (17.290958ms)
+✔ seed fixture integrity validation catches broken references before write (7.194584ms)
+✔ work-order lifecycle API supports list/detail/update with transition invariants (109.78975ms)
+✔ work-order payment APIs reconcile balance and reporting endpoint exposes phase-4 metrics (27.883916ms)
+✔ appointment to work-order conversion is idempotent and enforces appointment status guardrails (19.6695ms)
+✔ work-order parts APIs enforce blocking lifecycle rules and supplier action sync (19.061375ms)
+✔ work-order workspace page renders lifecycle controls and history (82.765875ms)
+✔ work-order workspace updates lifecycle state and keeps validation feedback actionable (61.587792ms)
+✔ work-order workspace records payments and shows updated balance feedback (16.401916ms)
+✔ work-order workspace allows parts request and purchase actions from the same page (19.662917ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 439.600416

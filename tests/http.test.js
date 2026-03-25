@@ -20,11 +20,22 @@ test("health and dashboard endpoints return successful responses", async () => {
     assert.equal(Array.isArray(dashboard.week.byBay), true);
     assert.equal(Array.isArray(dashboard.week.byAssignee), true);
     assert.equal(dashboard.search.performed, false);
+    assert.equal(typeof dashboard.reporting.completedWorkOrdersCount, "number");
+    assert.equal(typeof dashboard.reporting.totalRevenueRub, "number");
+
+    const reportRes = await fetch(`${baseUrl}/api/v1/reports/operations`);
+    assert.equal(reportRes.status, 200);
+    const report = await reportRes.json();
+    assert.equal(typeof report.completedWorkOrdersCount, "number");
+    assert.equal(typeof report.laborRevenueRub, "number");
+    assert.equal(typeof report.partsRevenueRub, "number");
+    assert.equal(typeof report.openBalancesRub, "number");
 
     const uiRes = await fetch(baseUrl);
     assert.equal(uiRes.status, 200);
     const html = await uiRes.text();
     assert.match(html, /Диспетчер действий/);
+    assert.match(html, /Финансовый срез \(месяц\)/);
     assert.match(html, /План недели: загрузка и перегруз/);
     assert.match(html, /Операционные очереди/);
     assert.match(html, /Нагрузка по сотрудникам \(день\)/);

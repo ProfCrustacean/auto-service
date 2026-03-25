@@ -117,7 +117,7 @@ This packet does not prescribe:
 
 It defines goals, rules, boundaries, defaults, and operational expectations only.
 
-## Current executable foundation (Phase 1 in progress)
+## Current executable foundation (Phase 4 baseline delivered)
 
 The repository now includes a first runnable application slice with:
 - a Node.js service shell,
@@ -168,11 +168,11 @@ Phase 1 reference-data APIs:
 - `POST /api/v1/work-orders/:id/parts-requests`
 - `PATCH /api/v1/work-orders/:id/parts-requests/:requestId`
 - `POST /api/v1/work-orders/:id/parts-requests/:requestId/purchase-actions`
+- `GET|POST /api/v1/work-orders/:id/payments`
+- `GET /api/v1/reports/operations?dateFromLocal=YYYY-MM-DD&dateToLocal=YYYY-MM-DD`
 - `GET /api/v1/search?q=<term>` (быстрый поиск по клиенту/телефону/номеру/VIN/модели)
-
-Phase 2/3 work-order UI:
-- `GET /work-orders/active`
-- `GET|POST /work-orders/:id`
+Phase 2/3/4 work-order UI:
+- `GET /work-orders/active`, `GET|POST /work-orders/:id`, `POST /work-orders/:id/payments`
 
 Mutating API/page endpoints use one shared policy matrix (`src/http/mutationPolicy.js`):
 - header: `Authorization: Bearer <token>` or `x-api-token`
@@ -182,7 +182,7 @@ Mutating API/page endpoints use one shared policy matrix (`src/http/mutationPoli
 - role baseline:
   - `owner`: all mutations
   - `front_desk`: customers/vehicles/appointments/walk-ins mutations
-  - `technician`: work-order lifecycle/parts mutations (API + page work-order forms)
+  - `technician`: work-order lifecycle/parts/payments mutations (API + page work-order forms)
 
 Default local DB path:
 - `data/auto-service.sqlite` (override with `DB_PATH`)

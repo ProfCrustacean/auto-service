@@ -23,6 +23,9 @@ test("work-order lifecycle API supports list/detail/update with transition invar
     assert.equal(detail.json.item.code, "WO-1002");
     assert.equal(Array.isArray(detail.json.item.statusHistory), true);
     assert.ok(detail.json.item.statusHistory.length >= 1);
+    assert.equal(typeof detail.json.item.laborTotalRub, "number");
+    assert.equal(typeof detail.json.item.outsideServiceCostRub, "number");
+    assert.equal(Array.isArray(detail.json.item.payments), true);
 
     const transition = await requestJson("PATCH", `${baseUrl}/api/v1/work-orders/wo-1002`, {
       status: "waiting_approval",
@@ -51,6 +54,53 @@ test("work-order lifecycle API supports list/detail/update with transition invar
     });
     assert.equal(missingBay.status, 404);
     assert.equal(missingBay.json.error.code, "not_found");
+  });
+});
+
+test("work-order payment APIs reconcile balance and reporting endpoint exposes phase-4 metrics", async () => {
+  await withTestServer("auto-service-work-order-payments-api", async ({ baseUrl }) => {
+    const listBefore = await requestJson("GET", `${baseUrl}/api/v1/work-orders/wo-1005/payments`);
+    assert.equal(listBefore.status, 200);
+    assert.ok(listBefore.json.count >= 1);
+
+    const createPayment = await requestJson("POST", `${baseUrl}/api/v1/work-orders/wo-1005/payments`, {
+      paymentType: "partial",
+      paymentMethod: "cash",
+      amountRub: 500,
+      note: "Доплата на выдаче",
+    });
+    assert.equal(createPayment.status, 201);
+    assert.equal(createPayment.json.item.paymentType, "partial");
+    assert.equal(createPayment.json.item.paymentMethod, "cash");
+    assert.equal(createPayment.json.item.amountRub, 500);
+    assert.equal(createPayment.json.workOrder.balanceDueRub, 6000);
+
+    const invalidFinal = await requestJson("POST", `${baseUrl}/api/v1/work-orders/wo-1005/payments`, {
+      paymentType: "final",
+      paymentMethod: "card",
+      amountRub: 1000,
+    });
+    assert.equal(invalidFinal.status, 409);
+    assert.equal(invalidFinal.json.error.code, "conflict");
+
+    const overpay = await requestJson("POST", `${baseUrl}/api/v1/work-orders/wo-1005/payments`, {
+      paymentType: "partial",
+      paymentMethod: "cash",
+      amountRub: 7000,
+    });
+    assert.equal(overpay.status, 409);
+    assert.equal(overpay.json.error.code, "conflict");
+
+    const listAfter = await requestJson("GET", `${baseUrl}/api/v1/work-orders/wo-1005/payments`);
+    assert.equal(listAfter.status, 200);
+    assert.equal(listAfter.json.items.some((item) => item.note === "Доплата на выдаче"), true);
+
+    const report = await requestJson("GET", `${baseUrl}/api/v1/reports/operations`);
+    assert.equal(report.status, 200);
+    assert.ok(report.json.completedWorkOrdersCount >= 4);
+    assert.ok(report.json.totalRevenueRub >= report.json.laborRevenueRub);
+    assert.equal(typeof report.json.averageTicketRub, "number");
+    assert.equal(report.json.openBalancesRub >= 0, true);
   });
 });
 

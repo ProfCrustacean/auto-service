@@ -128,6 +128,71 @@ export function mapWorkOrderDomainApiError(res, error) {
     return true;
   }
 
+  if (error.code === "work_order_payment_type_invalid") {
+    sendApiError(
+      res,
+      validationError([
+        {
+          field: "paymentType",
+          message: "paymentType must be one of: deposit, partial, final",
+        },
+      ]),
+    );
+    return true;
+  }
+
+  if (error.code === "work_order_payment_method_invalid") {
+    sendApiError(
+      res,
+      validationError([
+        {
+          field: "paymentMethod",
+          message: "paymentMethod must be one of: cash, card, bank_transfer, other",
+        },
+      ]),
+    );
+    return true;
+  }
+
+  if (error.code === "work_order_payment_amount_invalid") {
+    sendApiError(
+      res,
+      validationError([
+        {
+          field: "amountRub",
+          message: "amountRub must be > 0",
+        },
+      ]),
+    );
+    return true;
+  }
+
+  if (error.code === "work_order_payment_balance_conflict") {
+    sendApiError(
+      res,
+      conflictError("Payment amount conflicts with outstanding balance", [
+        {
+          field: "amountRub",
+          message: error.message,
+        },
+      ]),
+    );
+    return true;
+  }
+
+  if (error.code === "work_order_payment_final_amount_conflict") {
+    sendApiError(
+      res,
+      conflictError("Final payment must fully close outstanding balance", [
+        {
+          field: "amountRub",
+          message: error.message,
+        },
+      ]),
+    );
+    return true;
+  }
+
   if (error.code === "work_order_terminal") {
     sendApiError(
       res,

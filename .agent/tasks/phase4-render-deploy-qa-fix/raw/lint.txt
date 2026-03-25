@@ -1,0 +1,5 @@
+
+> auto-service@0.1.0 lint
+> node scripts/static-guardrails.js
+
+{"status":"static_guardrails_ok","jsFileCount":140,"mutatingRouteCount":31,"syntaxFailureCount":0,"missingPolicyCount":0}

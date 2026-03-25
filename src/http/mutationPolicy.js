@@ -75,7 +75,7 @@ const MUTATION_POLICIES = [
     id: "ui.work_orders.write",
     channel: "ui",
     methods: new Set(["POST"]),
-    pattern: /^\/work-orders\/[^/]+(?:\/parts-requests(?:\/[^/]+(?:\/purchase-actions)?)?)?$/u,
+    pattern: /^\/work-orders\/[^/]+(?:\/(?:parts-requests(?:\/[^/]+(?:\/purchase-actions)?)?|payments))?$/u,
     allowedRoles: new Set(["owner", "front_desk", "technician"]),
   },
   {

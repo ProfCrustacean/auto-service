@@ -446,4 +446,33 @@ export const MIGRATIONS = [
       DROP TABLE IF EXISTS appointment_schedule_history;
     `,
   },
+  {
+    version: "010",
+    name: "add_phase4_payments_and_reporting_fields",
+    up: `
+      ALTER TABLE work_orders ADD COLUMN labor_total_rub INTEGER NOT NULL DEFAULT 0 CHECK (labor_total_rub >= 0);
+      ALTER TABLE work_orders ADD COLUMN outside_service_cost_rub INTEGER NOT NULL DEFAULT 0 CHECK (outside_service_cost_rub >= 0);
+
+      CREATE TABLE IF NOT EXISTS work_order_payments (
+        id TEXT PRIMARY KEY,
+        work_order_id TEXT NOT NULL REFERENCES work_orders(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        payment_type TEXT NOT NULL CHECK (payment_type IN ('deposit', 'partial', 'final')),
+        payment_method TEXT NOT NULL CHECK (payment_method IN ('cash', 'card', 'bank_transfer', 'other')),
+        amount_rub INTEGER NOT NULL CHECK (amount_rub > 0),
+        note TEXT,
+        recorded_at TEXT NOT NULL,
+        recorded_by TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_work_order_payments_order_recorded
+      ON work_order_payments(work_order_id, recorded_at DESC, id DESC);
+    `,
+    down: `
+      DROP INDEX IF EXISTS idx_work_order_payments_order_recorded;
+      DROP TABLE IF EXISTS work_order_payments;
+      -- SQLite rollback for added work_orders columns is intentionally a no-op.
+    `,
+  },
 ];

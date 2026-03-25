@@ -1,0 +1,61 @@
+# Build Notes
+2026-03-25T00:32:11Z
+
+## Changed files
+AGENTS.md
+PLANS.md
+STATUS.md
+data/seed-fixtures.json
+evidence/render-log-audit-summary.json
+src/app.js
+src/http/domainApiErrorMapper.js
+src/http/mutationPolicy.js
+src/http/workOrderPageRoutes.js
+src/http/workOrderRoutes.js
+src/http/workOrderValidators.js
+src/persistence/migrations.js
+src/persistence/seedDatabase.js
+src/repositories/sqliteRepository.js
+src/repositories/sqliteRepositoryMappers.js
+src/services/dashboard/todayProjection.js
+src/services/dashboardService.js
+src/services/workOrderService.js
+src/ui/dashboardPage.js
+src/ui/workOrderLifecyclePage.js
+tests/authzPolicyParity.test.js
+tests/dashboardService.test.js
+tests/http.test.js
+tests/mutationPolicy.test.js
+tests/persistence.test.js
+tests/workOrderLifecycleApi.test.js
+tests/workOrderLifecyclePage.test.js
+
+## Diff summary
+ AGENTS.md                                   |  27 ++++
+ PLANS.md                                    |  24 +++-
+ STATUS.md                                   |  11 ++
+ data/seed-fixtures.json                     |  54 ++++++--
+ evidence/render-log-audit-summary.json      |   8 +-
+ src/app.js                                  |   2 +
+ src/http/domainApiErrorMapper.js            |  65 +++++++++
+ src/http/mutationPolicy.js                  |   2 +-
+ src/http/workOrderPageRoutes.js             | 157 +++++++++++++++++++++
+ src/http/workOrderRoutes.js                 |  48 +++++++
+ src/http/workOrderValidators.js             |  96 +++++++++++++
+ src/persistence/migrations.js               |  29 ++++
+ src/persistence/seedDatabase.js             |  55 +++++++-
+ src/repositories/sqliteRepository.js        | 205 ++++++++++++++++++++++++++++
+ src/repositories/sqliteRepositoryMappers.js |  21 +++
+ src/services/dashboard/todayProjection.js   |  26 ++++
+ src/services/dashboardService.js            |   4 +
+ src/services/workOrderService.js            |  99 ++++++++++++++
+ src/ui/dashboardPage.js                     |  54 +++++++-
+ src/ui/workOrderLifecyclePage.js            | 144 ++++++++++++++++++-
+ tests/authzPolicyParity.test.js             |  28 ++++
+ tests/dashboardService.test.js              |   5 +
+ tests/http.test.js                          |  11 ++
+ tests/mutationPolicy.test.js                |   5 +
+ tests/persistence.test.js                   |   7 +-
+ tests/workOrderLifecycleApi.test.js         |  50 +++++++
+ tests/workOrderLifecyclePage.test.js        |  46 +++++++
+ 27 files changed, 1261 insertions(+), 22 deletions(-)

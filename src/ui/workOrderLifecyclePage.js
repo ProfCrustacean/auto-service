@@ -13,6 +13,12 @@ import {
   PARTS_PURCHASE_ACTION_STATUS_CODES,
   PARTS_REQUEST_STATUS_CODES,
 } from "../domain/partsRequestLifecycle.js";
+import {
+  getWorkOrderPaymentMethodLabel,
+  getWorkOrderPaymentTypeLabel,
+  WORK_ORDER_PAYMENT_METHOD_CODES,
+  WORK_ORDER_PAYMENT_TYPE_CODES,
+} from "../domain/workOrderPayment.js";
 
 const FIELD_LABELS = {
   status: "Статус",
@@ -23,6 +29,8 @@ const FIELD_LABELS = {
   internalNotes: "Внутренние заметки",
   customerNotes: "Комментарий для клиента",
   balanceDueRub: "Долг, руб.",
+  laborTotalRub: "Работы, руб.",
+  outsideServiceCostRub: "Внешние услуги, руб.",
   reason: "Причина изменения",
 };
 
@@ -44,6 +52,15 @@ const PARTS_FIELD_LABELS = {
   supplierReference: "Номер поставки",
   orderedQty: "Кол-во поставки",
   unitCostRub: "Цена закупки, руб.",
+};
+
+const PAYMENT_FIELD_LABELS = {
+  form: "Форма оплаты",
+  paymentType: "Тип платежа",
+  paymentMethod: "Способ оплаты",
+  amountRub: "Сумма, руб.",
+  note: "Комментарий",
+  recordedAt: "Дата/время",
 };
 
 const HISTORY_DATE_FORMATTER = new Intl.DateTimeFormat("ru-RU", {
@@ -98,6 +115,19 @@ function normalizePartsUi(partsUi) {
     },
     updateValuesByRequestId: partsUi?.updateValuesByRequestId ?? {},
     purchaseValuesByRequestId: partsUi?.purchaseValuesByRequestId ?? {},
+  };
+}
+
+function normalizePaymentsUi(paymentsUi) {
+  return {
+    errors: Array.isArray(paymentsUi?.errors) ? paymentsUi.errors : [],
+    values: {
+      paymentType: normalizeFormValue(paymentsUi?.values, "paymentType", "partial"),
+      paymentMethod: normalizeFormValue(paymentsUi?.values, "paymentMethod", "cash"),
+      amountRub: normalizeFormValue(paymentsUi?.values, "amountRub", ""),
+      note: normalizeFormValue(paymentsUi?.values, "note", ""),
+      recordedAt: normalizeFormValue(paymentsUi?.values, "recordedAt", ""),
+    },
   };
 }
 
@@ -168,6 +198,95 @@ function renderPartsHistoryRows(history) {
       <td><pre class="json-cell">${escapeHtml(entry.details ? JSON.stringify(entry.details, null, 2) : "—")}</pre></td>
     </tr>`;
   }).join("");
+}
+
+function renderPaymentRows(payments) {
+  if (!Array.isArray(payments) || payments.length === 0) {
+    return '<tr><td colspan="6" class="muted">Платежи пока не добавлены</td></tr>';
+  }
+
+  return payments.map((payment) => {
+    const recordedAtIso = typeof payment.recordedAt === "string" ? payment.recordedAt : "";
+    const recordedAtLabel = formatHistoryTimestamp(recordedAtIso);
+    const recordedAtCell = recordedAtIso.length > 0
+      ? `<time datetime="${escapeHtml(recordedAtIso)}" title="${escapeHtml(recordedAtIso)}">${escapeHtml(recordedAtLabel)}</time>`
+      : escapeHtml(recordedAtLabel);
+
+    return `<tr>
+      <td>${escapeHtml(payment.paymentTypeLabelRu ?? getWorkOrderPaymentTypeLabel(payment.paymentType) ?? payment.paymentType)}</td>
+      <td>${escapeHtml(payment.paymentMethodLabelRu ?? getWorkOrderPaymentMethodLabel(payment.paymentMethod) ?? payment.paymentMethod)}</td>
+      <td class="money">${escapeHtml(String(payment.amountRub ?? 0))} руб.</td>
+      <td>${recordedAtCell}</td>
+      <td>${escapeHtml(payment.recordedBy ?? "system")}</td>
+      <td>${escapeHtml(payment.note ?? "—")}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderPaymentSection(item, paymentsUi) {
+  const errorMap = buildFieldErrorMap(paymentsUi.errors);
+  const values = paymentsUi.values;
+
+  return `<section class="panel row">
+    <h2>Оплаты по заказ-наряду</h2>
+    <p class="muted small">Платежи записываются последовательно и уменьшают остаток долга.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Тип</th>
+            <th>Способ</th>
+            <th>Сумма</th>
+            <th>Когда</th>
+            <th>Кем</th>
+            <th>Комментарий</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${renderPaymentRows(item.payments)}
+        </tbody>
+      </table>
+    </div>
+
+    <form method="post" action="/work-orders/${escapeHtml(item.id)}/payments" data-work-order-payment-form>
+      <h3>Добавить платеж</h3>
+      <div class="field-grid">
+        <label>Тип платежа
+          <select name="paymentType">
+            ${WORK_ORDER_PAYMENT_TYPE_CODES.map((code) => {
+              const selected = values.paymentType === code ? " selected" : "";
+              return `<option value="${escapeHtml(code)}"${selected}>${escapeHtml(getWorkOrderPaymentTypeLabel(code) ?? code)}</option>`;
+            }).join("")}
+          </select>
+          ${renderFieldErrors(errorMap, "paymentType")}
+        </label>
+        <label>Способ оплаты
+          <select name="paymentMethod">
+            ${WORK_ORDER_PAYMENT_METHOD_CODES.map((code) => {
+              const selected = values.paymentMethod === code ? " selected" : "";
+              return `<option value="${escapeHtml(code)}"${selected}>${escapeHtml(getWorkOrderPaymentMethodLabel(code) ?? code)}</option>`;
+            }).join("")}
+          </select>
+          ${renderFieldErrors(errorMap, "paymentMethod")}
+        </label>
+        <label>Сумма, руб.
+          <input type="number" min="1" step="1" name="amountRub" value="${escapeHtml(values.amountRub)}" />
+          ${renderFieldErrors(errorMap, "amountRub")}
+        </label>
+        <label>Дата/время (ISO, опционально)
+          <input type="text" name="recordedAt" value="${escapeHtml(values.recordedAt)}" placeholder="2026-03-25T09:30:00.000Z" />
+          ${renderFieldErrors(errorMap, "recordedAt")}
+        </label>
+      </div>
+      <label>Комментарий
+        <textarea name="note" placeholder="Примечание к оплате">${escapeHtml(values.note)}</textarea>
+        ${renderFieldErrors(errorMap, "note")}
+      </label>
+      <div class="row">
+        <button class="btn primary" type="submit" data-submit>Записать платеж</button>
+      </div>
+    </form>
+  </section>`;
 }
 
 function renderPartsCreateForm(item, partsUi) {
@@ -437,9 +556,11 @@ export function renderWorkOrderLifecyclePage({
   messages = [],
   values = null,
   partsUi = null,
+  paymentsUi = null,
 }) {
   const lifecycleFieldErrorMap = buildFieldErrorMap(errors);
   const normalizedPartsUi = normalizePartsUi(partsUi);
+  const normalizedPaymentsUi = normalizePaymentsUi(paymentsUi);
   const statusOptions = dedupe([item.status, ...listAllowedWorkOrderTransitions(item.status)]);
   const selectedStatus = normalizeFormValue(values, "status", item.status);
   const selectedBayId = normalizeFormValue(values, "bayId", item.bayId ?? "");
@@ -449,6 +570,8 @@ export function renderWorkOrderLifecyclePage({
   const internalNotes = normalizeFormValue(values, "internalNotes", item.internalNotes ?? "");
   const customerNotes = normalizeFormValue(values, "customerNotes", item.customerNotes ?? "");
   const balanceDueRub = normalizeFormValue(values, "balanceDueRub", String(item.balanceDueRub ?? 0));
+  const laborTotalRub = normalizeFormValue(values, "laborTotalRub", String(item.laborTotalRub ?? 0));
+  const outsideServiceCostRub = normalizeFormValue(values, "outsideServiceCostRub", String(item.outsideServiceCostRub ?? 0));
   const reason = normalizeFormValue(values, "reason", "");
 
   const body = `<div class="wrap">
@@ -462,6 +585,8 @@ export function renderWorkOrderLifecyclePage({
         <div class="summary-card"><strong>Текущий статус</strong><span>${escapeHtml(item.statusLabelRu)}</span></div>
         <div class="summary-card"><strong>Пост / ответственный</strong><span>${escapeHtml(item.bayName)} · ${escapeHtml(item.primaryAssignee)}</span></div>
         <div class="summary-card"><strong>Долг</strong><span>${escapeHtml(String(item.balanceDueRub ?? 0))} руб.</span></div>
+        <div class="summary-card"><strong>Работы</strong><span>${escapeHtml(String(item.laborTotalRub ?? 0))} руб.</span></div>
+        <div class="summary-card"><strong>Внешние услуги</strong><span>${escapeHtml(String(item.outsideServiceCostRub ?? 0))} руб.</span></div>
       </div>
     </section>
 
@@ -477,6 +602,12 @@ export function renderWorkOrderLifecyclePage({
     <section class="panel callout error">
       <strong>Исправьте ошибки в операции по запчастям</strong>
       <ul>${normalizedPartsUi.errors.map((error) => `<li>${formatGlobalError(error, PARTS_FIELD_LABELS)}</li>`).join("")}</ul>
+    </section>` : ""}
+
+    ${normalizedPaymentsUi.errors.length > 0 ? `
+    <section class="panel callout error">
+      <strong>Исправьте ошибки в операции оплаты</strong>
+      <ul>${normalizedPaymentsUi.errors.map((error) => `<li>${formatGlobalError(error, PAYMENT_FIELD_LABELS)}</li>`).join("")}</ul>
     </section>` : ""}
 
     <section class="panel row">
@@ -520,6 +651,16 @@ export function renderWorkOrderLifecyclePage({
             <input type="number" min="0" step="1" name="balanceDueRub" value="${escapeHtml(balanceDueRub)}" />
             ${renderFieldErrors(lifecycleFieldErrorMap, "balanceDueRub")}
           </label>
+
+          <label>Работы, руб.
+            <input type="number" min="0" step="1" name="laborTotalRub" value="${escapeHtml(laborTotalRub)}" />
+            ${renderFieldErrors(lifecycleFieldErrorMap, "laborTotalRub")}
+          </label>
+
+          <label>Внешние услуги, руб.
+            <input type="number" min="0" step="1" name="outsideServiceCostRub" value="${escapeHtml(outsideServiceCostRub)}" />
+            ${renderFieldErrors(lifecycleFieldErrorMap, "outsideServiceCostRub")}
+          </label>
         </div>
 
         <label>Жалоба клиента
@@ -554,6 +695,7 @@ export function renderWorkOrderLifecyclePage({
     </section>
 
     ${renderPartsSnapshot(item)}
+    ${renderPaymentSection(item, normalizedPaymentsUi)}
     ${renderPartsCreateForm(item, normalizedPartsUi)}
     ${renderPartsRequestCards(item, normalizedPartsUi)}
 
@@ -604,7 +746,7 @@ export function renderWorkOrderLifecyclePage({
   return renderFormPageDocument({
     title: `Заказ-наряд ${item.code}`,
     body,
-    formSelector: "form[data-work-order-form], form[data-work-order-parts-create-form], form[data-work-order-parts-update-form], form[data-work-order-parts-purchase-form]",
+    formSelector: "form[data-work-order-form], form[data-work-order-payment-form], form[data-work-order-parts-create-form], form[data-work-order-parts-update-form], form[data-work-order-parts-purchase-form]",
     submitBusyText: "Сохраняем...",
   });
 }

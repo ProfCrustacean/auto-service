@@ -1,0 +1,13 @@
+
+> auto-service@0.1.0 verify
+> node scripts/verify.js
+
+{"status":"verify_step_started","step":"tests"}
+{"status":"verify_step_started","step":"server_boot","baseUrl":"http://127.0.0.1:64298","dbPath":"/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-verify-zeVn7K/verify.sqlite"}
+{"status":"verify_step_started","step":"smoke","baseUrl":"http://127.0.0.1:64298"}
+{"status":"verify_step_started","step":"scenario_intake_page_booking","baseUrl":"http://127.0.0.1:64298"}
+{"status":"verify_step_started","step":"scenario_intake_page_walkin","baseUrl":"http://127.0.0.1:64298"}
+{"status":"verify_step_started","step":"scenario_scheduling_walkin","baseUrl":"http://127.0.0.1:64298"}
+{"status":"verify_step_started","step":"scenario_parts_flow","baseUrl":"http://127.0.0.1:64298"}
+{"status":"verify_step_started","step":"scenario_dispatch_board","baseUrl":"http://127.0.0.1:64298"}
+{"status":"verify_passed","baseUrl":"http://127.0.0.1:64298","includeIntakeBookingScenario":true,"includeIntakeWalkInScenario":true,"includeScenario":true,"includePartsScenario":true,"includeDispatchBoardScenario":true,"includeRender":false,"serverLogPath":null,"dbPath":"/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-verify-zeVn7K/verify.sqlite","harnessLogLevel":"summary","artifactMode":"minimal"}

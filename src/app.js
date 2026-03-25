@@ -11,6 +11,7 @@ import { registerAppointmentPageRoutes } from "./http/appointmentPageRoutes.js";
 import { registerWorkOrderRoutes } from "./http/workOrderRoutes.js";
 import { registerWorkOrderPageRoutes } from "./http/workOrderPageRoutes.js";
 import { registerDispatchBoardPageRoutes } from "./http/dispatchBoardPageRoutes.js";
+import { registerReportingRoutes } from "./http/reportingRoutes.js";
 import { internalError, sendApiError, validationError } from "./http/apiErrors.js";
 import { createApiAuthMiddleware } from "./http/authz.js";
 
@@ -202,6 +203,7 @@ export function createApp({
   registerAppointmentRoutes(app, { logger, appointmentService });
   registerWalkInIntakeRoutes(app, { logger, walkInIntakeService });
   registerWorkOrderRoutes(app, { logger, workOrderService });
+  registerReportingRoutes(app, { logger, dashboardService });
   registerAppointmentPageRoutes(app, {
     logger,
     appointmentService,

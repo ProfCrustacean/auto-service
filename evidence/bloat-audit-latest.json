@@ -1,14 +1,14 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-24T22:38:38.906Z",
+  "generatedAt": "2026-03-25T00:50:27.682Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
   "thresholds": {
     "maxTrackedBytes": 1220000,
     "maxTrackedBytesByArea": {
-      "src": 520000,
-      "tests": 155000,
+      "src": 528000,
+      "tests": 162500,
       "scripts": 215000,
       "docs": 85000,
       "evidence": 220000
@@ -23,44 +23,48 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1084784,
+      "totalBytes": 1133254,
       "byArea": {
-        "src": 490785,
-        "tests": 154943,
+        "src": 525479,
+        "tests": 160974,
         "scripts": 214993,
-        "docs": 84928,
+        "docs": 84991,
         "evidence": 7638,
-        "other": 131497
+        "other": 139179
       }
     },
     "topTrackedFiles": [
       {
         "path": "src/repositories/sqliteRepository.js",
-        "bytes": 54406
+        "bytes": 60846
       },
       {
         "path": "src/ui/workOrderLifecyclePage.js",
-        "bytes": 31796
+        "bytes": 38445
       },
       {
         "path": "package-lock.json",
         "bytes": 30098
       },
       {
+        "path": "src/http/workOrderPageRoutes.js",
+        "bytes": 28678
+      },
+      {
         "path": "src/ui/dispatchBoardPageClient.js",
         "bytes": 27263
       },
       {
-        "path": "src/http/workOrderPageRoutes.js",
-        "bytes": 23929
-      },
-      {
         "path": "src/services/workOrderService.js",
-        "bytes": 23736
+        "bytes": 27079
       },
       {
         "path": "src/persistence/seedDatabase.js",
-        "bytes": 22874
+        "bytes": 24652
+      },
+      {
+        "path": "src/ui/dashboardPage.js",
+        "bytes": 21543
       },
       {
         "path": "src/repositories/sqliteRepositoryReferenceCustomerVehicle.js",
@@ -71,8 +75,16 @@
         "bytes": 19315
       },
       {
-        "path": "src/ui/dashboardPage.js",
-        "bytes": 19073
+        "path": "src/http/workOrderValidators.js",
+        "bytes": 18693
+      },
+      {
+        "path": "src/persistence/migrations.js",
+        "bytes": 18284
+      },
+      {
+        "path": "STATUS.md",
+        "bytes": 17770
       },
       {
         "path": "PLANS_ARCHIVE.md",
@@ -80,23 +92,11 @@
       },
       {
         "path": "docs/23_LOCAL_AND_RENDER_RUNBOOK.md",
-        "bytes": 17029
-      },
-      {
-        "path": "src/persistence/migrations.js",
-        "bytes": 16978
+        "bytes": 17092
       },
       {
         "path": "scripts/scheduling-walkin-scenario.js",
         "bytes": 16077
-      },
-      {
-        "path": "src/http/workOrderValidators.js",
-        "bytes": 15655
-      },
-      {
-        "path": "STATUS.md",
-        "bytes": 14866
       },
       {
         "path": "src/services/appointmentService.js",
@@ -104,7 +104,7 @@
       },
       {
         "path": "README.md",
-        "bytes": 13568
+        "bytes": 13747
       },
       {
         "path": "src/http/appointmentPageRoutes.js",
@@ -127,17 +127,17 @@
     "docs": {
       "lineCounts": {
         "README": 320,
-        "STATUS": 230,
-        "PLANS": 198
+        "STATUS": 261,
+        "PLANS": 223
       }
     },
     "duplication": {
-      "percentage": 5.06,
-      "duplicatedLines": 1228,
-      "clones": 91,
-      "sources": 135,
-      "lines": 24246,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-RhffrI/report/jscpd-report.json"
+      "percentage": 5.05,
+      "duplicatedLines": 1277,
+      "clones": 95,
+      "sources": 138,
+      "lines": 25272,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-7Ptiaf/report/jscpd-report.json"
     }
   },
   "violations": []

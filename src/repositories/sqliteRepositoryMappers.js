@@ -138,8 +138,29 @@ export function mapWorkOrderRecord(row) {
     customerNotes: row.customerNotes ?? null,
     blockedSinceIso: row.blockedSinceIso ?? null,
     balanceDueRub: row.balanceDueRub ?? 0,
+    laborTotalRub: row.laborTotalRub ?? 0,
+    outsideServiceCostRub: row.outsideServiceCostRub ?? 0,
     createdAt: row.createdAt,
     closedAt: row.closedAt ?? null,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export function mapWorkOrderPaymentRecord(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    workOrderId: row.workOrderId,
+    paymentType: row.paymentType,
+    paymentMethod: row.paymentMethod,
+    amountRub: row.amountRub,
+    note: row.note ?? null,
+    recordedAt: row.recordedAt,
+    recordedBy: row.recordedBy ?? null,
+    createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
 }
