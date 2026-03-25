@@ -13,7 +13,6 @@
     "pretest": "npm run assets:sync",
     "bootstrap": "npm ci",
     "db:init": "node scripts/db-init.js",
-    "db:backup-drill": "node scripts/db-backup-restore-drill.js",
     "plans:compact": "node scripts/compact-plans.js",
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
@@ -21,28 +20,12 @@
     "hygiene:check": "node scripts/hygiene-check.js",
     "test": "node --test",
     "smoke": "node scripts/smoke.js",
-    "scenario:intake-page": "node scripts/intake-page-scenario.js",
-    "scenario:intake-page:booking": "node scripts/intake-page-scenario.js --mode booking",
-    "scenario:intake-page:walkin": "node scripts/intake-page-scenario.js --mode walkin",
-    "scenario:parts-flow": "node scripts/parts-flow-scenario.js",
-    "scenario:scheduling-walkin": "node scripts/scheduling-walkin-scenario.js",
-    "scenario:dispatch-board": "node scripts/dispatch-board-scenario.js",
-    "cleanup:spring": "node scripts/cleanup-spring.js --dry-run --prune-tracked --prune-untracked",
-    "cleanup:spring:apply": "node scripts/cleanup-spring.js --apply --prune-tracked --prune-untracked",
-    "evidence:summary": "node scripts/evidence-log-summary.js",
-    "linear:apply": "node scripts/linear-harness.js apply",
     "audit:bloat": "node scripts/audit-bloat.js",
-    "verify:render": "node scripts/verify-render.js",
-    "render:policy:status": "node scripts/render-service-policy.js status",
-    "render:policy:manual-deploy": "node scripts/render-service-policy.js manual-deploy",
-    "verify:full": "VERIFY_RENDER=1 node scripts/verify.js",
     "verify": "node scripts/verify.js",
     "secrets:scan": "node scripts/secrets-scan.js",
-    "up": "npm ci && npm run verify",
-    "up:full": "npm ci && npm run verify:full"
+    "up": "npm ci && npm run verify"
   },
   "dependencies": {
-    "@event-calendar/build": "5.5.1",
     "@picocss/pico": "2.0.6",
     "express": "^4.21.2"
   }

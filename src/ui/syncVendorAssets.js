@@ -11,14 +11,6 @@ const VENDOR_MAPPINGS = [
     source: path.join(repoRoot, "node_modules", "@picocss", "pico", "css", "pico.min.css"),
     target: path.join(repoRoot, "public", "assets", "vendor", "pico.min.css"),
   },
-  {
-    source: path.join(repoRoot, "node_modules", "@event-calendar", "build", "dist", "event-calendar.min.css"),
-    target: path.join(repoRoot, "public", "assets", "vendor", "event-calendar-5.5.1.min.css"),
-  },
-  {
-    source: path.join(repoRoot, "node_modules", "@event-calendar", "build", "dist", "event-calendar.min.js"),
-    target: path.join(repoRoot, "public", "assets", "vendor", "event-calendar-5.5.1.min.js"),
-  },
 ];
 
 async function copyFile({ source, target }) {

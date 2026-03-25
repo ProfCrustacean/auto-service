@@ -1,0 +1,64 @@
+20260325T090342Z
+
+> auto-service@0.1.0 pretest
+> npm run assets:sync
+
+
+> auto-service@0.1.0 assets:sync
+> node src/ui/syncVendorAssets.js
+
+{"status":"vendor_assets_synced","files":["public/assets/vendor/pico.min.css"]}
+
+> auto-service@0.1.0 test
+> node --test
+
+✔ appointments/new renders booking form and lookup (114.943167ms)
+✔ appointments/new supports walk-in mode UI without slot fields (36.114417ms)
+✔ appointments/new keeps validation and non-blocking overlap feedback (76.088167ms)
+✔ appointments/new submits and redirects to detail (39.81025ms)
+✔ appointments/new walk-in mode submits and redirects to work-order detail (33.209417ms)
+✔ appointment lifecycle API enforces transitions and returns non-blocking capacity warnings (249.439375ms)
+✔ mutating API endpoints require auth and enforce role policies (248.271292ms)
+✔ UI mutation routes require token when implicit UI role is disabled (120.07275ms)
+✔ appointment mutations keep API/page role parity for front_desk and technician (54.531833ms)
+✔ work-order mutations keep API/page role parity for technician (37.502292ms)
+✔ customer and vehicle CRUD APIs preserve ownership history and work-order snapshots (255.834083ms)
+✔ DashboardService returns expected queue counts from fixtures (38.128042ms)
+✔ DashboardService today metrics include only current local-day appointments (15.562ms)
+✔ DashboardService week plan highlights overbooking and unscheduled appointments (13.188292ms)
+✔ DashboardService search lookup supports customer, phone, plate, VIN and model (20.540583ms)
+✔ health and dashboard endpoints return successful responses (270.498583ms)
+✔ malformed JSON request body returns structured validation error (30.031ms)
+✔ hygiene-check passes branch and tracked-artifact policy (352.917292ms)
+✔ mutation policy resolves API and UI write routes deterministically (1.131791ms)
+✔ mutation policy metadata remains explicit and machine-readable (0.145208ms)
+✔ isMutatingMethod normalizes HTTP methods (0.066125ms)
+✔ runtime policy pins Node.js to 22 LTS for deterministic deploys (3.314792ms)
+✔ list APIs support deterministic limit/offset pagination (110.659291ms)
+✔ parts request lifecycle exposes deterministic status catalog and transition map (2.900042ms)
+✔ parts purchase action status catalog stays strict and stable (0.183584ms)
+✔ migrations are idempotent and seed runs only once by default (22.398708ms)
+✔ seed fixture integrity validation catches broken references before write (14.468709ms)
+✔ employee and bay CRUD endpoints enforce validation and stable error contracts (117.763458ms)
+✔ scanTextForSecrets finds credential-like literals (2.5525ms)
+✔ scanTextForSecrets ignores placeholders and env references (0.207833ms)
+✔ positionFromIndex returns stable line and column (0.819458ms)
+✔ walk-in intake API creates active flow without prior appointment (116.863167ms)
+✔ work-order lifecycle API supports list/detail/update with transition invariants (104.22925ms)
+✔ work-order payment APIs reconcile balance and reporting endpoint exposes phase-4 metrics (18.256625ms)
+✔ appointment to work-order conversion is idempotent and enforces appointment status guardrails (17.410584ms)
+✔ work-order parts APIs enforce blocking lifecycle rules and supplier action sync (19.496084ms)
+✔ work-order lifecycle domain exposes deterministic status catalog and transition map (1.4935ms)
+✔ work-order service enforces transition invariants and writes status history (11.816ms)
+✔ work-order workspace page renders lifecycle controls and history (55.7075ms)
+✔ work-order workspace updates lifecycle state and keeps validation feedback actionable (24.036584ms)
+✔ work-order workspace records payments and shows updated balance feedback (13.36675ms)
+✔ work-order workspace allows parts request and purchase actions from the same page (19.711209ms)
+ℹ tests 42
+ℹ suites 0
+ℹ pass 42
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1155.180375

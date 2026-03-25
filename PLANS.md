@@ -6,13 +6,30 @@ Hot-path execution plan file for current non-trivial work.
 
 Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-## Active Plan — None
+## Active Plan — First-principles core reset (`core-reset-loc-reduction`)
 
-No active multi-step implementation plan is open right now.
+Objective:
+- Massively reduce LOC and complexity by deleting non-core runtime/harness surfaces and collapsing the repo to a smaller product-core baseline.
 
-Create a new active plan before the next non-trivial feature/refactor/deployment slice.
+Steps:
+1. Freeze spec with explicit LOC-reduction target and allowed breaking-change scope.
+2. Remove non-core harness/orchestration code paths (Render/Linear/cleanup flows) and simplify package script surface.
+3. Remove dispatch-board runtime and related assets/dependencies; keep core product operations only.
+4. Simplify verification harness to minimal local loop and delete obsolete tests.
+5. Run full post-reset gates (`lint`, `hygiene`, `test`, `verify`, `audit:bloat`) and record LOC delta.
+6. Update proof-loop evidence/verdict and synchronize `STATUS.md`/`PLANS.md`.
+
+Status:
+- Completed (2026-03-25): core reset delivered with measured JS LOC reduction from `27,549` to `19,118` (`-8,431`, `-30.60%`), dispatch runtime removed, local verification harness collapsed to `tests + smoke`, live booking/walk-in/active-queue E2E validation captured, and proof-loop artifact checks passed (`validate`, `status`).
 
 Most recent completed non-trivial slice:
+- 2026-03-25 — First-principles core reset (`core-reset-loc-reduction`) completed:
+  - removed non-core harness/orchestration scripts (Render verify/policy flows, Linear apply harness, cleanup/report helper scripts, scenario runners),
+  - removed dispatch board runtime and mutation surface (`src/http/dispatchBoard*`, `src/ui/dispatchBoard*`, `src/services/dashboard/dispatchProjection.js`, dispatch CSS),
+  - simplified package command surface to local-only verification commands,
+  - simplified `scripts/verify.js` to deterministic local checks (`node --test` + isolated boot + `scripts/smoke.js`),
+  - updated smoke checks to core runtime paths (no dispatch checks),
+  - verification commands passed: `npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`, `npm run audit:bloat`.
 - 2026-03-25 — LOC cleanup hardening (`cleanup-brittle-outdated-loc`) completed:
   - reduced brittle validator drift by centralizing allowed/mutable field lists and unknown-field handling in `src/http/workOrderValidators.js`,
   - reduced repetitive payload-normalization LOC via shared optional-field assignment helpers in `src/http/workOrderPageRoutes.js`,

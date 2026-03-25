@@ -78,13 +78,6 @@ const MUTATION_POLICIES = [
     pattern: /^\/work-orders\/[^/]+(?:\/(?:parts-requests(?:\/[^/]+(?:\/purchase-actions)?)?|payments))?$/u,
     allowedRoles: new Set(["owner", "front_desk", "technician"]),
   },
-  {
-    id: "api.dispatch_board.write",
-    channel: "ui",
-    methods: new Set(["POST"]),
-    pattern: /^\/api\/v1\/dispatch\/board\/(?:events\/[^/]+\/(?:preview|commit)|queue\/(?:appointments|walk-ins)\/[^/]+\/schedule)$/u,
-    allowedRoles: new Set(["owner", "front_desk"]),
-  },
 ];
 
 export function isMutatingMethod(method) {

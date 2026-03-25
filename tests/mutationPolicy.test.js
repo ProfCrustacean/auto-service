@@ -28,11 +28,6 @@ test("mutation policy resolves API and UI write routes deterministically", () =>
   })?.id, "ui.work_orders.write");
 
   assert.equal(resolveMutationPolicy({
-    method: "POST",
-    path: "/api/v1/dispatch/board/events/apt-1/commit",
-  })?.id, "api.dispatch_board.write");
-
-  assert.equal(resolveMutationPolicy({
     method: "PATCH",
     path: "/api/v1/unknown-resource/1",
   }), null);

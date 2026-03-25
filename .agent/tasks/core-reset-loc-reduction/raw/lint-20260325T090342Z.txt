@@ -1,0 +1,6 @@
+20260325T090342Z
+
+> auto-service@0.1.0 lint
+> node scripts/static-guardrails.js
+
+{"status":"static_guardrails_ok","jsFileCount":89,"mutatingRouteCount":27,"syntaxFailureCount":0,"missingPolicyCount":0}

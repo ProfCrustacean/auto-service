@@ -1,0 +1,8 @@
+
+> auto-service@0.1.0 verify
+> node scripts/verify.js
+
+{"status":"verify_step_started","step":"tests"}
+{"status":"verify_step_started","step":"server_boot","baseUrl":"http://127.0.0.1:49655","dbPath":"/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-verify-boPcBl/verify.sqlite"}
+{"status":"verify_step_started","step":"smoke","baseUrl":"http://127.0.0.1:49655"}
+{"status":"verify_passed","baseUrl":"http://127.0.0.1:49655","checks":["tests","smoke"],"harnessLogLevel":"summary","artifactMode":"minimal","serverLogPath":null,"dbPath":"/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-verify-boPcBl/verify.sqlite"}

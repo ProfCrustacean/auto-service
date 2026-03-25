@@ -1,0 +1,58 @@
+{
+  "task_id": "core-reset-loc-reduction",
+  "overall_verdict": "PASS",
+  "verified_at": "2026-03-25T09:13:31Z",
+  "criteria": [
+    {
+      "id": "AC1",
+      "status": "PASS",
+      "reason": "JavaScript LOC dropped from 27,549 to 19,118 (30.60% reduction)."
+    },
+    {
+      "id": "AC2",
+      "status": "PASS",
+      "reason": "Render/Linear/cleanup orchestration scripts removed and verify flow reduced to local tests+smoke."
+    },
+    {
+      "id": "AC3",
+      "status": "PASS",
+      "reason": "Dispatch-board runtime/API/UI code and dependency surface removed from core baseline."
+    },
+    {
+      "id": "AC4",
+      "status": "PASS",
+      "reason": "Post-reset gates passed and evidence artifacts were refreshed."
+    },
+    {
+      "id": "AC5",
+      "status": "PASS",
+      "reason": "Live browser E2E validated booking + walk-in + active queue flow with captured screenshots and successful creation path to WO-1018."
+    },
+    {
+      "id": "AC6",
+      "status": "PASS",
+      "reason": "Repository state was committed after AC1-AC5 evidence and checks were completed."
+    }
+  ],
+  "commands_run": [
+    "find src scripts tests -type f -name '*.js' -print0 | xargs -0 wc -l",
+    "npm run lint",
+    "npm run hygiene:check",
+    "npm test",
+    "npm run verify",
+    "npm run audit:bloat",
+    "playwright live UI flow for booking, walk-in, and active queue"
+  ],
+  "artifacts_used": [
+    ".agent/tasks/core-reset-loc-reduction/raw/loc.txt",
+    ".agent/tasks/core-reset-loc-reduction/raw/lint.txt",
+    ".agent/tasks/core-reset-loc-reduction/raw/hygiene.txt",
+    ".agent/tasks/core-reset-loc-reduction/raw/test-unit.txt",
+    ".agent/tasks/core-reset-loc-reduction/raw/test-integration.txt",
+    ".agent/tasks/core-reset-loc-reduction/raw/audit-bloat.txt",
+    ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-booking-result-20260325T091000Z.png",
+    ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-walkin-before-submit-20260325T091100Z.png",
+    ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-walkin-result-20260325T091140Z.png",
+    ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-active-queue-20260325T091200Z.png"
+  ]
+}

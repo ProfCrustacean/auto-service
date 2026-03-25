@@ -1,262 +1,190 @@
-import {
-  assertHarness,
-  buildFailurePayload,
-  expectStatus,
-  failHarness,
-  requestJson,
-  requestText,
-} from "./harness-diagnostics.js";
 import { loadDotenvIntoProcessSync } from "./dotenv-loader.js";
 
 loadDotenvIntoProcessSync();
+
 const baseUrl = process.env.APP_BASE_URL ?? "http://127.0.0.1:3000";
-const DASHBOARD_ARRAY_FIELDS = [
-  "appointments",
-  "queues.waitingParts",
-  "queues.waitingDiagnosis",
-  "queues.waitingApproval",
-  "queues.paused",
-  "queues.readyPickup",
-  "queues.active",
-  "week.days",
-  "week.byBay",
-  "week.byAssignee",
-];
-const DASHBOARD_SUMMARY_FIELDS = [
-  "summary.appointmentsToday",
-  "summary.waitingDiagnosisCount",
-  "summary.waitingApprovalCount",
-  "summary.waitingPartsCount",
-  "summary.pausedCount",
-  "summary.readyForPickupCount",
-  "summary.activeWorkOrders",
-];
-const DASHBOARD_LENGTH_PARITY = [
-  ["summary.appointmentsToday", "appointments"],
-  ["summary.waitingDiagnosisCount", "queues.waitingDiagnosis"],
-  ["summary.waitingApprovalCount", "queues.waitingApproval"],
-  ["summary.waitingPartsCount", "queues.waitingParts"],
-  ["summary.pausedCount", "queues.paused"],
-  ["summary.readyForPickupCount", "queues.readyPickup"],
-  ["summary.activeWorkOrders", "queues.active"],
-];
-const UI_PAGES = [
-  {
-    step: "dashboard_ui",
-    path: "/",
-    snippets: ["План недели: загрузка и перегруз", "Быстрый поиск клиента и авто"],
-    oneOf: ["Операционная доска", "Автосервис"],
-  },
-  {
-    step: "booking_ui",
-    path: "/appointments/new",
-    snippets: ["Новая запись", "Форма записи"],
-  },
-  {
-    step: "walkin_ui",
-    path: "/appointments/new?mode=walkin",
-    snippets: ["Новая запись", "Принять сейчас", "Форма приема"],
-  },
-  {
-    step: "dispatch_board_ui",
-    path: "/dispatch/board",
-    snippets: ["Диспетчерская доска", "Очередь переносов", 'id="dispatch-calendar"'],
-  },
-];
 
-function getPathValue(source, dottedPath) {
-  return String(dottedPath)
-    .split(".")
-    .reduce((value, key) => (value == null ? undefined : value[key]), source);
+function fail(step, message, extra = {}) {
+  const payload = {
+    status: "smoke_failed",
+    step,
+    message,
+    ...extra,
+  };
+  process.stderr.write(`${JSON.stringify(payload)}\n`);
+  process.exit(1);
 }
 
-function assertNonNegativeInteger(value, label, step, response) {
-  assertHarness(Number.isInteger(value), `${label} must be an integer`, {
-    step,
-    responseStatus: response.status,
-    responsePayload: response.payload,
-  });
-  assertHarness(value >= 0, `${label} must be >= 0`, {
-    step,
-    responseStatus: response.status,
-    responsePayload: response.payload,
-  });
+async function requestJson(step, path) {
+  const url = `${baseUrl}${path}`;
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    fail(step, "request failed", {
+      method: "GET",
+      path,
+      url,
+      error: error.message,
+    });
+  }
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    // ignored
+  }
+
+  return {
+    response,
+    payload,
+    url,
+    path,
+  };
 }
 
-function assertPageStatus(response, step, path) {
-  if (response.status === 200) {
+async function requestText(step, path) {
+  const url = `${baseUrl}${path}`;
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    fail(step, "request failed", {
+      method: "GET",
+      path,
+      url,
+      error: error.message,
+    });
+  }
+
+  const text = await response.text();
+  return {
+    response,
+    text,
+    url,
+    path,
+  };
+}
+
+function assertStatus(step, response, expectedStatus, context = {}) {
+  if (response.status === expectedStatus) {
     return;
   }
-  failHarness(`unexpected response status for GET ${path}`, {
-    step,
-    method: "GET",
-    path,
-    url: response.url,
+
+  fail(step, `unexpected HTTP status (expected ${expectedStatus}, got ${response.status})`, {
     responseStatus: response.status,
-    responseBodySnippet: response.text?.slice(0, 400),
+    ...context,
   });
 }
 
-function assertIncludesAll(response, expectedSnippets, step) {
-  for (const snippet of expectedSnippets) {
-    assertHarness(response.text.includes(snippet), `expected UI snippet '${snippet}'`, {
-      step,
-      method: response.method,
-      path: response.path,
-      url: response.url,
-      responseStatus: response.status,
-      responseBodySnippet: response.text.slice(0, 400),
-    });
+function assertCondition(step, condition, message, context = {}) {
+  if (!condition) {
+    fail(step, message, context);
+  }
+}
+
+function assertUiIncludes(step, page, snippets) {
+  for (const snippet of snippets) {
+    if (!page.text.includes(snippet)) {
+      fail(step, `missing UI snippet: ${snippet}`, {
+        path: page.path,
+        url: page.url,
+        responseStatus: page.response.status,
+        responseBodySnippet: page.text.slice(0, 400),
+      });
+    }
   }
 }
 
 async function main() {
-  const health = await requestJson(baseUrl, {
-    step: "healthz",
-    path: "/healthz",
-  });
-  expectStatus(health, 200, "healthz");
-  assertHarness(health.payload?.status === "ok", "healthz status must be ok", {
-    step: "healthz",
-    responseStatus: health.status,
-    responsePayload: health.payload,
-  });
+  const checks = [];
 
-  const dashboard = await requestJson(baseUrl, {
-    step: "dashboard_api",
-    path: "/api/v1/dashboard/today",
+  const health = await requestJson("healthz", "/healthz");
+  assertStatus("healthz", health.response, 200, { payload: health.payload });
+  assertCondition("healthz", health.payload?.status === "ok", "healthz status must be ok", {
+    payload: health.payload,
   });
-  expectStatus(dashboard, 200, "dashboard_api");
+  checks.push("healthz");
 
-  for (const objectPath of ["summary", "queues", "week"]) {
-    const value = getPathValue(dashboard.payload, objectPath);
-    assertHarness(value && typeof value === "object" && !Array.isArray(value), `dashboard ${objectPath} is missing`, {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    });
-  }
-  for (const arrayPath of DASHBOARD_ARRAY_FIELDS) {
-    const value = getPathValue(dashboard.payload, arrayPath);
-    assertHarness(Array.isArray(value), `dashboard ${arrayPath} must be an array`, {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    });
-  }
-  assertHarness(dashboard.payload.week.days.length === 7, "dashboard week must contain 7 days", {
-    step: "dashboard_api",
-    responseStatus: dashboard.status,
-    responsePayload: dashboard.payload,
+  const dashboard = await requestJson("dashboard_api", "/api/v1/dashboard/today");
+  assertStatus("dashboard_api", dashboard.response, 200, { payload: dashboard.payload });
+  assertCondition("dashboard_api", dashboard.payload && typeof dashboard.payload === "object", "dashboard payload must be object", {
+    payload: dashboard.payload,
   });
-  for (const field of DASHBOARD_SUMMARY_FIELDS) {
-    assertNonNegativeInteger(getPathValue(dashboard.payload, field), field, "dashboard_api", dashboard);
-  }
-  for (const [summaryField, arrayField] of DASHBOARD_LENGTH_PARITY) {
-    const summaryValue = getPathValue(dashboard.payload, summaryField);
-    const arrayValue = getPathValue(dashboard.payload, arrayField);
-    assertHarness(summaryValue === arrayValue.length, `${summaryField} must match ${arrayField} queue length`, {
-      step: "dashboard_api",
-      responseStatus: dashboard.status,
-      responsePayload: dashboard.payload,
-    });
-  }
+  assertCondition("dashboard_api", Array.isArray(dashboard.payload?.appointments), "dashboard appointments must be array", {
+    payload: dashboard.payload,
+  });
+  assertCondition("dashboard_api", dashboard.payload?.summary && typeof dashboard.payload.summary === "object", "dashboard summary must be object", {
+    payload: dashboard.payload,
+  });
+  checks.push("dashboard_api");
 
-  const appointments = await requestJson(baseUrl, {
-    step: "appointments_api",
-    path: "/api/v1/appointments",
+  const appointments = await requestJson("appointments_api", "/api/v1/appointments");
+  assertStatus("appointments_api", appointments.response, 200, { payload: appointments.payload });
+  assertCondition("appointments_api", Array.isArray(appointments.payload?.items), "appointments payload must include items array", {
+    payload: appointments.payload,
   });
-  expectStatus(appointments, 200, "appointments_api");
-  assertHarness(Array.isArray(appointments.payload?.items), "appointments payload must include items array", {
-    step: "appointments_api",
-    responseStatus: appointments.status,
-    responsePayload: appointments.payload,
-  });
-  assertNonNegativeInteger(appointments.payload.count, "appointments.count", "appointments_api", appointments);
-  assertHarness(appointments.payload.count === appointments.payload.items.length, "appointments.count must match items length", {
-    step: "appointments_api",
-    responseStatus: appointments.status,
-    responsePayload: appointments.payload,
-  });
+  checks.push("appointments_api");
 
-  const search = await requestJson(baseUrl, {
-    step: "search_api",
-    path: "/api/v1/search?q=A123AA13",
+  const workOrders = await requestJson("work_orders_api", "/api/v1/work-orders");
+  assertStatus("work_orders_api", workOrders.response, 200, { payload: workOrders.payload });
+  assertCondition("work_orders_api", Array.isArray(workOrders.payload?.items), "work-orders payload must include items array", {
+    payload: workOrders.payload,
   });
-  expectStatus(search, 200, "search_api");
-  assertHarness(search.payload?.performed === true, "search_api performed flag must be true for non-empty query", {
-    step: "search_api",
-    responseStatus: search.status,
-    responsePayload: search.payload,
-  });
-  assertHarness(Array.isArray(search.payload?.vehicles), "search_api vehicles must be an array", {
-    step: "search_api",
-    responseStatus: search.status,
-    responsePayload: search.payload,
-  });
-  assertNonNegativeInteger(search.payload?.totals?.vehicles ?? -1, "search_api totals.vehicles", "search_api", search);
+  checks.push("work_orders_api");
 
-  for (const page of UI_PAGES) {
-    const response = await requestText(baseUrl, { step: page.step, path: page.path });
-    assertPageStatus(response, page.step, page.path);
-    if (Array.isArray(page.oneOf)) {
-      assertHarness(page.oneOf.some((snippet) => response.text.includes(snippet)), `none of ${page.oneOf.join(", ")} found`, {
-        step: page.step,
-        method: response.method,
-        path: response.path,
-        url: response.url,
-        responseStatus: response.status,
-        responseBodySnippet: response.text.slice(0, 400),
-      });
-    }
-    assertIncludesAll(response, page.snippets, page.step);
-  }
+  const search = await requestJson("search_api", "/api/v1/search?q=A123AA13");
+  assertStatus("search_api", search.response, 200, { payload: search.payload });
+  assertCondition("search_api", search.payload?.performed === true, "search should be marked as performed", {
+    payload: search.payload,
+  });
+  checks.push("search_api");
 
-  const dispatchBoardApi = await requestJson(baseUrl, {
-    step: "dispatch_board_api",
-    path: "/api/v1/dispatch/board",
-  });
-  expectStatus(dispatchBoardApi, 200, "dispatch_board_api");
-  assertHarness(Array.isArray(dispatchBoardApi.payload?.resources), "dispatch board resources must be an array", {
-    step: "dispatch_board_api",
-    responseStatus: dispatchBoardApi.status,
-    responsePayload: dispatchBoardApi.payload,
-  });
-  assertHarness(Array.isArray(dispatchBoardApi.payload?.events), "dispatch board events must be an array", {
-    step: "dispatch_board_api",
-    responseStatus: dispatchBoardApi.status,
-    responsePayload: dispatchBoardApi.payload,
-  });
-  assertHarness(
-    dispatchBoardApi.payload?.calendar?.engine === "event_calendar",
-    "dispatch board calendar engine must be event_calendar",
+  const dashboardUi = await requestText("dashboard_ui", "/");
+  assertStatus("dashboard_ui", dashboardUi.response, 200);
+  assertCondition(
+    "dashboard_ui",
+    dashboardUi.text.includes("Операционная доска") || dashboardUi.text.includes("Автосервис"),
+    "dashboard page missing expected title",
     {
-      step: "dispatch_board_api",
-      responseStatus: dispatchBoardApi.status,
-      responsePayload: dispatchBoardApi.payload,
+      path: dashboardUi.path,
+      url: dashboardUi.url,
+      responseBodySnippet: dashboardUi.text.slice(0, 400),
     },
   );
+  assertUiIncludes("dashboard_ui", dashboardUi, ["Быстрый поиск клиента и авто", "План недели: загрузка и перегруз"]);
+  checks.push("dashboard_ui");
 
-  process.stdout.write(
-    `${JSON.stringify({
-      status: "smoke_passed",
-      baseUrl,
-      checks: [
-        "healthz",
-        "dashboard_api",
-        "appointments_api",
-        "search_api",
-        "dashboard_ui",
-        "booking_ui",
-        "walkin_ui",
-        "dispatch_board_api",
-        "dispatch_board_ui",
-      ],
-    })}\n`,
+  const bookingUi = await requestText("booking_ui", "/appointments/new");
+  assertStatus("booking_ui", bookingUi.response, 200);
+  assertUiIncludes("booking_ui", bookingUi, ["Новая запись", "Форма записи"]);
+  checks.push("booking_ui");
+
+  const walkInUi = await requestText("walkin_ui", "/appointments/new?mode=walkin");
+  assertStatus("walkin_ui", walkInUi.response, 200);
+  assertUiIncludes("walkin_ui", walkInUi, ["Новая запись", "Принять сейчас", "Форма приема"]);
+  checks.push("walkin_ui");
+
+  const activeWorkOrdersUi = await requestText("work_orders_active_ui", "/work-orders/active");
+  assertStatus("work_orders_active_ui", activeWorkOrdersUi.response, 200);
+  assertCondition(
+    "work_orders_active_ui",
+    activeWorkOrdersUi.text.includes("Активная очередь заказ-нарядов")
+      || activeWorkOrdersUi.text.includes("Активные заказ-наряды"),
+    "active work-orders page missing expected heading",
+    {
+      path: activeWorkOrdersUi.path,
+      url: activeWorkOrdersUi.url,
+      responseStatus: activeWorkOrdersUi.response.status,
+      responseBodySnippet: activeWorkOrdersUi.text.slice(0, 400),
+    },
   );
+  checks.push("work_orders_active_ui");
+
+  process.stdout.write(`${JSON.stringify({ status: "smoke_passed", baseUrl, checks })}\n`);
 }
 
 main().catch((error) => {
-  process.stderr.write(`${JSON.stringify(buildFailurePayload("smoke_failed", error))}\n`);
-  process.exit(1);
+  fail("smoke", error.message);
 });

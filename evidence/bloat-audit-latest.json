@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-25T01:12:54.671Z",
+  "generatedAt": "2026-03-25T09:12:53.575Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1202218,
+      "totalBytes": 931515,
       "byArea": {
-        "src": 526456,
-        "tests": 160974,
-        "scripts": 214993,
+        "src": 464885,
+        "tests": 93791,
+        "scripts": 49531,
         "docs": 84991,
-        "evidence": 7638,
-        "other": 207166
+        "evidence": 7602,
+        "other": 230715
       }
     },
     "topTrackedFiles": [
@@ -44,15 +44,11 @@
       },
       {
         "path": "package-lock.json",
-        "bytes": 30098
+        "bytes": 29750
       },
       {
         "path": "src/http/workOrderPageRoutes.js",
         "bytes": 27828
-      },
-      {
-        "path": "src/ui/dispatchBoardPageClient.js",
-        "bytes": 27263
       },
       {
         "path": "src/services/workOrderService.js",
@@ -64,19 +60,11 @@
       },
       {
         "path": "src/ui/dashboardPage.js",
-        "bytes": 21543
+        "bytes": 21405
       },
       {
         "path": "src/repositories/sqliteRepositoryReferenceCustomerVehicle.js",
         "bytes": 19482
-      },
-      {
-        "path": "scripts/intake-page-scenario.js",
-        "bytes": 19315
-      },
-      {
-        "path": "STATUS.md",
-        "bytes": 19285
       },
       {
         "path": "src/http/workOrderValidators.js",
@@ -95,12 +83,16 @@
         "bytes": 17092
       },
       {
-        "path": "scripts/scheduling-walkin-scenario.js",
-        "bytes": 16077
+        "path": "STATUS.md",
+        "bytes": 15103
       },
       {
         "path": "src/services/appointmentService.js",
         "bytes": 14043
+      },
+      {
+        "path": "PLANS.md",
+        "bytes": 13883
       },
       {
         "path": "README.md",
@@ -113,11 +105,19 @@
       {
         "path": "src/ui/pageFormShared.js",
         "bytes": 13015
+      },
+      {
+        "path": "src/http/pageFlowUtils.js",
+        "bytes": 12201
+      },
+      {
+        "path": "src/http/customerVehicleValidators.js",
+        "bytes": 11436
       }
     ],
     "evidence": {
       "trackedFileCount": 3,
-      "totalBytes": 7638,
+      "totalBytes": 7602,
       "largestFile": {
         "path": "evidence/linear-aut73-81-done-sync.json",
         "bytes": 3567
@@ -127,17 +127,17 @@
     "docs": {
       "lineCounts": {
         "README": 320,
-        "STATUS": 278,
-        "PLANS": 230
+        "STATUS": 228,
+        "PLANS": 247
       }
     },
     "duplication": {
-      "percentage": 4.96,
-      "duplicatedLines": 1250,
-      "clones": 93,
-      "sources": 138,
-      "lines": 25217,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-mLhvUx/report/jscpd-report.json"
+      "percentage": 5.85,
+      "duplicatedLines": 985,
+      "clones": 72,
+      "sources": 88,
+      "lines": 16837,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-pHyBuR/report/jscpd-report.json"
     }
   },
   "violations": []

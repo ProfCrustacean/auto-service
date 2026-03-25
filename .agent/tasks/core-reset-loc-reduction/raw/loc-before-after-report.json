@@ -1,0 +1,5371 @@
+{
+  "scope": "JavaScript LOC in src + scripts + tests (wc -l)",
+  "generatedAt": "2026-03-25T08:38:40.387Z",
+  "baselineCommit": "fc030bd0d79794b2282cc88d4ce296c9367cec37",
+  "totals": {
+    "beforeLoc": 27549,
+    "afterLoc": 19118,
+    "beforeFiles": 140,
+    "afterFiles": 89,
+    "addedFiles": 0,
+    "deletedFiles": 51,
+    "modifiedFiles": 9,
+    "unchangedFiles": 80,
+    "deltaLoc": -8431,
+    "reductionPct": 30.603651675196925
+  },
+  "byTopDir": [
+    {
+      "key": "scripts",
+      "before": 7238,
+      "after": 1773,
+      "filesBefore": 35,
+      "filesAfter": 12,
+      "added": 0,
+      "deleted": 23,
+      "modified": 12,
+      "delta": -5465,
+      "pct": -75.50428295109145
+    },
+    {
+      "key": "src",
+      "before": 16064,
+      "after": 15020,
+      "filesBefore": 64,
+      "filesAfter": 57,
+      "added": 0,
+      "deleted": 7,
+      "modified": 57,
+      "delta": -1044,
+      "pct": -6.499003984063744
+    },
+    {
+      "key": "tests",
+      "before": 4247,
+      "after": 2325,
+      "filesBefore": 41,
+      "filesAfter": 20,
+      "added": 0,
+      "deleted": 21,
+      "modified": 20,
+      "delta": -1922,
+      "pct": -45.25547445255474
+    }
+  ],
+  "bySecondDir": [
+    {
+      "key": "scripts/audit-bloat.js",
+      "before": 256,
+      "after": 256,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/cleanup-spring.js",
+      "before": 230,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -230,
+      "pct": -100
+    },
+    {
+      "key": "scripts/compact-plans.js",
+      "before": 167,
+      "after": 167,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/db-backup-restore-drill.js",
+      "before": 164,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -164,
+      "pct": -100
+    },
+    {
+      "key": "scripts/db-init.js",
+      "before": 19,
+      "after": 19,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/dispatch-board-scenario.js",
+      "before": 261,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -261,
+      "pct": -100
+    },
+    {
+      "key": "scripts/dotenv-loader.js",
+      "before": 141,
+      "after": 141,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/evidence-log-summary.js",
+      "before": 256,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -256,
+      "pct": -100
+    },
+    {
+      "key": "scripts/harness-diagnostics.js",
+      "before": 224,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -224,
+      "pct": -100
+    },
+    {
+      "key": "scripts/harness-process.js",
+      "before": 212,
+      "after": 212,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/hygiene-check.js",
+      "before": 116,
+      "after": 116,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/intake-page-scenario.js",
+      "before": 552,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -552,
+      "pct": -100
+    },
+    {
+      "key": "scripts/linear-harness-apply.js",
+      "before": 317,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -317,
+      "pct": -100
+    },
+    {
+      "key": "scripts/linear-harness-cli.js",
+      "before": 152,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -152,
+      "pct": -100
+    },
+    {
+      "key": "scripts/linear-harness-core.js",
+      "before": 215,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -215,
+      "pct": -100
+    },
+    {
+      "key": "scripts/linear-harness-playwright-transport.js",
+      "before": 146,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -146,
+      "pct": -100
+    },
+    {
+      "key": "scripts/linear-harness.js",
+      "before": 107,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -107,
+      "pct": -100
+    },
+    {
+      "key": "scripts/parts-flow-scenario.js",
+      "before": 286,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -286,
+      "pct": -100
+    },
+    {
+      "key": "scripts/render-service-policy.js",
+      "before": 113,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -113,
+      "pct": -100
+    },
+    {
+      "key": "scripts/render-verify",
+      "before": 1107,
+      "after": 0,
+      "filesBefore": 5,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 5,
+      "modified": 0,
+      "delta": -1107,
+      "pct": -100
+    },
+    {
+      "key": "scripts/render-verify-preflight.js",
+      "before": 109,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -109,
+      "pct": -100
+    },
+    {
+      "key": "scripts/scenario-runtime.js",
+      "before": 154,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -154,
+      "pct": -100
+    },
+    {
+      "key": "scripts/scheduling-walkin-scenario.js",
+      "before": 469,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -469,
+      "pct": -100
+    },
+    {
+      "key": "scripts/secret-redaction.js",
+      "before": 96,
+      "after": 96,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/secrets-scan-core.js",
+      "before": 95,
+      "after": 95,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/secrets-scan.js",
+      "before": 118,
+      "after": 118,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/smoke.js",
+      "before": 262,
+      "after": 190,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": -72,
+      "pct": -27.480916030534353
+    },
+    {
+      "key": "scripts/static-guardrails.js",
+      "before": 149,
+      "after": 149,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "scripts/verify-render-cli.js",
+      "before": 61,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -61,
+      "pct": -100
+    },
+    {
+      "key": "scripts/verify-render.js",
+      "before": 383,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -383,
+      "pct": -100
+    },
+    {
+      "key": "scripts/verify.js",
+      "before": 301,
+      "after": 214,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": -87,
+      "pct": -28.903654485049834
+    },
+    {
+      "key": "src/app.js",
+      "before": 296,
+      "after": 289,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": -7,
+      "pct": -2.364864864864865
+    },
+    {
+      "key": "src/config.js",
+      "before": 81,
+      "after": 81,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "src/domain",
+      "before": 287,
+      "after": 287,
+      "filesBefore": 3,
+      "filesAfter": 3,
+      "added": 0,
+      "deleted": 0,
+      "modified": 3,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "src/http",
+      "before": 5683,
+      "after": 5088,
+      "filesBefore": 26,
+      "filesAfter": 23,
+      "added": 0,
+      "deleted": 3,
+      "modified": 23,
+      "delta": -595,
+      "pct": -10.469822276966392
+    },
+    {
+      "key": "src/logger.js",
+      "before": 25,
+      "after": 25,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "src/persistence",
+      "before": 1403,
+      "after": 1403,
+      "filesBefore": 5,
+      "filesAfter": 5,
+      "added": 0,
+      "deleted": 0,
+      "modified": 5,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "src/repositories",
+      "before": 3232,
+      "after": 3232,
+      "filesBefore": 3,
+      "filesAfter": 3,
+      "added": 0,
+      "deleted": 0,
+      "modified": 3,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "src/server.js",
+      "before": 46,
+      "after": 46,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "src/services",
+      "before": 2704,
+      "after": 2414,
+      "filesBefore": 13,
+      "filesAfter": 12,
+      "added": 0,
+      "deleted": 1,
+      "modified": 12,
+      "delta": -290,
+      "pct": -10.724852071005918
+    },
+    {
+      "key": "src/ui",
+      "before": 2307,
+      "after": 2155,
+      "filesBefore": 10,
+      "filesAfter": 7,
+      "added": 0,
+      "deleted": 3,
+      "modified": 7,
+      "delta": -152,
+      "pct": -6.588643259644559
+    },
+    {
+      "key": "tests/appointmentBookingPage.test.js",
+      "before": 156,
+      "after": 156,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/appointmentLifecycle.test.js",
+      "before": 174,
+      "after": 174,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/authz.test.js",
+      "before": 141,
+      "after": 141,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/authzPolicyParity.test.js",
+      "before": 181,
+      "after": 181,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/codeSequenceConcurrency.test.js",
+      "before": 95,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -95,
+      "pct": -100
+    },
+    {
+      "key": "tests/customerVehicleCrud.test.js",
+      "before": 127,
+      "after": 127,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/dashboardService.test.js",
+      "before": 261,
+      "after": 261,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/dispatchBoard.test.js",
+      "before": 144,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -144,
+      "pct": -100
+    },
+    {
+      "key": "tests/dispatchBoardMutationCore.test.js",
+      "before": 201,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -201,
+      "pct": -100
+    },
+    {
+      "key": "tests/domainSchedulingWalkin.test.js",
+      "before": 76,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -76,
+      "pct": -100
+    },
+    {
+      "key": "tests/dotenvLoader.test.js",
+      "before": 114,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -114,
+      "pct": -100
+    },
+    {
+      "key": "tests/evidenceCanonicalPolicy.test.js",
+      "before": 36,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -36,
+      "pct": -100
+    },
+    {
+      "key": "tests/evidenceLogSummary.test.js",
+      "before": 48,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -48,
+      "pct": -100
+    },
+    {
+      "key": "tests/evidenceRetentionPolicy.test.js",
+      "before": 58,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -58,
+      "pct": -100
+    },
+    {
+      "key": "tests/harnessDiagnostics.test.js",
+      "before": 53,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -53,
+      "pct": -100
+    },
+    {
+      "key": "tests/helpers",
+      "before": 129,
+      "after": 129,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/http.test.js",
+      "before": 133,
+      "after": 133,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/httpLoggingNoise.test.js",
+      "before": 208,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -208,
+      "pct": -100
+    },
+    {
+      "key": "tests/hygieneCheck.test.js",
+      "before": 16,
+      "after": 16,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/linearHarnessApply.test.js",
+      "before": 159,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -159,
+      "pct": -100
+    },
+    {
+      "key": "tests/linearHarnessCore.test.js",
+      "before": 96,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -96,
+      "pct": -100
+    },
+    {
+      "key": "tests/masterContextPacketPolicy.test.js",
+      "before": 67,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -67,
+      "pct": -100
+    },
+    {
+      "key": "tests/mutationPolicy.test.js",
+      "before": 59,
+      "after": 54,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": -5,
+      "pct": -8.47457627118644
+    },
+    {
+      "key": "tests/nodeRuntimePolicy.test.js",
+      "before": 20,
+      "after": 20,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/paginationApis.test.js",
+      "before": 52,
+      "after": 52,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/partsRequestLifecycleDomain.test.js",
+      "before": 45,
+      "after": 45,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/persistence.test.js",
+      "before": 102,
+      "after": 102,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/plansHygienePolicy.test.js",
+      "before": 40,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -40,
+      "pct": -100
+    },
+    {
+      "key": "tests/referenceCrud.test.js",
+      "before": 102,
+      "after": 102,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/renderVerifyCliFlags.test.js",
+      "before": 58,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -58,
+      "pct": -100
+    },
+    {
+      "key": "tests/renderVerifyPreflight.test.js",
+      "before": 149,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -149,
+      "pct": -100
+    },
+    {
+      "key": "tests/schedulingWalkinApiScenario.test.js",
+      "before": 79,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -79,
+      "pct": -100
+    },
+    {
+      "key": "tests/secretRedaction.test.js",
+      "before": 56,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -56,
+      "pct": -100
+    },
+    {
+      "key": "tests/secretsScan.test.js",
+      "before": 34,
+      "after": 34,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/springCleanupScript.test.js",
+      "before": 80,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -80,
+      "pct": -100
+    },
+    {
+      "key": "tests/sqliteBusyHandling.test.js",
+      "before": 54,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -54,
+      "pct": -100
+    },
+    {
+      "key": "tests/statusHygienePolicy.test.js",
+      "before": 46,
+      "after": 0,
+      "filesBefore": 1,
+      "filesAfter": 0,
+      "added": 0,
+      "deleted": 1,
+      "modified": 0,
+      "delta": -46,
+      "pct": -100
+    },
+    {
+      "key": "tests/walkInIntake.test.js",
+      "before": 83,
+      "after": 83,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/workOrderLifecycleApi.test.js",
+      "before": 233,
+      "after": 233,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/workOrderLifecycleDomain.test.js",
+      "before": 69,
+      "after": 69,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    },
+    {
+      "key": "tests/workOrderLifecyclePage.test.js",
+      "before": 213,
+      "after": 213,
+      "filesBefore": 1,
+      "filesAfter": 1,
+      "added": 0,
+      "deleted": 0,
+      "modified": 1,
+      "delta": 0,
+      "pct": 0
+    }
+  ],
+  "biggestReductions": [
+    {
+      "file": "scripts/intake-page-scenario.js",
+      "before": 552,
+      "after": 0,
+      "delta": -552,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/intake-page-scenario.js"
+    },
+    {
+      "file": "scripts/scheduling-walkin-scenario.js",
+      "before": 469,
+      "after": 0,
+      "delta": -469,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scheduling-walkin-scenario.js"
+    },
+    {
+      "file": "scripts/verify-render.js",
+      "before": 383,
+      "after": 0,
+      "delta": -383,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render.js"
+    },
+    {
+      "file": "scripts/render-verify/logAuditFlow.js",
+      "before": 364,
+      "after": 0,
+      "delta": -364,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "src/http/dispatchBoardMutationCore.js",
+      "before": 352,
+      "after": 0,
+      "delta": -352,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "scripts/linear-harness-apply.js",
+      "before": 317,
+      "after": 0,
+      "delta": -317,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-apply.js"
+    },
+    {
+      "file": "scripts/parts-flow-scenario.js",
+      "before": 286,
+      "after": 0,
+      "delta": -286,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/parts-flow-scenario.js"
+    },
+    {
+      "file": "src/services/dashboard/dispatchProjection.js",
+      "before": 280,
+      "after": 0,
+      "delta": -280,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "scripts/dispatch-board-scenario.js",
+      "before": 261,
+      "after": 0,
+      "delta": -261,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/dispatch-board-scenario.js"
+    },
+    {
+      "file": "scripts/evidence-log-summary.js",
+      "before": 256,
+      "after": 0,
+      "delta": -256,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/evidence-log-summary.js"
+    },
+    {
+      "file": "scripts/render-verify/config.js",
+      "before": 243,
+      "after": 0,
+      "delta": -243,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/cleanup-spring.js",
+      "before": 230,
+      "after": 0,
+      "delta": -230,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/cleanup-spring.js"
+    },
+    {
+      "file": "scripts/render-verify/api.js",
+      "before": 226,
+      "after": 0,
+      "delta": -226,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/harness-diagnostics.js",
+      "before": 224,
+      "after": 0,
+      "delta": -224,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/harness-diagnostics.js"
+    },
+    {
+      "file": "scripts/linear-harness-core.js",
+      "before": 215,
+      "after": 0,
+      "delta": -215,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-core.js"
+    },
+    {
+      "file": "tests/httpLoggingNoise.test.js",
+      "before": 208,
+      "after": 0,
+      "delta": -208,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/httpLoggingNoise.test.js"
+    },
+    {
+      "file": "tests/dispatchBoardMutationCore.test.js",
+      "before": 201,
+      "after": 0,
+      "delta": -201,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoardMutationCore.test.js"
+    },
+    {
+      "file": "scripts/render-verify/deployFlow.js",
+      "before": 199,
+      "after": 0,
+      "delta": -199,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "src/http/dispatchBoardRouteFactory.js",
+      "before": 177,
+      "after": 0,
+      "delta": -177,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "scripts/db-backup-restore-drill.js",
+      "before": 164,
+      "after": 0,
+      "delta": -164,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/db-backup-restore-drill.js"
+    },
+    {
+      "file": "tests/linearHarnessApply.test.js",
+      "before": 159,
+      "after": 0,
+      "delta": -159,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessApply.test.js"
+    },
+    {
+      "file": "scripts/scenario-runtime.js",
+      "before": 154,
+      "after": 0,
+      "delta": -154,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scenario-runtime.js"
+    },
+    {
+      "file": "scripts/linear-harness-cli.js",
+      "before": 152,
+      "after": 0,
+      "delta": -152,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-cli.js"
+    },
+    {
+      "file": "tests/renderVerifyPreflight.test.js",
+      "before": 149,
+      "after": 0,
+      "delta": -149,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyPreflight.test.js"
+    },
+    {
+      "file": "scripts/linear-harness-playwright-transport.js",
+      "before": 146,
+      "after": 0,
+      "delta": -146,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-playwright-transport.js"
+    },
+    {
+      "file": "tests/dispatchBoard.test.js",
+      "before": 144,
+      "after": 0,
+      "delta": -144,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoard.test.js"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageTemplate.js",
+      "before": 137,
+      "after": 0,
+      "delta": -137,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/dotenvLoader.test.js",
+      "before": 114,
+      "after": 0,
+      "delta": -114,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dotenvLoader.test.js"
+    },
+    {
+      "file": "scripts/render-service-policy.js",
+      "before": 113,
+      "after": 0,
+      "delta": -113,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-service-policy.js"
+    },
+    {
+      "file": "scripts/render-verify-preflight.js",
+      "before": 109,
+      "after": 0,
+      "delta": -109,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify-preflight.js"
+    },
+    {
+      "file": "scripts/linear-harness.js",
+      "before": 107,
+      "after": 0,
+      "delta": -107,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness.js"
+    },
+    {
+      "file": "tests/linearHarnessCore.test.js",
+      "before": 96,
+      "after": 0,
+      "delta": -96,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessCore.test.js"
+    },
+    {
+      "file": "tests/codeSequenceConcurrency.test.js",
+      "before": 95,
+      "after": 0,
+      "delta": -95,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/codeSequenceConcurrency.test.js"
+    },
+    {
+      "file": "scripts/verify.js",
+      "before": 301,
+      "after": 214,
+      "delta": -87,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/verify.js"
+    },
+    {
+      "file": "tests/springCleanupScript.test.js",
+      "before": 80,
+      "after": 0,
+      "delta": -80,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/springCleanupScript.test.js"
+    },
+    {
+      "file": "tests/schedulingWalkinApiScenario.test.js",
+      "before": 79,
+      "after": 0,
+      "delta": -79,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/schedulingWalkinApiScenario.test.js"
+    },
+    {
+      "file": "tests/domainSchedulingWalkin.test.js",
+      "before": 76,
+      "after": 0,
+      "delta": -76,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/domainSchedulingWalkin.test.js"
+    },
+    {
+      "file": "scripts/render-verify/scenarioFlow.js",
+      "before": 75,
+      "after": 0,
+      "delta": -75,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/smoke.js",
+      "before": 262,
+      "after": 190,
+      "delta": -72,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/smoke.js"
+    },
+    {
+      "file": "tests/masterContextPacketPolicy.test.js",
+      "before": 67,
+      "after": 0,
+      "delta": -67,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/masterContextPacketPolicy.test.js"
+    },
+    {
+      "file": "scripts/verify-render-cli.js",
+      "before": 61,
+      "after": 0,
+      "delta": -61,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render-cli.js"
+    },
+    {
+      "file": "src/http/dispatchBoardPageRoutes.js",
+      "before": 59,
+      "after": 0,
+      "delta": -59,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "tests/evidenceRetentionPolicy.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceRetentionPolicy.test.js"
+    },
+    {
+      "file": "tests/renderVerifyCliFlags.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyCliFlags.test.js"
+    },
+    {
+      "file": "tests/secretRedaction.test.js",
+      "before": 56,
+      "after": 0,
+      "delta": -56,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/secretRedaction.test.js"
+    },
+    {
+      "file": "tests/sqliteBusyHandling.test.js",
+      "before": 54,
+      "after": 0,
+      "delta": -54,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/sqliteBusyHandling.test.js"
+    },
+    {
+      "file": "tests/harnessDiagnostics.test.js",
+      "before": 53,
+      "after": 0,
+      "delta": -53,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/harnessDiagnostics.test.js"
+    },
+    {
+      "file": "tests/evidenceLogSummary.test.js",
+      "before": 48,
+      "after": 0,
+      "delta": -48,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceLogSummary.test.js"
+    },
+    {
+      "file": "tests/statusHygienePolicy.test.js",
+      "before": 46,
+      "after": 0,
+      "delta": -46,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/statusHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/plansHygienePolicy.test.js",
+      "before": 40,
+      "after": 0,
+      "delta": -40,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/plansHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/evidenceCanonicalPolicy.test.js",
+      "before": 36,
+      "after": 0,
+      "delta": -36,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceCanonicalPolicy.test.js"
+    },
+    {
+      "file": "src/services/dashboardService.js",
+      "before": 43,
+      "after": 34,
+      "delta": -9,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/syncVendorAssets.js",
+      "before": 52,
+      "after": 44,
+      "delta": -8,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/app.js",
+      "before": 296,
+      "after": 289,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/app.js"
+    },
+    {
+      "file": "src/http/mutationPolicy.js",
+      "before": 118,
+      "after": 111,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/ui/dispatchBoardPage.js",
+      "before": 5,
+      "after": 0,
+      "delta": -5,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/mutationPolicy.test.js",
+      "before": 59,
+      "after": 54,
+      "delta": -5,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/mutationPolicy.test.js"
+    },
+    {
+      "file": "src/services/dashboard/todayProjection.js",
+      "before": 282,
+      "after": 281,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/dashboardPage.js",
+      "before": 650,
+      "after": 649,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageClient.js",
+      "before": 1,
+      "after": 0,
+      "delta": -1,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "scripts/audit-bloat.js",
+      "before": 256,
+      "after": 256,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/audit-bloat.js"
+    },
+    {
+      "file": "scripts/compact-plans.js",
+      "before": 167,
+      "after": 167,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/compact-plans.js"
+    },
+    {
+      "file": "scripts/db-init.js",
+      "before": 19,
+      "after": 19,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/db-init.js"
+    },
+    {
+      "file": "scripts/dotenv-loader.js",
+      "before": 141,
+      "after": 141,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/dotenv-loader.js"
+    },
+    {
+      "file": "scripts/harness-process.js",
+      "before": 212,
+      "after": 212,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/harness-process.js"
+    },
+    {
+      "file": "scripts/hygiene-check.js",
+      "before": 116,
+      "after": 116,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/hygiene-check.js"
+    },
+    {
+      "file": "scripts/secret-redaction.js",
+      "before": 96,
+      "after": 96,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secret-redaction.js"
+    },
+    {
+      "file": "scripts/secrets-scan-core.js",
+      "before": 95,
+      "after": 95,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secrets-scan-core.js"
+    },
+    {
+      "file": "scripts/secrets-scan.js",
+      "before": 118,
+      "after": 118,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secrets-scan.js"
+    },
+    {
+      "file": "scripts/static-guardrails.js",
+      "before": 149,
+      "after": 149,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/static-guardrails.js"
+    },
+    {
+      "file": "src/config.js",
+      "before": 81,
+      "after": 81,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/config.js"
+    },
+    {
+      "file": "src/domain/partsRequestLifecycle.js",
+      "before": 117,
+      "after": 117,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/domain/workOrderLifecycle.js",
+      "before": 139,
+      "after": 139,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/domain/workOrderPayment.js",
+      "before": 31,
+      "after": 31,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/http/apiErrors.js",
+      "before": 48,
+      "after": 48,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentPageRoutes.js",
+      "before": 461,
+      "after": 461,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentRoutes.js",
+      "before": 173,
+      "after": 173,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentValidators.js",
+      "before": 257,
+      "after": 257,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/authz.js",
+      "before": 145,
+      "after": 145,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/customerVehicleRoutes.js",
+      "before": 148,
+      "after": 148,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/customerVehicleValidators.js",
+      "before": 396,
+      "after": 396,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/domainApiErrorMapper.js",
+      "before": 344,
+      "after": 344,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/pageFlowUtils.js",
+      "before": 390,
+      "after": 390,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/plannedStartLocal.js",
+      "before": 47,
+      "after": 47,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/referenceRoutes.js",
+      "before": 152,
+      "after": 152,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/referenceValidators.js",
+      "before": 225,
+      "after": 225,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/reportingRoutes.js",
+      "before": 18,
+      "after": 18,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/reportingValidators.js",
+      "before": 28,
+      "after": 28,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/routePrimitives.js",
+      "before": 39,
+      "after": 39,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/routeUtils.js",
+      "before": 37,
+      "after": 37,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/validatorUtils.js",
+      "before": 230,
+      "after": 230,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/walkInIntakeRoutes.js",
+      "before": 23,
+      "after": 23,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/walkInIntakeValidators.js",
+      "before": 49,
+      "after": 49,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderPageRoutes.js",
+      "before": 873,
+      "after": 873,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderRoutes.js",
+      "before": 262,
+      "after": 262,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderValidators.js",
+      "before": 632,
+      "after": 632,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/logger.js",
+      "before": 25,
+      "after": 25,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/logger.js"
+    },
+    {
+      "file": "src/persistence/bootstrapPersistence.js",
+      "before": 25,
+      "after": 25,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/database.js",
+      "before": 19,
+      "after": 19,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/migrations.js",
+      "before": 478,
+      "after": 478,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/runMigrations.js",
+      "before": 58,
+      "after": 58,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/seedDatabase.js",
+      "before": 823,
+      "after": 823,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/repositories/sqliteRepository.js",
+      "before": 2192,
+      "after": 2192,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/repositories/sqliteRepositoryMappers.js",
+      "before": 276,
+      "after": 276,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/repositories/sqliteRepositoryReferenceCustomerVehicle.js",
+      "before": 764,
+      "after": 764,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/server.js",
+      "before": 46,
+      "after": 46,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/server.js"
+    },
+    {
+      "file": "src/services/appointmentService.js",
+      "before": 478,
+      "after": 478,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/customerVehicleFlow.js",
+      "before": 91,
+      "after": 91,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/customerVehicleService.js",
+      "before": 77,
+      "after": 77,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/constants.js",
+      "before": 27,
+      "after": 27,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/searchProjection.js",
+      "before": 148,
+      "after": 148,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/timeUtils.js",
+      "before": 191,
+      "after": 191,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/weekProjection.js",
+      "before": 157,
+      "after": 157,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/referenceDataService.js",
+      "before": 60,
+      "after": 60,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/walkInIntakeService.js",
+      "before": 76,
+      "after": 76,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/workOrderService.js",
+      "before": 794,
+      "after": 794,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/appointmentBookingPage.js",
+      "before": 238,
+      "after": 238,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/detailPage.js",
+      "before": 40,
+      "after": 40,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/pageFormShared.js",
+      "before": 338,
+      "after": 338,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/renderDocumentShell.js",
+      "before": 44,
+      "after": 44,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/workOrderLifecyclePage.js",
+      "before": 802,
+      "after": 802,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/appointmentBookingPage.test.js",
+      "before": 156,
+      "after": 156,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/appointmentBookingPage.test.js"
+    },
+    {
+      "file": "tests/appointmentLifecycle.test.js",
+      "before": 174,
+      "after": 174,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/appointmentLifecycle.test.js"
+    },
+    {
+      "file": "tests/authz.test.js",
+      "before": 141,
+      "after": 141,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/authz.test.js"
+    },
+    {
+      "file": "tests/authzPolicyParity.test.js",
+      "before": 181,
+      "after": 181,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/authzPolicyParity.test.js"
+    },
+    {
+      "file": "tests/customerVehicleCrud.test.js",
+      "before": 127,
+      "after": 127,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/customerVehicleCrud.test.js"
+    },
+    {
+      "file": "tests/dashboardService.test.js",
+      "before": 261,
+      "after": 261,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/dashboardService.test.js"
+    },
+    {
+      "file": "tests/helpers/httpHarness.js",
+      "before": 129,
+      "after": 129,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/helpers"
+    },
+    {
+      "file": "tests/http.test.js",
+      "before": 133,
+      "after": 133,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/http.test.js"
+    },
+    {
+      "file": "tests/hygieneCheck.test.js",
+      "before": 16,
+      "after": 16,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/hygieneCheck.test.js"
+    },
+    {
+      "file": "tests/nodeRuntimePolicy.test.js",
+      "before": 20,
+      "after": 20,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/nodeRuntimePolicy.test.js"
+    },
+    {
+      "file": "tests/paginationApis.test.js",
+      "before": 52,
+      "after": 52,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/paginationApis.test.js"
+    },
+    {
+      "file": "tests/partsRequestLifecycleDomain.test.js",
+      "before": 45,
+      "after": 45,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/partsRequestLifecycleDomain.test.js"
+    },
+    {
+      "file": "tests/persistence.test.js",
+      "before": 102,
+      "after": 102,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/persistence.test.js"
+    },
+    {
+      "file": "tests/referenceCrud.test.js",
+      "before": 102,
+      "after": 102,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/referenceCrud.test.js"
+    },
+    {
+      "file": "tests/secretsScan.test.js",
+      "before": 34,
+      "after": 34,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/secretsScan.test.js"
+    },
+    {
+      "file": "tests/walkInIntake.test.js",
+      "before": 83,
+      "after": 83,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/walkInIntake.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecycleApi.test.js",
+      "before": 233,
+      "after": 233,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecycleApi.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecycleDomain.test.js",
+      "before": 69,
+      "after": 69,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecycleDomain.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecyclePage.test.js",
+      "before": 213,
+      "after": 213,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecyclePage.test.js"
+    }
+  ],
+  "biggestIncreases": [
+    {
+      "file": "scripts/audit-bloat.js",
+      "before": 256,
+      "after": 256,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/audit-bloat.js"
+    },
+    {
+      "file": "scripts/compact-plans.js",
+      "before": 167,
+      "after": 167,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/compact-plans.js"
+    },
+    {
+      "file": "scripts/db-init.js",
+      "before": 19,
+      "after": 19,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/db-init.js"
+    },
+    {
+      "file": "scripts/dotenv-loader.js",
+      "before": 141,
+      "after": 141,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/dotenv-loader.js"
+    },
+    {
+      "file": "scripts/harness-process.js",
+      "before": 212,
+      "after": 212,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/harness-process.js"
+    },
+    {
+      "file": "scripts/hygiene-check.js",
+      "before": 116,
+      "after": 116,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/hygiene-check.js"
+    },
+    {
+      "file": "scripts/secret-redaction.js",
+      "before": 96,
+      "after": 96,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secret-redaction.js"
+    },
+    {
+      "file": "scripts/secrets-scan-core.js",
+      "before": 95,
+      "after": 95,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secrets-scan-core.js"
+    },
+    {
+      "file": "scripts/secrets-scan.js",
+      "before": 118,
+      "after": 118,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secrets-scan.js"
+    },
+    {
+      "file": "scripts/static-guardrails.js",
+      "before": 149,
+      "after": 149,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/static-guardrails.js"
+    },
+    {
+      "file": "src/config.js",
+      "before": 81,
+      "after": 81,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/config.js"
+    },
+    {
+      "file": "src/domain/partsRequestLifecycle.js",
+      "before": 117,
+      "after": 117,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/domain/workOrderLifecycle.js",
+      "before": 139,
+      "after": 139,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/domain/workOrderPayment.js",
+      "before": 31,
+      "after": 31,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/http/apiErrors.js",
+      "before": 48,
+      "after": 48,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentPageRoutes.js",
+      "before": 461,
+      "after": 461,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentRoutes.js",
+      "before": 173,
+      "after": 173,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentValidators.js",
+      "before": 257,
+      "after": 257,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/authz.js",
+      "before": 145,
+      "after": 145,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/customerVehicleRoutes.js",
+      "before": 148,
+      "after": 148,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/customerVehicleValidators.js",
+      "before": 396,
+      "after": 396,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/domainApiErrorMapper.js",
+      "before": 344,
+      "after": 344,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/pageFlowUtils.js",
+      "before": 390,
+      "after": 390,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/plannedStartLocal.js",
+      "before": 47,
+      "after": 47,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/referenceRoutes.js",
+      "before": 152,
+      "after": 152,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/referenceValidators.js",
+      "before": 225,
+      "after": 225,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/reportingRoutes.js",
+      "before": 18,
+      "after": 18,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/reportingValidators.js",
+      "before": 28,
+      "after": 28,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/routePrimitives.js",
+      "before": 39,
+      "after": 39,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/routeUtils.js",
+      "before": 37,
+      "after": 37,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/validatorUtils.js",
+      "before": 230,
+      "after": 230,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/walkInIntakeRoutes.js",
+      "before": 23,
+      "after": 23,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/walkInIntakeValidators.js",
+      "before": 49,
+      "after": 49,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderPageRoutes.js",
+      "before": 873,
+      "after": 873,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderRoutes.js",
+      "before": 262,
+      "after": 262,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderValidators.js",
+      "before": 632,
+      "after": 632,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/logger.js",
+      "before": 25,
+      "after": 25,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/logger.js"
+    },
+    {
+      "file": "src/persistence/bootstrapPersistence.js",
+      "before": 25,
+      "after": 25,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/database.js",
+      "before": 19,
+      "after": 19,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/migrations.js",
+      "before": 478,
+      "after": 478,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/runMigrations.js",
+      "before": 58,
+      "after": 58,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/seedDatabase.js",
+      "before": 823,
+      "after": 823,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/repositories/sqliteRepository.js",
+      "before": 2192,
+      "after": 2192,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/repositories/sqliteRepositoryMappers.js",
+      "before": 276,
+      "after": 276,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/repositories/sqliteRepositoryReferenceCustomerVehicle.js",
+      "before": 764,
+      "after": 764,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/server.js",
+      "before": 46,
+      "after": 46,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/server.js"
+    },
+    {
+      "file": "src/services/appointmentService.js",
+      "before": 478,
+      "after": 478,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/customerVehicleFlow.js",
+      "before": 91,
+      "after": 91,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/customerVehicleService.js",
+      "before": 77,
+      "after": 77,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/constants.js",
+      "before": 27,
+      "after": 27,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/searchProjection.js",
+      "before": 148,
+      "after": 148,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/timeUtils.js",
+      "before": 191,
+      "after": 191,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/weekProjection.js",
+      "before": 157,
+      "after": 157,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/referenceDataService.js",
+      "before": 60,
+      "after": 60,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/walkInIntakeService.js",
+      "before": 76,
+      "after": 76,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/workOrderService.js",
+      "before": 794,
+      "after": 794,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/appointmentBookingPage.js",
+      "before": 238,
+      "after": 238,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/detailPage.js",
+      "before": 40,
+      "after": 40,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/pageFormShared.js",
+      "before": 338,
+      "after": 338,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/renderDocumentShell.js",
+      "before": 44,
+      "after": 44,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/workOrderLifecyclePage.js",
+      "before": 802,
+      "after": 802,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/appointmentBookingPage.test.js",
+      "before": 156,
+      "after": 156,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/appointmentBookingPage.test.js"
+    },
+    {
+      "file": "tests/appointmentLifecycle.test.js",
+      "before": 174,
+      "after": 174,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/appointmentLifecycle.test.js"
+    },
+    {
+      "file": "tests/authz.test.js",
+      "before": 141,
+      "after": 141,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/authz.test.js"
+    },
+    {
+      "file": "tests/authzPolicyParity.test.js",
+      "before": 181,
+      "after": 181,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/authzPolicyParity.test.js"
+    },
+    {
+      "file": "tests/customerVehicleCrud.test.js",
+      "before": 127,
+      "after": 127,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/customerVehicleCrud.test.js"
+    },
+    {
+      "file": "tests/dashboardService.test.js",
+      "before": 261,
+      "after": 261,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/dashboardService.test.js"
+    },
+    {
+      "file": "tests/helpers/httpHarness.js",
+      "before": 129,
+      "after": 129,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/helpers"
+    },
+    {
+      "file": "tests/http.test.js",
+      "before": 133,
+      "after": 133,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/http.test.js"
+    },
+    {
+      "file": "tests/hygieneCheck.test.js",
+      "before": 16,
+      "after": 16,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/hygieneCheck.test.js"
+    },
+    {
+      "file": "tests/nodeRuntimePolicy.test.js",
+      "before": 20,
+      "after": 20,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/nodeRuntimePolicy.test.js"
+    },
+    {
+      "file": "tests/paginationApis.test.js",
+      "before": 52,
+      "after": 52,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/paginationApis.test.js"
+    },
+    {
+      "file": "tests/partsRequestLifecycleDomain.test.js",
+      "before": 45,
+      "after": 45,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/partsRequestLifecycleDomain.test.js"
+    },
+    {
+      "file": "tests/persistence.test.js",
+      "before": 102,
+      "after": 102,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/persistence.test.js"
+    },
+    {
+      "file": "tests/referenceCrud.test.js",
+      "before": 102,
+      "after": 102,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/referenceCrud.test.js"
+    },
+    {
+      "file": "tests/secretsScan.test.js",
+      "before": 34,
+      "after": 34,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/secretsScan.test.js"
+    },
+    {
+      "file": "tests/walkInIntake.test.js",
+      "before": 83,
+      "after": 83,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/walkInIntake.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecycleApi.test.js",
+      "before": 233,
+      "after": 233,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecycleApi.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecycleDomain.test.js",
+      "before": 69,
+      "after": 69,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecycleDomain.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecyclePage.test.js",
+      "before": 213,
+      "after": 213,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecyclePage.test.js"
+    },
+    {
+      "file": "src/services/dashboard/todayProjection.js",
+      "before": 282,
+      "after": 281,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/dashboardPage.js",
+      "before": 650,
+      "after": 649,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageClient.js",
+      "before": 1,
+      "after": 0,
+      "delta": -1,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dispatchBoardPage.js",
+      "before": 5,
+      "after": 0,
+      "delta": -5,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/mutationPolicy.test.js",
+      "before": 59,
+      "after": 54,
+      "delta": -5,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/mutationPolicy.test.js"
+    },
+    {
+      "file": "src/app.js",
+      "before": 296,
+      "after": 289,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/app.js"
+    },
+    {
+      "file": "src/http/mutationPolicy.js",
+      "before": 118,
+      "after": 111,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/ui/syncVendorAssets.js",
+      "before": 52,
+      "after": 44,
+      "delta": -8,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/services/dashboardService.js",
+      "before": 43,
+      "after": 34,
+      "delta": -9,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "tests/evidenceCanonicalPolicy.test.js",
+      "before": 36,
+      "after": 0,
+      "delta": -36,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceCanonicalPolicy.test.js"
+    },
+    {
+      "file": "tests/plansHygienePolicy.test.js",
+      "before": 40,
+      "after": 0,
+      "delta": -40,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/plansHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/statusHygienePolicy.test.js",
+      "before": 46,
+      "after": 0,
+      "delta": -46,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/statusHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/evidenceLogSummary.test.js",
+      "before": 48,
+      "after": 0,
+      "delta": -48,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceLogSummary.test.js"
+    },
+    {
+      "file": "tests/harnessDiagnostics.test.js",
+      "before": 53,
+      "after": 0,
+      "delta": -53,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/harnessDiagnostics.test.js"
+    },
+    {
+      "file": "tests/sqliteBusyHandling.test.js",
+      "before": 54,
+      "after": 0,
+      "delta": -54,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/sqliteBusyHandling.test.js"
+    },
+    {
+      "file": "tests/secretRedaction.test.js",
+      "before": 56,
+      "after": 0,
+      "delta": -56,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/secretRedaction.test.js"
+    },
+    {
+      "file": "tests/evidenceRetentionPolicy.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceRetentionPolicy.test.js"
+    },
+    {
+      "file": "tests/renderVerifyCliFlags.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyCliFlags.test.js"
+    },
+    {
+      "file": "src/http/dispatchBoardPageRoutes.js",
+      "before": 59,
+      "after": 0,
+      "delta": -59,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "scripts/verify-render-cli.js",
+      "before": 61,
+      "after": 0,
+      "delta": -61,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render-cli.js"
+    },
+    {
+      "file": "tests/masterContextPacketPolicy.test.js",
+      "before": 67,
+      "after": 0,
+      "delta": -67,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/masterContextPacketPolicy.test.js"
+    },
+    {
+      "file": "scripts/smoke.js",
+      "before": 262,
+      "after": 190,
+      "delta": -72,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/smoke.js"
+    },
+    {
+      "file": "scripts/render-verify/scenarioFlow.js",
+      "before": 75,
+      "after": 0,
+      "delta": -75,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "tests/domainSchedulingWalkin.test.js",
+      "before": 76,
+      "after": 0,
+      "delta": -76,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/domainSchedulingWalkin.test.js"
+    },
+    {
+      "file": "tests/schedulingWalkinApiScenario.test.js",
+      "before": 79,
+      "after": 0,
+      "delta": -79,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/schedulingWalkinApiScenario.test.js"
+    },
+    {
+      "file": "tests/springCleanupScript.test.js",
+      "before": 80,
+      "after": 0,
+      "delta": -80,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/springCleanupScript.test.js"
+    },
+    {
+      "file": "scripts/verify.js",
+      "before": 301,
+      "after": 214,
+      "delta": -87,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/verify.js"
+    },
+    {
+      "file": "tests/codeSequenceConcurrency.test.js",
+      "before": 95,
+      "after": 0,
+      "delta": -95,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/codeSequenceConcurrency.test.js"
+    },
+    {
+      "file": "tests/linearHarnessCore.test.js",
+      "before": 96,
+      "after": 0,
+      "delta": -96,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessCore.test.js"
+    },
+    {
+      "file": "scripts/linear-harness.js",
+      "before": 107,
+      "after": 0,
+      "delta": -107,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness.js"
+    },
+    {
+      "file": "scripts/render-verify-preflight.js",
+      "before": 109,
+      "after": 0,
+      "delta": -109,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify-preflight.js"
+    },
+    {
+      "file": "scripts/render-service-policy.js",
+      "before": 113,
+      "after": 0,
+      "delta": -113,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-service-policy.js"
+    },
+    {
+      "file": "tests/dotenvLoader.test.js",
+      "before": 114,
+      "after": 0,
+      "delta": -114,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dotenvLoader.test.js"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageTemplate.js",
+      "before": 137,
+      "after": 0,
+      "delta": -137,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/dispatchBoard.test.js",
+      "before": 144,
+      "after": 0,
+      "delta": -144,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoard.test.js"
+    },
+    {
+      "file": "scripts/linear-harness-playwright-transport.js",
+      "before": 146,
+      "after": 0,
+      "delta": -146,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-playwright-transport.js"
+    },
+    {
+      "file": "tests/renderVerifyPreflight.test.js",
+      "before": 149,
+      "after": 0,
+      "delta": -149,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyPreflight.test.js"
+    },
+    {
+      "file": "scripts/linear-harness-cli.js",
+      "before": 152,
+      "after": 0,
+      "delta": -152,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-cli.js"
+    },
+    {
+      "file": "scripts/scenario-runtime.js",
+      "before": 154,
+      "after": 0,
+      "delta": -154,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scenario-runtime.js"
+    },
+    {
+      "file": "tests/linearHarnessApply.test.js",
+      "before": 159,
+      "after": 0,
+      "delta": -159,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessApply.test.js"
+    },
+    {
+      "file": "scripts/db-backup-restore-drill.js",
+      "before": 164,
+      "after": 0,
+      "delta": -164,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/db-backup-restore-drill.js"
+    },
+    {
+      "file": "src/http/dispatchBoardRouteFactory.js",
+      "before": 177,
+      "after": 0,
+      "delta": -177,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "scripts/render-verify/deployFlow.js",
+      "before": 199,
+      "after": 0,
+      "delta": -199,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "tests/dispatchBoardMutationCore.test.js",
+      "before": 201,
+      "after": 0,
+      "delta": -201,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoardMutationCore.test.js"
+    },
+    {
+      "file": "tests/httpLoggingNoise.test.js",
+      "before": 208,
+      "after": 0,
+      "delta": -208,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/httpLoggingNoise.test.js"
+    },
+    {
+      "file": "scripts/linear-harness-core.js",
+      "before": 215,
+      "after": 0,
+      "delta": -215,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-core.js"
+    },
+    {
+      "file": "scripts/harness-diagnostics.js",
+      "before": 224,
+      "after": 0,
+      "delta": -224,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/harness-diagnostics.js"
+    },
+    {
+      "file": "scripts/render-verify/api.js",
+      "before": 226,
+      "after": 0,
+      "delta": -226,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/cleanup-spring.js",
+      "before": 230,
+      "after": 0,
+      "delta": -230,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/cleanup-spring.js"
+    },
+    {
+      "file": "scripts/render-verify/config.js",
+      "before": 243,
+      "after": 0,
+      "delta": -243,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/evidence-log-summary.js",
+      "before": 256,
+      "after": 0,
+      "delta": -256,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/evidence-log-summary.js"
+    },
+    {
+      "file": "scripts/dispatch-board-scenario.js",
+      "before": 261,
+      "after": 0,
+      "delta": -261,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/dispatch-board-scenario.js"
+    },
+    {
+      "file": "src/services/dashboard/dispatchProjection.js",
+      "before": 280,
+      "after": 0,
+      "delta": -280,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "scripts/parts-flow-scenario.js",
+      "before": 286,
+      "after": 0,
+      "delta": -286,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/parts-flow-scenario.js"
+    },
+    {
+      "file": "scripts/linear-harness-apply.js",
+      "before": 317,
+      "after": 0,
+      "delta": -317,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-apply.js"
+    },
+    {
+      "file": "src/http/dispatchBoardMutationCore.js",
+      "before": 352,
+      "after": 0,
+      "delta": -352,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "scripts/render-verify/logAuditFlow.js",
+      "before": 364,
+      "after": 0,
+      "delta": -364,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/verify-render.js",
+      "before": 383,
+      "after": 0,
+      "delta": -383,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render.js"
+    },
+    {
+      "file": "scripts/scheduling-walkin-scenario.js",
+      "before": 469,
+      "after": 0,
+      "delta": -469,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scheduling-walkin-scenario.js"
+    },
+    {
+      "file": "scripts/intake-page-scenario.js",
+      "before": 552,
+      "after": 0,
+      "delta": -552,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/intake-page-scenario.js"
+    }
+  ],
+  "deletedFiles": [
+    {
+      "file": "scripts/intake-page-scenario.js",
+      "before": 552,
+      "after": 0,
+      "delta": -552,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/intake-page-scenario.js"
+    },
+    {
+      "file": "scripts/scheduling-walkin-scenario.js",
+      "before": 469,
+      "after": 0,
+      "delta": -469,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scheduling-walkin-scenario.js"
+    },
+    {
+      "file": "scripts/verify-render.js",
+      "before": 383,
+      "after": 0,
+      "delta": -383,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render.js"
+    },
+    {
+      "file": "scripts/render-verify/logAuditFlow.js",
+      "before": 364,
+      "after": 0,
+      "delta": -364,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "src/http/dispatchBoardMutationCore.js",
+      "before": 352,
+      "after": 0,
+      "delta": -352,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "scripts/linear-harness-apply.js",
+      "before": 317,
+      "after": 0,
+      "delta": -317,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-apply.js"
+    },
+    {
+      "file": "scripts/parts-flow-scenario.js",
+      "before": 286,
+      "after": 0,
+      "delta": -286,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/parts-flow-scenario.js"
+    },
+    {
+      "file": "src/services/dashboard/dispatchProjection.js",
+      "before": 280,
+      "after": 0,
+      "delta": -280,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "scripts/dispatch-board-scenario.js",
+      "before": 261,
+      "after": 0,
+      "delta": -261,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/dispatch-board-scenario.js"
+    },
+    {
+      "file": "scripts/evidence-log-summary.js",
+      "before": 256,
+      "after": 0,
+      "delta": -256,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/evidence-log-summary.js"
+    },
+    {
+      "file": "scripts/render-verify/config.js",
+      "before": 243,
+      "after": 0,
+      "delta": -243,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/cleanup-spring.js",
+      "before": 230,
+      "after": 0,
+      "delta": -230,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/cleanup-spring.js"
+    },
+    {
+      "file": "scripts/render-verify/api.js",
+      "before": 226,
+      "after": 0,
+      "delta": -226,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/harness-diagnostics.js",
+      "before": 224,
+      "after": 0,
+      "delta": -224,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/harness-diagnostics.js"
+    },
+    {
+      "file": "scripts/linear-harness-core.js",
+      "before": 215,
+      "after": 0,
+      "delta": -215,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-core.js"
+    },
+    {
+      "file": "tests/httpLoggingNoise.test.js",
+      "before": 208,
+      "after": 0,
+      "delta": -208,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/httpLoggingNoise.test.js"
+    },
+    {
+      "file": "tests/dispatchBoardMutationCore.test.js",
+      "before": 201,
+      "after": 0,
+      "delta": -201,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoardMutationCore.test.js"
+    },
+    {
+      "file": "scripts/render-verify/deployFlow.js",
+      "before": 199,
+      "after": 0,
+      "delta": -199,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "src/http/dispatchBoardRouteFactory.js",
+      "before": 177,
+      "after": 0,
+      "delta": -177,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "scripts/db-backup-restore-drill.js",
+      "before": 164,
+      "after": 0,
+      "delta": -164,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/db-backup-restore-drill.js"
+    },
+    {
+      "file": "tests/linearHarnessApply.test.js",
+      "before": 159,
+      "after": 0,
+      "delta": -159,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessApply.test.js"
+    },
+    {
+      "file": "scripts/scenario-runtime.js",
+      "before": 154,
+      "after": 0,
+      "delta": -154,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scenario-runtime.js"
+    },
+    {
+      "file": "scripts/linear-harness-cli.js",
+      "before": 152,
+      "after": 0,
+      "delta": -152,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-cli.js"
+    },
+    {
+      "file": "tests/renderVerifyPreflight.test.js",
+      "before": 149,
+      "after": 0,
+      "delta": -149,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyPreflight.test.js"
+    },
+    {
+      "file": "scripts/linear-harness-playwright-transport.js",
+      "before": 146,
+      "after": 0,
+      "delta": -146,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-playwright-transport.js"
+    },
+    {
+      "file": "tests/dispatchBoard.test.js",
+      "before": 144,
+      "after": 0,
+      "delta": -144,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoard.test.js"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageTemplate.js",
+      "before": 137,
+      "after": 0,
+      "delta": -137,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/dotenvLoader.test.js",
+      "before": 114,
+      "after": 0,
+      "delta": -114,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dotenvLoader.test.js"
+    },
+    {
+      "file": "scripts/render-service-policy.js",
+      "before": 113,
+      "after": 0,
+      "delta": -113,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-service-policy.js"
+    },
+    {
+      "file": "scripts/render-verify-preflight.js",
+      "before": 109,
+      "after": 0,
+      "delta": -109,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify-preflight.js"
+    },
+    {
+      "file": "scripts/linear-harness.js",
+      "before": 107,
+      "after": 0,
+      "delta": -107,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness.js"
+    },
+    {
+      "file": "tests/linearHarnessCore.test.js",
+      "before": 96,
+      "after": 0,
+      "delta": -96,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessCore.test.js"
+    },
+    {
+      "file": "tests/codeSequenceConcurrency.test.js",
+      "before": 95,
+      "after": 0,
+      "delta": -95,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/codeSequenceConcurrency.test.js"
+    },
+    {
+      "file": "tests/springCleanupScript.test.js",
+      "before": 80,
+      "after": 0,
+      "delta": -80,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/springCleanupScript.test.js"
+    },
+    {
+      "file": "tests/schedulingWalkinApiScenario.test.js",
+      "before": 79,
+      "after": 0,
+      "delta": -79,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/schedulingWalkinApiScenario.test.js"
+    },
+    {
+      "file": "tests/domainSchedulingWalkin.test.js",
+      "before": 76,
+      "after": 0,
+      "delta": -76,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/domainSchedulingWalkin.test.js"
+    },
+    {
+      "file": "scripts/render-verify/scenarioFlow.js",
+      "before": 75,
+      "after": 0,
+      "delta": -75,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "tests/masterContextPacketPolicy.test.js",
+      "before": 67,
+      "after": 0,
+      "delta": -67,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/masterContextPacketPolicy.test.js"
+    },
+    {
+      "file": "scripts/verify-render-cli.js",
+      "before": 61,
+      "after": 0,
+      "delta": -61,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render-cli.js"
+    },
+    {
+      "file": "src/http/dispatchBoardPageRoutes.js",
+      "before": 59,
+      "after": 0,
+      "delta": -59,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "tests/evidenceRetentionPolicy.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceRetentionPolicy.test.js"
+    },
+    {
+      "file": "tests/renderVerifyCliFlags.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyCliFlags.test.js"
+    },
+    {
+      "file": "tests/secretRedaction.test.js",
+      "before": 56,
+      "after": 0,
+      "delta": -56,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/secretRedaction.test.js"
+    },
+    {
+      "file": "tests/sqliteBusyHandling.test.js",
+      "before": 54,
+      "after": 0,
+      "delta": -54,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/sqliteBusyHandling.test.js"
+    },
+    {
+      "file": "tests/harnessDiagnostics.test.js",
+      "before": 53,
+      "after": 0,
+      "delta": -53,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/harnessDiagnostics.test.js"
+    },
+    {
+      "file": "tests/evidenceLogSummary.test.js",
+      "before": 48,
+      "after": 0,
+      "delta": -48,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceLogSummary.test.js"
+    },
+    {
+      "file": "tests/statusHygienePolicy.test.js",
+      "before": 46,
+      "after": 0,
+      "delta": -46,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/statusHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/plansHygienePolicy.test.js",
+      "before": 40,
+      "after": 0,
+      "delta": -40,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/plansHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/evidenceCanonicalPolicy.test.js",
+      "before": 36,
+      "after": 0,
+      "delta": -36,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceCanonicalPolicy.test.js"
+    },
+    {
+      "file": "src/ui/dispatchBoardPage.js",
+      "before": 5,
+      "after": 0,
+      "delta": -5,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageClient.js",
+      "before": 1,
+      "after": 0,
+      "delta": -1,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    }
+  ],
+  "modifiedFilesWithDelta": [
+    {
+      "file": "scripts/verify.js",
+      "before": 301,
+      "after": 214,
+      "delta": -87,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/verify.js"
+    },
+    {
+      "file": "scripts/smoke.js",
+      "before": 262,
+      "after": 190,
+      "delta": -72,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/smoke.js"
+    },
+    {
+      "file": "src/services/dashboardService.js",
+      "before": 43,
+      "after": 34,
+      "delta": -9,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/syncVendorAssets.js",
+      "before": 52,
+      "after": 44,
+      "delta": -8,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/app.js",
+      "before": 296,
+      "after": 289,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/app.js"
+    },
+    {
+      "file": "src/http/mutationPolicy.js",
+      "before": 118,
+      "after": 111,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "tests/mutationPolicy.test.js",
+      "before": 59,
+      "after": 54,
+      "delta": -5,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/mutationPolicy.test.js"
+    },
+    {
+      "file": "src/services/dashboard/todayProjection.js",
+      "before": 282,
+      "after": 281,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/dashboardPage.js",
+      "before": 650,
+      "after": 649,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    }
+  ],
+  "allFiles": [
+    {
+      "file": "scripts/audit-bloat.js",
+      "before": 256,
+      "after": 256,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/audit-bloat.js"
+    },
+    {
+      "file": "scripts/cleanup-spring.js",
+      "before": 230,
+      "after": 0,
+      "delta": -230,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/cleanup-spring.js"
+    },
+    {
+      "file": "scripts/compact-plans.js",
+      "before": 167,
+      "after": 167,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/compact-plans.js"
+    },
+    {
+      "file": "scripts/db-backup-restore-drill.js",
+      "before": 164,
+      "after": 0,
+      "delta": -164,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/db-backup-restore-drill.js"
+    },
+    {
+      "file": "scripts/db-init.js",
+      "before": 19,
+      "after": 19,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/db-init.js"
+    },
+    {
+      "file": "scripts/dispatch-board-scenario.js",
+      "before": 261,
+      "after": 0,
+      "delta": -261,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/dispatch-board-scenario.js"
+    },
+    {
+      "file": "scripts/dotenv-loader.js",
+      "before": 141,
+      "after": 141,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/dotenv-loader.js"
+    },
+    {
+      "file": "scripts/evidence-log-summary.js",
+      "before": 256,
+      "after": 0,
+      "delta": -256,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/evidence-log-summary.js"
+    },
+    {
+      "file": "scripts/harness-diagnostics.js",
+      "before": 224,
+      "after": 0,
+      "delta": -224,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/harness-diagnostics.js"
+    },
+    {
+      "file": "scripts/harness-process.js",
+      "before": 212,
+      "after": 212,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/harness-process.js"
+    },
+    {
+      "file": "scripts/hygiene-check.js",
+      "before": 116,
+      "after": 116,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/hygiene-check.js"
+    },
+    {
+      "file": "scripts/intake-page-scenario.js",
+      "before": 552,
+      "after": 0,
+      "delta": -552,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/intake-page-scenario.js"
+    },
+    {
+      "file": "scripts/linear-harness-apply.js",
+      "before": 317,
+      "after": 0,
+      "delta": -317,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-apply.js"
+    },
+    {
+      "file": "scripts/linear-harness-cli.js",
+      "before": 152,
+      "after": 0,
+      "delta": -152,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-cli.js"
+    },
+    {
+      "file": "scripts/linear-harness-core.js",
+      "before": 215,
+      "after": 0,
+      "delta": -215,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-core.js"
+    },
+    {
+      "file": "scripts/linear-harness-playwright-transport.js",
+      "before": 146,
+      "after": 0,
+      "delta": -146,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness-playwright-transport.js"
+    },
+    {
+      "file": "scripts/linear-harness.js",
+      "before": 107,
+      "after": 0,
+      "delta": -107,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/linear-harness.js"
+    },
+    {
+      "file": "scripts/parts-flow-scenario.js",
+      "before": 286,
+      "after": 0,
+      "delta": -286,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/parts-flow-scenario.js"
+    },
+    {
+      "file": "scripts/render-service-policy.js",
+      "before": 113,
+      "after": 0,
+      "delta": -113,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-service-policy.js"
+    },
+    {
+      "file": "scripts/render-verify-preflight.js",
+      "before": 109,
+      "after": 0,
+      "delta": -109,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify-preflight.js"
+    },
+    {
+      "file": "scripts/render-verify/api.js",
+      "before": 226,
+      "after": 0,
+      "delta": -226,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/render-verify/config.js",
+      "before": 243,
+      "after": 0,
+      "delta": -243,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/render-verify/deployFlow.js",
+      "before": 199,
+      "after": 0,
+      "delta": -199,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/render-verify/logAuditFlow.js",
+      "before": 364,
+      "after": 0,
+      "delta": -364,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/render-verify/scenarioFlow.js",
+      "before": 75,
+      "after": 0,
+      "delta": -75,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/render-verify"
+    },
+    {
+      "file": "scripts/scenario-runtime.js",
+      "before": 154,
+      "after": 0,
+      "delta": -154,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scenario-runtime.js"
+    },
+    {
+      "file": "scripts/scheduling-walkin-scenario.js",
+      "before": 469,
+      "after": 0,
+      "delta": -469,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/scheduling-walkin-scenario.js"
+    },
+    {
+      "file": "scripts/secret-redaction.js",
+      "before": 96,
+      "after": 96,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secret-redaction.js"
+    },
+    {
+      "file": "scripts/secrets-scan-core.js",
+      "before": 95,
+      "after": 95,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secrets-scan-core.js"
+    },
+    {
+      "file": "scripts/secrets-scan.js",
+      "before": 118,
+      "after": 118,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/secrets-scan.js"
+    },
+    {
+      "file": "scripts/smoke.js",
+      "before": 262,
+      "after": 190,
+      "delta": -72,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/smoke.js"
+    },
+    {
+      "file": "scripts/static-guardrails.js",
+      "before": 149,
+      "after": 149,
+      "delta": 0,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/static-guardrails.js"
+    },
+    {
+      "file": "scripts/verify-render-cli.js",
+      "before": 61,
+      "after": 0,
+      "delta": -61,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render-cli.js"
+    },
+    {
+      "file": "scripts/verify-render.js",
+      "before": 383,
+      "after": 0,
+      "delta": -383,
+      "status": "deleted",
+      "top": "scripts",
+      "second": "scripts/verify-render.js"
+    },
+    {
+      "file": "scripts/verify.js",
+      "before": 301,
+      "after": 214,
+      "delta": -87,
+      "status": "modified",
+      "top": "scripts",
+      "second": "scripts/verify.js"
+    },
+    {
+      "file": "src/app.js",
+      "before": 296,
+      "after": 289,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/app.js"
+    },
+    {
+      "file": "src/config.js",
+      "before": 81,
+      "after": 81,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/config.js"
+    },
+    {
+      "file": "src/domain/partsRequestLifecycle.js",
+      "before": 117,
+      "after": 117,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/domain/workOrderLifecycle.js",
+      "before": 139,
+      "after": 139,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/domain/workOrderPayment.js",
+      "before": 31,
+      "after": 31,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/domain"
+    },
+    {
+      "file": "src/http/apiErrors.js",
+      "before": 48,
+      "after": 48,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentPageRoutes.js",
+      "before": 461,
+      "after": 461,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentRoutes.js",
+      "before": 173,
+      "after": 173,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/appointmentValidators.js",
+      "before": 257,
+      "after": 257,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/authz.js",
+      "before": 145,
+      "after": 145,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/customerVehicleRoutes.js",
+      "before": 148,
+      "after": 148,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/customerVehicleValidators.js",
+      "before": 396,
+      "after": 396,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/dispatchBoardMutationCore.js",
+      "before": 352,
+      "after": 0,
+      "delta": -352,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/dispatchBoardPageRoutes.js",
+      "before": 59,
+      "after": 0,
+      "delta": -59,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/dispatchBoardRouteFactory.js",
+      "before": 177,
+      "after": 0,
+      "delta": -177,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/domainApiErrorMapper.js",
+      "before": 344,
+      "after": 344,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/mutationPolicy.js",
+      "before": 118,
+      "after": 111,
+      "delta": -7,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/pageFlowUtils.js",
+      "before": 390,
+      "after": 390,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/plannedStartLocal.js",
+      "before": 47,
+      "after": 47,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/referenceRoutes.js",
+      "before": 152,
+      "after": 152,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/referenceValidators.js",
+      "before": 225,
+      "after": 225,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/reportingRoutes.js",
+      "before": 18,
+      "after": 18,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/reportingValidators.js",
+      "before": 28,
+      "after": 28,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/routePrimitives.js",
+      "before": 39,
+      "after": 39,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/routeUtils.js",
+      "before": 37,
+      "after": 37,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/validatorUtils.js",
+      "before": 230,
+      "after": 230,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/walkInIntakeRoutes.js",
+      "before": 23,
+      "after": 23,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/walkInIntakeValidators.js",
+      "before": 49,
+      "after": 49,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderPageRoutes.js",
+      "before": 873,
+      "after": 873,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderRoutes.js",
+      "before": 262,
+      "after": 262,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/http/workOrderValidators.js",
+      "before": 632,
+      "after": 632,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/http"
+    },
+    {
+      "file": "src/logger.js",
+      "before": 25,
+      "after": 25,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/logger.js"
+    },
+    {
+      "file": "src/persistence/bootstrapPersistence.js",
+      "before": 25,
+      "after": 25,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/database.js",
+      "before": 19,
+      "after": 19,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/migrations.js",
+      "before": 478,
+      "after": 478,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/runMigrations.js",
+      "before": 58,
+      "after": 58,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/persistence/seedDatabase.js",
+      "before": 823,
+      "after": 823,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/persistence"
+    },
+    {
+      "file": "src/repositories/sqliteRepository.js",
+      "before": 2192,
+      "after": 2192,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/repositories/sqliteRepositoryMappers.js",
+      "before": 276,
+      "after": 276,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/repositories/sqliteRepositoryReferenceCustomerVehicle.js",
+      "before": 764,
+      "after": 764,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/repositories"
+    },
+    {
+      "file": "src/server.js",
+      "before": 46,
+      "after": 46,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/server.js"
+    },
+    {
+      "file": "src/services/appointmentService.js",
+      "before": 478,
+      "after": 478,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/customerVehicleFlow.js",
+      "before": 91,
+      "after": 91,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/customerVehicleService.js",
+      "before": 77,
+      "after": 77,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/constants.js",
+      "before": 27,
+      "after": 27,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/dispatchProjection.js",
+      "before": 280,
+      "after": 0,
+      "delta": -280,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/searchProjection.js",
+      "before": 148,
+      "after": 148,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/timeUtils.js",
+      "before": 191,
+      "after": 191,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/todayProjection.js",
+      "before": 282,
+      "after": 281,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboard/weekProjection.js",
+      "before": 157,
+      "after": 157,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/dashboardService.js",
+      "before": 43,
+      "after": 34,
+      "delta": -9,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/referenceDataService.js",
+      "before": 60,
+      "after": 60,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/walkInIntakeService.js",
+      "before": 76,
+      "after": 76,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/services/workOrderService.js",
+      "before": 794,
+      "after": 794,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/services"
+    },
+    {
+      "file": "src/ui/appointmentBookingPage.js",
+      "before": 238,
+      "after": 238,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dashboardPage.js",
+      "before": 650,
+      "after": 649,
+      "delta": -1,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/detailPage.js",
+      "before": 40,
+      "after": 40,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dispatchBoardPage.js",
+      "before": 5,
+      "after": 0,
+      "delta": -5,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageClient.js",
+      "before": 1,
+      "after": 0,
+      "delta": -1,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/dispatchBoardPageTemplate.js",
+      "before": 137,
+      "after": 0,
+      "delta": -137,
+      "status": "deleted",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/pageFormShared.js",
+      "before": 338,
+      "after": 338,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/renderDocumentShell.js",
+      "before": 44,
+      "after": 44,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/syncVendorAssets.js",
+      "before": 52,
+      "after": 44,
+      "delta": -8,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "src/ui/workOrderLifecyclePage.js",
+      "before": 802,
+      "after": 802,
+      "delta": 0,
+      "status": "modified",
+      "top": "src",
+      "second": "src/ui"
+    },
+    {
+      "file": "tests/appointmentBookingPage.test.js",
+      "before": 156,
+      "after": 156,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/appointmentBookingPage.test.js"
+    },
+    {
+      "file": "tests/appointmentLifecycle.test.js",
+      "before": 174,
+      "after": 174,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/appointmentLifecycle.test.js"
+    },
+    {
+      "file": "tests/authz.test.js",
+      "before": 141,
+      "after": 141,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/authz.test.js"
+    },
+    {
+      "file": "tests/authzPolicyParity.test.js",
+      "before": 181,
+      "after": 181,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/authzPolicyParity.test.js"
+    },
+    {
+      "file": "tests/codeSequenceConcurrency.test.js",
+      "before": 95,
+      "after": 0,
+      "delta": -95,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/codeSequenceConcurrency.test.js"
+    },
+    {
+      "file": "tests/customerVehicleCrud.test.js",
+      "before": 127,
+      "after": 127,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/customerVehicleCrud.test.js"
+    },
+    {
+      "file": "tests/dashboardService.test.js",
+      "before": 261,
+      "after": 261,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/dashboardService.test.js"
+    },
+    {
+      "file": "tests/dispatchBoard.test.js",
+      "before": 144,
+      "after": 0,
+      "delta": -144,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoard.test.js"
+    },
+    {
+      "file": "tests/dispatchBoardMutationCore.test.js",
+      "before": 201,
+      "after": 0,
+      "delta": -201,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dispatchBoardMutationCore.test.js"
+    },
+    {
+      "file": "tests/domainSchedulingWalkin.test.js",
+      "before": 76,
+      "after": 0,
+      "delta": -76,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/domainSchedulingWalkin.test.js"
+    },
+    {
+      "file": "tests/dotenvLoader.test.js",
+      "before": 114,
+      "after": 0,
+      "delta": -114,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/dotenvLoader.test.js"
+    },
+    {
+      "file": "tests/evidenceCanonicalPolicy.test.js",
+      "before": 36,
+      "after": 0,
+      "delta": -36,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceCanonicalPolicy.test.js"
+    },
+    {
+      "file": "tests/evidenceLogSummary.test.js",
+      "before": 48,
+      "after": 0,
+      "delta": -48,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceLogSummary.test.js"
+    },
+    {
+      "file": "tests/evidenceRetentionPolicy.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/evidenceRetentionPolicy.test.js"
+    },
+    {
+      "file": "tests/harnessDiagnostics.test.js",
+      "before": 53,
+      "after": 0,
+      "delta": -53,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/harnessDiagnostics.test.js"
+    },
+    {
+      "file": "tests/helpers/httpHarness.js",
+      "before": 129,
+      "after": 129,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/helpers"
+    },
+    {
+      "file": "tests/http.test.js",
+      "before": 133,
+      "after": 133,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/http.test.js"
+    },
+    {
+      "file": "tests/httpLoggingNoise.test.js",
+      "before": 208,
+      "after": 0,
+      "delta": -208,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/httpLoggingNoise.test.js"
+    },
+    {
+      "file": "tests/hygieneCheck.test.js",
+      "before": 16,
+      "after": 16,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/hygieneCheck.test.js"
+    },
+    {
+      "file": "tests/linearHarnessApply.test.js",
+      "before": 159,
+      "after": 0,
+      "delta": -159,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessApply.test.js"
+    },
+    {
+      "file": "tests/linearHarnessCore.test.js",
+      "before": 96,
+      "after": 0,
+      "delta": -96,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/linearHarnessCore.test.js"
+    },
+    {
+      "file": "tests/masterContextPacketPolicy.test.js",
+      "before": 67,
+      "after": 0,
+      "delta": -67,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/masterContextPacketPolicy.test.js"
+    },
+    {
+      "file": "tests/mutationPolicy.test.js",
+      "before": 59,
+      "after": 54,
+      "delta": -5,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/mutationPolicy.test.js"
+    },
+    {
+      "file": "tests/nodeRuntimePolicy.test.js",
+      "before": 20,
+      "after": 20,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/nodeRuntimePolicy.test.js"
+    },
+    {
+      "file": "tests/paginationApis.test.js",
+      "before": 52,
+      "after": 52,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/paginationApis.test.js"
+    },
+    {
+      "file": "tests/partsRequestLifecycleDomain.test.js",
+      "before": 45,
+      "after": 45,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/partsRequestLifecycleDomain.test.js"
+    },
+    {
+      "file": "tests/persistence.test.js",
+      "before": 102,
+      "after": 102,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/persistence.test.js"
+    },
+    {
+      "file": "tests/plansHygienePolicy.test.js",
+      "before": 40,
+      "after": 0,
+      "delta": -40,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/plansHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/referenceCrud.test.js",
+      "before": 102,
+      "after": 102,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/referenceCrud.test.js"
+    },
+    {
+      "file": "tests/renderVerifyCliFlags.test.js",
+      "before": 58,
+      "after": 0,
+      "delta": -58,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyCliFlags.test.js"
+    },
+    {
+      "file": "tests/renderVerifyPreflight.test.js",
+      "before": 149,
+      "after": 0,
+      "delta": -149,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/renderVerifyPreflight.test.js"
+    },
+    {
+      "file": "tests/schedulingWalkinApiScenario.test.js",
+      "before": 79,
+      "after": 0,
+      "delta": -79,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/schedulingWalkinApiScenario.test.js"
+    },
+    {
+      "file": "tests/secretRedaction.test.js",
+      "before": 56,
+      "after": 0,
+      "delta": -56,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/secretRedaction.test.js"
+    },
+    {
+      "file": "tests/secretsScan.test.js",
+      "before": 34,
+      "after": 34,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/secretsScan.test.js"
+    },
+    {
+      "file": "tests/springCleanupScript.test.js",
+      "before": 80,
+      "after": 0,
+      "delta": -80,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/springCleanupScript.test.js"
+    },
+    {
+      "file": "tests/sqliteBusyHandling.test.js",
+      "before": 54,
+      "after": 0,
+      "delta": -54,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/sqliteBusyHandling.test.js"
+    },
+    {
+      "file": "tests/statusHygienePolicy.test.js",
+      "before": 46,
+      "after": 0,
+      "delta": -46,
+      "status": "deleted",
+      "top": "tests",
+      "second": "tests/statusHygienePolicy.test.js"
+    },
+    {
+      "file": "tests/walkInIntake.test.js",
+      "before": 83,
+      "after": 83,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/walkInIntake.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecycleApi.test.js",
+      "before": 233,
+      "after": 233,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecycleApi.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecycleDomain.test.js",
+      "before": 69,
+      "after": 69,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecycleDomain.test.js"
+    },
+    {
+      "file": "tests/workOrderLifecyclePage.test.js",
+      "before": 213,
+      "after": 213,
+      "delta": 0,
+      "status": "modified",
+      "top": "tests",
+      "second": "tests/workOrderLifecyclePage.test.js"
+    }
+  ]
+}

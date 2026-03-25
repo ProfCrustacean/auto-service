@@ -14,7 +14,7 @@ Historical detail is archived in `STATUS_ARCHIVE.md`.
 
 ## Current objective
 
-Phase 4 baseline (payments + reporting) is delivered and locally/remote-validated; next priority shifts to Phase 5 external-connection hardening.
+Core-reset baseline is delivered: keep only product-core scheduling/intake/work-order/parts/payments/reporting flows with a minimal local verification harness.
 
 ## Current state (2026-03-25)
 
@@ -36,24 +36,12 @@ Phase 4 baseline (payments + reporting) is delivered and locally/remote-validate
   - both day-load tables (`по постам`, `по сотрудникам`) render without horizontal scrolling,
   - both section headers show explicit date label in top-right (`Сегодня: DD.MM.YYYY`),
   - second header is renamed to `Нагрузка по сотрудникам (день)`.
-- Dispatch board is fully migrated to EventCalendar (`@event-calendar/build@5.5.1`) with owner-focused calendar-only controls:
-  - vertical `resourceTimeGridDay` view (time top-to-bottom, resources as lanes),
-  - removed top metric strips and removed bottom manual control panel,
-  - queue scheduling is drag-and-drop into calendar only,
-  - assigned events can be dragged back into the unassigned queue via dedicated drop-zone (reverse flow),
-  - existing booking move/resize is calendar-native only,
-  - event cards use high-contrast two-line layout (`time+code`, `customer+vehicle`) for readability,
-  - overlap placements are allowed and surfaced as non-blocking warnings + `status-overlap` highlighting,
-  - dispatch writes now use API-only routes under `/api/v1/dispatch/board/*`.
 - UI baseline is now standardized via Pico + shared SSR shell:
   - static assets served from `/assets/*` (`public/assets`),
   - global baseline: `/assets/vendor/pico.min.css` + `/assets/css/tokens.css` + `/assets/css/app.css`,
   - shared HTML shell for page renderers: `src/ui/renderDocumentShell.js`,
-  - large inline `<style>` islands removed from dashboard/forms/detail/active-queue/dispatch template renderers.
-- Dispatch board runtime dependencies are now local and pinned (no CDN runtime dependency):
-  - `/assets/vendor/event-calendar-5.5.1.min.css`
-  - `/assets/vendor/event-calendar-5.5.1.min.js`
-  - page-specific board overrides in `/assets/css/dispatch-board.css`.
+  - large inline `<style>` islands removed from dashboard/forms/detail/active-queue renderers.
+- Dispatch board runtime and API surface are removed from the core-reset baseline.
 - Phase 1 scheduling/intake remains fully implemented:
   - employee/bay/customer/vehicle APIs,
   - appointment lifecycle with global non-blocking overlap warnings (no blocking slot conflicts),
@@ -83,54 +71,31 @@ Phase 4 baseline (payments + reporting) is delivered and locally/remote-validate
   - dashboard financial section (month period) with revenue split, average ticket, margin estimate, and outstanding balances.
 
 ### Harness/operations
-- Local gate is self-contained: `npm run verify` (tests + smoke + booking/walk-in/scheduling + parts-flow scenarios).
-- Harness logging is summary-first by default (`HARNESS_LOG_LEVEL=summary`), with verbose child logs available via `HARNESS_LOG_LEVEL=verbose`.
-- Bloat governance now remains honest after helper ownership rollback:
-  - render preflight helper returned to `scripts/render-verify-preflight.js`,
-  - test harness helper returned to `tests/helpers/httpHarness.js`,
-  - bloat pass achieved via direct scripts/tests byte reduction (no threshold increase, no area reclassification).
-- Internal refactor wave completed with no external contract changes:
-  - dashboard projections split into `src/services/dashboard/*` with `DashboardService` as thin orchestrator,
-  - dispatch mutation HTTP path now runs through `src/http/dispatchBoardRouteFactory.js`,
-  - dispatch board UI split into template/styles/client modules (`dispatchBoardPageTemplate/styles/client`),
-  - `verify-render` split into `scripts/render-verify/{config,api,deployFlow,scenarioFlow,logAuditFlow}.js`.
-- Hot-path LOC cleanup hardening completed for recent work-order flows:
-  - validator field-list drift risk reduced by centralizing allowed/mutable field lists in `src/http/workOrderValidators.js`,
-  - repetitive optional payload assignment reduced in `src/http/workOrderPageRoutes.js`,
-  - repeated payment-label hydration and patch-field assignment reduced in `src/services/workOrderService.js`.
-- Render log audit now defaults to `balanced` fetch mode (narrow first pass + auto-escalation on risk signals), reducing default log pull volume.
-- App request logging now supports `APP_REQUEST_LOG_MODE=all|mutations|errors` so production can reduce request-log noise at the source.
-- Deploy-aware gate now enforces strict preflight before deploy trigger:
-  - clean worktree + remote sync checks (default on),
-  - manual deploy service policy check (`autoDeploy` off + `autoDeployTrigger` off, default on),
-  - fail-fast outcome before deploy API call when preconditions are not met.
-- Authorization boundary is unified across API/page write routes using `src/http/mutationPolicy.js`.
-- Render verify deploy mode is explicit and deterministic via CLI flags (`--skip-deploy` / `--deploy`) with CLI-over-env precedence plus strict deploy-mode preflight env controls.
-- Render environment policy utility is available for deterministic service-state control:
-  - `npm run render:policy:status`
-  - `npm run render:policy:manual-deploy`
-- Harness internals now share process orchestration helpers via `scripts/harness-process.js`.
-- Static/hygiene guardrails are enforceable via:
-  - `npm run lint` (route policy + syntax contract checks),
-  - `npm run hygiene:check` (branch and tracked-artifact hygiene policy),
-  - `npm run db:backup-drill` (backup/restore drill script).
-- Spring cleanup tooling is now available:
-  - `npm run cleanup:spring` (dry-run)
-  - `npm run cleanup:spring:apply` (tracked/untracked evidence pruning)
-  - canonical tracked evidence policy in `data/hygiene/evidence-canonical.json`
-- Linear harness was rewritten to one deterministic Playwright-only command:
-  - `npm run linear:apply -- --spec <path> [--dry-run]`
-  - strict legacy surface rejection with migration hints (`probe/create/sync`, `--transport`, legacy env defaults)
-- Pico UI baseline backlog is now registered in Linear:
-  - epic + 12 tasks created in Backlog via harness (`AUT-120..AUT-132`)
-  - source spec: `data/linear/pico-ui-baseline-epic-2026-03-24.json`
-- Repo task proof-loop harness bootstrap is initialized for future non-trivial slices:
-  - baseline task artifacts seeded in `.agent/tasks/proof-loop-bootstrap/`,
-  - project-scoped subagent templates installed in `.codex/agents/` and `.claude/agents/`,
-  - managed workflow guidance block is present in `AGENTS.md` and `CLAUDE.md`.
+- Local gate is self-contained and minimal: `npm run verify` runs `node --test`, boots an isolated app with temp SQLite, runs `npm run smoke`, then shuts down.
+- Non-core orchestration surfaces were intentionally removed in core reset:
+  - Render deploy/verify/policy scripts,
+  - Linear task harness scripts,
+  - cleanup/report helper scripts and scenario runners,
+  - dispatch-board scenario and related harness dependencies.
+- Authorization boundary remains unified across API/page write routes (`src/http/mutationPolicy.js`).
+- Static/hygiene guardrails remain active:
+  - `npm run lint`
+  - `npm run hygiene:check`
+  - `npm run audit:bloat`
 
 ## Last accepted milestones
 
+- 2026-03-25: First-principles core reset completed (`core-reset-loc-reduction`):
+  - JavaScript LOC reduced from `27,549` to `19,118` (`-8,431`, `-30.60%`) across `src + scripts + tests`,
+  - dispatch board runtime/API/UI surface removed,
+  - package command surface reduced to local-only workflows (no Render/Linear/cleanup orchestration commands),
+  - local verification harness simplified to deterministic `tests + smoke`,
+  - local post-reset gate passed: `npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`, `npm run audit:bloat`.
+- 2026-03-25: Core reset proof-loop closure completed (`core-reset-loc-reduction`):
+  - live frontend E2E run passed for booking + walk-in + active queue flows on local app session,
+  - walk-in flow created and surfaced `WO-1018` in `/work-orders/active`,
+  - proof artifacts refreshed (`evidence.md`, `evidence.json`, `verdict.json`, raw screenshots/logs),
+  - task artifact validation/status checks passed (`validate`, `status`).
 - 2026-03-25: LOC cleanup hardening completed (`cleanup-brittle-outdated-loc`):
   - targeted brittle/unoptimized LOC cleanup delivered in `workOrderValidators`, `workOrderPageRoutes`, and `workOrderService`,
   - outdated baseline wording cleaned in `README.md` and `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
@@ -210,30 +175,21 @@ Most recent local gate results:
 - `npm run hygiene:check`: passed
 - `npm run audit:bloat`: passed
 - `npm run secrets:scan`: passed
+- `/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py validate --task-id core-reset-loc-reduction`: passed
+- `/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id core-reset-loc-reduction`: passed (`evidence=PASS`, `verdict=PASS`)
 - `task_loop.py validate --task-id proof-loop-bootstrap`: passed
 - `task_loop.py status --task-id proof-loop-bootstrap`: passed (`exists=true`, required artifact set present)
 - `node --test tests/persistence.test.js tests/workOrderLifecycleApi.test.js tests/workOrderLifecyclePage.test.js tests/dashboardService.test.js tests/http.test.js tests/mutationPolicy.test.js tests/authzPolicyParity.test.js`: passed
 
-Most recent deploy-aware gate results:
-- `npm run verify:render -- --deploy`: passed
-  - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d71j32f5gffc73fstq10`
-  - latest commit parity: `318516b63efeb8db1ad4ac79082acab53bd9205d`
-  - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
-  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
-- latest non-deploy remote verification (Phase 4 branch state):
-  - `RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render -- --skip-deploy`: passed
-  - smoke + non-destructive booking/walk-in/scheduling/parts/dispatch scenarios: passed
+Deploy-aware gate status:
+- Render verify/policy harness commands were intentionally removed in `core-reset-loc-reduction`.
+- Last remote deploy verification remains historical evidence from pre-reset milestones only.
 
 Primary evidence pointers:
-- `evidence/render-log-audit-summary.json`
 - `evidence/bloat-audit-latest.json`
-- `evidence/linear-aut73-81-done-sync.json`
+- `.agent/tasks/core-reset-loc-reduction/` (spec/evidence/verdict/problem artifacts + raw command logs)
 - `.agent/tasks/proof-loop-bootstrap/` (spec/evidence/verdict/problem artifacts + raw placeholders)
-- `.agent/tasks/phase4-render-deploy-qa-fix/` (deploy QA/fix proof-loop artifacts + raw command logs)
 - `.agent/tasks/cleanup-brittle-outdated-loc/` (cleanup spec/evidence/verdict + raw verification logs)
-- Linear sync audit (AUT-89..AUT-96): `/tmp/linear-aut89-96-sync-result.json`
-- Linear apply audit (Pico backlog AUT-120..AUT-132): `/tmp/pico-ui-baseline-apply.json`
 
 ## Environments
 
@@ -245,22 +201,21 @@ Primary evidence pointers:
 ### render-validation
 - URL: `https://auto-service-foundation.onrender.com`
 - service id: `srv-d6vcmt7diees73d0j04g`
-- status: deploy + smoke + scenario + log-audit gates green on latest verified run
-- deploy policy: `autoDeploy=no`, `autoDeployTrigger=off` (manual deploy mode)
-- caveat: app-level persistence is local SQLite file per instance
+- status: historical Phase 4 validation environment (not part of current core-reset harness)
+- deploy policy: last known `autoDeploy=no`, `autoDeployTrigger=off`
+- caveat: no active repo-local Render verification command in core-reset baseline
 
 ## Known caveats
 
-- Render API access can require `--resolve` fallback from this local environment; harness already supports this path.
+- Deploy automation coverage was intentionally reduced in this slice; remote verification requires a future replacement flow.
 - Token auth remains baseline-level (no IdP/session/rotation service yet).
 - SQLite remains single-node file persistence.
 
 ## Active work focus
 
-1. Harden Phase 4 with targeted UX/validation polish and monitor for regressions.
-2. Start Phase 5 external-connection hardening slices from packet priorities.
-3. Keep baseline gates green (`npm test`, `npm run verify`, `npm run audit:bloat`).
-4. Keep Render deploy verification green (`npm run verify:render`) for milestone commits.
+1. Keep the reduced core baseline stable (`npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`, `npm run audit:bloat`).
+2. Keep proof-loop artifacts synchronized for each new non-trivial slice.
+3. Reintroduce deploy automation only when a smaller first-principles replacement is specified.
 
 ## Archive pointers
 
