@@ -1,0 +1,5 @@
+
+> auto-service@0.1.0 smoke
+> node scripts/smoke.js
+
+{"status":"smoke_passed","baseUrl":"http://127.0.0.1:3000","checks":["healthz","dashboard_api","appointments_api","work_orders_api","search_api","dashboard_ui","booking_ui","walkin_ui","work_orders_active_ui","dispatch_board_api","dispatch_board_ui"]}

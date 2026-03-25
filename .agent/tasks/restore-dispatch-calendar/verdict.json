@@ -1,0 +1,49 @@
+{
+  "task_id": "restore-dispatch-calendar",
+  "overall_verdict": "PASS",
+  "criteria": [
+    {
+      "id": "AC1",
+      "status": "PASS",
+      "reason": "Dispatch board page returns 200 and contains Russian shell labels plus dispatch-calendar host."
+    },
+    {
+      "id": "AC2",
+      "status": "PASS",
+      "reason": "Dispatch API route returns 200 and all mutation routes are registered and reachable."
+    },
+    {
+      "id": "AC3",
+      "status": "PASS",
+      "reason": "Dashboard projection and rendered UI expose dispatch board link."
+    },
+    {
+      "id": "AC4",
+      "status": "PASS",
+      "reason": "Event Calendar vendor assets, dispatch CSS, and dependency wiring are present."
+    },
+    {
+      "id": "AC5",
+      "status": "PASS",
+      "reason": "lint, test, verify, and smoke (including dispatch checks) all pass."
+    }
+  ],
+  "commands_run": [
+    "npm run lint",
+    "npm test",
+    "npm run verify",
+    "BASE_URL=http://127.0.0.1:3000 npm run smoke",
+    "curl -s -o /tmp/dispatch_board.html -w \"%{http_code}\\n\" http://127.0.0.1:3000/dispatch/board",
+    "curl -s -o /tmp/dispatch_board_api.json -w \"%{http_code}\\n\" http://127.0.0.1:3000/api/v1/dispatch/board"
+  ],
+  "artifacts_used": [
+    ".agent/tasks/restore-dispatch-calendar/evidence.md",
+    ".agent/tasks/restore-dispatch-calendar/evidence.json",
+    ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/lint.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/test-unit.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/test-integration.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/build.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/screenshot-1.png"
+  ]
+}

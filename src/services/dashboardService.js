@@ -1,3 +1,4 @@
+import { buildDispatchBoard } from "./dashboard/dispatchProjection.js";
 import { buildSearchResults } from "./dashboard/searchProjection.js";
 import { buildTodayDashboard } from "./dashboard/todayProjection.js";
 
@@ -10,6 +11,14 @@ export class DashboardService {
     return buildTodayDashboard({
       repository: this.repository,
       searchQuery,
+    });
+  }
+
+  getDispatchBoard({ day = null, laneMode = "bay" } = {}) {
+    return buildDispatchBoard({
+      repository: this.repository,
+      day,
+      laneMode,
     });
   }
 

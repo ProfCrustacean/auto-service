@@ -1,6 +1,6 @@
 {
-  "status": "pass",
-  "generatedAt": "2026-03-25T09:12:53.575Z",
+  "status": "fail",
+  "generatedAt": "2026-03-25T11:50:53.463Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,96 +23,96 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 931515,
+      "totalBytes": 16515487,
       "byArea": {
-        "src": 464885,
+        "src": 526456,
         "tests": 93791,
-        "scripts": 49531,
+        "scripts": 50756,
         "docs": 84991,
         "evidence": 7602,
-        "other": 230715
+        "other": 15751891
       }
     },
     "topTrackedFiles": [
       {
-        "path": "src/repositories/sqliteRepository.js",
-        "bytes": 60846
+        "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0948Z.png",
+        "bytes": 1356200
       },
       {
-        "path": "src/ui/workOrderLifecyclePage.js",
-        "bytes": 38445
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard-20260325T090619Z.png",
+        "bytes": 816871
       },
       {
-        "path": "package-lock.json",
-        "bytes": 29750
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard-20260325T090426Z.png",
+        "bytes": 816720
       },
       {
-        "path": "src/http/workOrderPageRoutes.js",
-        "bytes": 27828
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard-20260325T120500Z.png",
+        "bytes": 791826
       },
       {
-        "path": "src/services/workOrderService.js",
-        "bytes": 26383
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard-20260325T085640Z.png",
+        "bytes": 791789
       },
       {
-        "path": "src/persistence/seedDatabase.js",
-        "bytes": 24652
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard-20260325T085214Z.png",
+        "bytes": 791534
       },
       {
-        "path": "src/ui/dashboardPage.js",
-        "bytes": 21405
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard-20260325T115900Z.png",
+        "bytes": 790781
       },
       {
-        "path": "src/repositories/sqliteRepositoryReferenceCustomerVehicle.js",
-        "bytes": 19482
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard-20260325T084906Z.png",
+        "bytes": 790684
       },
       {
-        "path": "src/http/workOrderValidators.js",
-        "bytes": 18841
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-dashboard.png",
+        "bytes": 790390
       },
       {
-        "path": "src/persistence/migrations.js",
-        "bytes": 18284
+        "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0937Z.png",
+        "bytes": 613440
       },
       {
-        "path": "PLANS_ARCHIVE.md",
-        "bytes": 17355
+        "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-dashboard-20260325T092059Z.png",
+        "bytes": 613291
       },
       {
-        "path": "docs/23_LOCAL_AND_RENDER_RUNBOOK.md",
-        "bytes": 17092
+        "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0922Z.png",
+        "bytes": 613061
       },
       {
-        "path": "STATUS.md",
-        "bytes": 15103
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-work-order-detail.png",
+        "bytes": 375608
       },
       {
-        "path": "src/services/appointmentService.js",
-        "bytes": 14043
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-walkin-result-20260325T091140Z.png",
+        "bytes": 369494
       },
       {
-        "path": "PLANS.md",
-        "bytes": 13883
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-walkin-result-20260325T120500Z.png",
+        "bytes": 367379
       },
       {
-        "path": "README.md",
-        "bytes": 13741
+        "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0948Z.png",
+        "bytes": 335956
       },
       {
-        "path": "src/http/appointmentPageRoutes.js",
-        "bytes": 13451
+        "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0948Z.png",
+        "bytes": 286209
       },
       {
-        "path": "src/ui/pageFormShared.js",
-        "bytes": 13015
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-active-queue-20260325T091200Z.png",
+        "bytes": 228693
       },
       {
-        "path": "src/http/pageFlowUtils.js",
-        "bytes": 12201
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-active-workorders-20260325T120500Z.png",
+        "bytes": 217186
       },
       {
-        "path": "src/http/customerVehicleValidators.js",
-        "bytes": 11436
+        "path": ".agent/tasks/core-reset-loc-reduction/raw/frontend-e2e-active-queue.png",
+        "bytes": 205513
       }
     ],
     "evidence": {
@@ -127,18 +127,25 @@
     "docs": {
       "lineCounts": {
         "README": 320,
-        "STATUS": 228,
+        "STATUS": 233,
         "PLANS": 247
       }
     },
     "duplication": {
-      "percentage": 5.85,
-      "duplicatedLines": 985,
-      "clones": 72,
-      "sources": 88,
-      "lines": 16837,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-pHyBuR/report/jscpd-report.json"
+      "percentage": 5.67,
+      "duplicatedLines": 1015,
+      "clones": 74,
+      "sources": 94,
+      "lines": 17905,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-6Cpnbk/report/jscpd-report.json"
     }
   },
-  "violations": []
+  "violations": [
+    {
+      "code": "tracked_bytes_total",
+      "message": "Tracked bytes exceeded budget",
+      "actual": 16515487,
+      "threshold": 1220000
+    }
+  ]
 }

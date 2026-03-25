@@ -182,6 +182,37 @@ async function main() {
   );
   checks.push("work_orders_active_ui");
 
+  const dispatchBoardApi = await requestJson("dispatch_board_api", "/api/v1/dispatch/board");
+  assertStatus("dispatch_board_api", dispatchBoardApi.response, 200, { payload: dispatchBoardApi.payload });
+  assertCondition(
+    "dispatch_board_api",
+    Array.isArray(dispatchBoardApi.payload?.resources),
+    "dispatch board resources must be an array",
+    { payload: dispatchBoardApi.payload },
+  );
+  assertCondition(
+    "dispatch_board_api",
+    Array.isArray(dispatchBoardApi.payload?.events),
+    "dispatch board events must be an array",
+    { payload: dispatchBoardApi.payload },
+  );
+  assertCondition(
+    "dispatch_board_api",
+    dispatchBoardApi.payload?.calendar?.engine === "event_calendar",
+    "dispatch board calendar engine must be event_calendar",
+    { payload: dispatchBoardApi.payload },
+  );
+  checks.push("dispatch_board_api");
+
+  const dispatchBoardUi = await requestText("dispatch_board_ui", "/dispatch/board");
+  assertStatus("dispatch_board_ui", dispatchBoardUi.response, 200);
+  assertUiIncludes("dispatch_board_ui", dispatchBoardUi, [
+    "Диспетчерская доска",
+    "Очередь переносов",
+    'id="dispatch-calendar"',
+  ]);
+  checks.push("dispatch_board_ui");
+
   process.stdout.write(`${JSON.stringify({ status: "smoke_passed", baseUrl, checks })}\n`);
 }
 

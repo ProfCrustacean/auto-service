@@ -1,0 +1,25 @@
+# Runtime dispatch checks
+timestamp=2026-03-25T11:14:00Z
+
+[GET /dispatch/board]
+http_code=200
+6:  <title>Диспетчерская доска</title>
+19:      <h1>Диспетчерская доска</h1>
+35:        <h2>Очередь переносов</h2>
+316:          <div id="dispatch-calendar" class="calendar-host" aria-label="Календарная доска"></div>
+334:        const calendarHost = document.getElementById("dispatch-calendar");
+
+[GET /api/v1/dispatch/board]
+http_code=200
+calendar.engine=event_calendar
+resources=3
+
+[POST mutation endpoints]
+/api/v1/dispatch/board/events/test-id/preview -> 400
+/api/v1/dispatch/board/events/test-id/commit -> 400
+/api/v1/dispatch/board/queue/appointments/test-id/schedule -> 400
+/api/v1/dispatch/board/queue/walk-ins/test-id/schedule -> 400
+
+[GET / dashboard link]
+http_code=200
+23:        <a class="btn" href="/dispatch/board">Диспетчерская доска</a>

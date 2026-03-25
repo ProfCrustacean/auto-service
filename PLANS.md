@@ -6,21 +6,21 @@ Hot-path execution plan file for current non-trivial work.
 
 Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-## Active Plan — First-principles core reset (`core-reset-loc-reduction`)
+## Active Plan — Restore dispatch calendar (`restore-dispatch-calendar`)
 
 Objective:
-- Massively reduce LOC and complexity by deleting non-core runtime/harness surfaces and collapsing the repo to a smaller product-core baseline.
+- Restore the removed dispatch calendar page/API/runtime exactly as it worked before core-reset while preserving current Phase 4 flows.
 
 Steps:
-1. Freeze spec with explicit LOC-reduction target and allowed breaking-change scope.
-2. Remove non-core harness/orchestration code paths (Render/Linear/cleanup flows) and simplify package script surface.
-3. Remove dispatch-board runtime and related assets/dependencies; keep core product operations only.
-4. Simplify verification harness to minimal local loop and delete obsolete tests.
-5. Run full post-reset gates (`lint`, `hygiene`, `test`, `verify`, `audit:bloat`) and record LOC delta.
-6. Update proof-loop evidence/verdict and synchronize `STATUS.md`/`PLANS.md`.
+1. Freeze restore spec in `.agent/tasks/restore-dispatch-calendar/spec.md` with explicit ACs for page/API/assets/verification.
+2. Restore dispatch runtime files (`src/http/dispatchBoard*`, `src/services/dashboard/dispatchProjection.js`, `src/ui/dispatchBoard*`, `public/assets/css/dispatch-board.css`) from the last pre-removal working commit.
+3. Rewire current app/dashboard/service/policy paths (`src/app.js`, `src/services/dashboardService.js`, `src/services/dashboard/todayProjection.js`, `src/ui/dashboardPage.js`, `src/http/mutationPolicy.js`) to expose dispatch again.
+4. Restore deterministic dispatch asset sync and dependency (`src/ui/syncVendorAssets.js`, `package.json`, lockfile).
+5. Extend smoke checks to include dispatch API/UI and run `npm run lint`, `npm test`, `npm run verify`.
+6. Update proof-loop artifacts for `restore-dispatch-calendar` and synchronize `STATUS.md`/`PLANS.md`.
 
 Status:
-- Completed (2026-03-25): core reset delivered with measured JS LOC reduction from `27,549` to `19,118` (`-8,431`, `-30.60%`), dispatch runtime removed, local verification harness collapsed to `tests + smoke`, live booking/walk-in/active-queue E2E validation captured, and proof-loop artifact checks passed (`validate`, `status`).
+- In progress (2026-03-25): spec initialized and frozen; restoration build in progress.
 
 Most recent completed non-trivial slice:
 - 2026-03-25 — First-principles core reset (`core-reset-loc-reduction`) completed:

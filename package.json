@@ -26,6 +26,7 @@
     "up": "npm ci && npm run verify"
   },
   "dependencies": {
+    "@event-calendar/build": "5.5.1",
     "@picocss/pico": "2.0.6",
     "express": "^4.21.2"
   }

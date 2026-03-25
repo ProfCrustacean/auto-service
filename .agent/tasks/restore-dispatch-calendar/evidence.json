@@ -1,0 +1,167 @@
+{
+  "task_id": "restore-dispatch-calendar",
+  "overall_status": "PASS",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "GET /dispatch/board returns 200 and renders dispatch calendar shell with Russian labels and id=dispatch-calendar.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt",
+          "command": "curl -s -o /tmp/dispatch_board.html -w \"%{http_code}\\n\" http://127.0.0.1:3000/dispatch/board && rg -n \"Диспетчерская доска|dispatch-calendar|Очередь\" /tmp/dispatch_board.html",
+          "exit_code": 0,
+          "summary": "Page responds 200 and contains dispatch calendar shell markers."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/screenshot-1.png",
+          "summary": "Visual proof of restored dispatch board page."
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC2",
+      "text": "Dispatch board API and mutation endpoints are restored and wired.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt",
+          "command": "curl GET /api/v1/dispatch/board and POST dispatch mutation endpoints",
+          "exit_code": 0,
+          "summary": "API returns 200 and all mutation routes respond (validation 400), proving route wiring."
+        },
+        {
+          "type": "file",
+          "path": "src/http/dispatchBoardPageRoutes.js",
+          "summary": "Explicit route registrations for dispatch API and mutations."
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC3",
+      "text": "Dashboard contains dispatch board action link and projection exposes dispatch URL action.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt",
+          "command": "curl -s -o /tmp/dashboard.html -w \"%{http_code}\\n\" http://127.0.0.1:3000/ && rg -n \"dispatch/board|Диспетчерская доска\" /tmp/dashboard.html",
+          "exit_code": 0,
+          "summary": "Dashboard HTML includes dispatch board button link."
+        },
+        {
+          "type": "file",
+          "path": "src/services/dashboard/todayProjection.js",
+          "summary": "Projection exposes openDispatchBoardHref."
+        },
+        {
+          "type": "file",
+          "path": "src/ui/dashboardPage.js",
+          "summary": "UI renders dispatch board action button."
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC4",
+      "text": "Vendor/static/runtime support for dispatch board is restored deterministically.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt",
+          "command": "asset presence and dependency checks",
+          "exit_code": 0,
+          "summary": "Event Calendar vendor assets, dispatch CSS, and dependency are present."
+        },
+        {
+          "type": "file",
+          "path": "src/ui/syncVendorAssets.js",
+          "summary": "Asset sync includes event calendar artifacts."
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC5",
+      "text": "Verification passes with dispatch restored (lint, test, verify, smoke dispatch checks).",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/lint.txt",
+          "command": "npm run lint",
+          "exit_code": 0,
+          "summary": "Static guardrails passed."
+        },
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/test-unit.txt",
+          "command": "npm test",
+          "exit_code": 0,
+          "summary": "All unit tests passed."
+        },
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/test-integration.txt",
+          "command": "npm run verify",
+          "exit_code": 0,
+          "summary": "Integration verify passed."
+        },
+        {
+          "type": "command",
+          "path": ".agent/tasks/restore-dispatch-calendar/raw/build.txt",
+          "command": "BASE_URL=http://127.0.0.1:3000 npm run smoke",
+          "exit_code": 0,
+          "summary": "Smoke includes dispatch_board_api and dispatch_board_ui in passed checks."
+        }
+      ],
+      "gaps": []
+    }
+  ],
+  "changed_files": [
+    "PLANS.md",
+    "package.json",
+    "package-lock.json",
+    "scripts/smoke.js",
+    "src/app.js",
+    "src/http/dispatchBoardMutationCore.js",
+    "src/http/dispatchBoardPageRoutes.js",
+    "src/http/dispatchBoardRouteFactory.js",
+    "src/http/mutationPolicy.js",
+    "src/services/dashboard/dispatchProjection.js",
+    "src/services/dashboard/todayProjection.js",
+    "src/services/dashboardService.js",
+    "src/ui/dashboardPage.js",
+    "src/ui/dispatchBoardPage.js",
+    "src/ui/dispatchBoardPageClient.js",
+    "src/ui/dispatchBoardPageTemplate.js",
+    "src/ui/syncVendorAssets.js",
+    "public/assets/css/dispatch-board.css",
+    ".agent/tasks/restore-dispatch-calendar/spec.md",
+    ".agent/tasks/restore-dispatch-calendar/evidence.md",
+    ".agent/tasks/restore-dispatch-calendar/evidence.json",
+    ".agent/tasks/restore-dispatch-calendar/verdict.json",
+    ".agent/tasks/restore-dispatch-calendar/problems.md",
+    ".agent/tasks/restore-dispatch-calendar/raw/build.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/lint.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/test-unit.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/test-integration.txt",
+    ".agent/tasks/restore-dispatch-calendar/raw/screenshot-1.png",
+    ".agent/tasks/restore-dispatch-calendar/raw/runtime-checks.txt"
+  ],
+  "commands_for_fresh_verifier": [
+    "npm run lint",
+    "npm test",
+    "npm run verify",
+    "BASE_URL=http://127.0.0.1:3000 npm run smoke",
+    "curl -s -o /tmp/dispatch_board.html -w \"%{http_code}\\n\" http://127.0.0.1:3000/dispatch/board",
+    "curl -s -o /tmp/dispatch_board_api.json -w \"%{http_code}\\n\" http://127.0.0.1:3000/api/v1/dispatch/board"
+  ],
+  "known_gaps": []
+}

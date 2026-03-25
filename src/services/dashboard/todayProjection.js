@@ -247,6 +247,7 @@ export function buildTodayDashboard({ repository, searchQuery = "" }) {
     actions: {
       newAppointmentHref: "/appointments/new",
       openActiveQueueHref: "/work-orders/active",
+      openDispatchBoardHref: "/dispatch/board",
     },
     appointments: appointmentRows,
     load: {
