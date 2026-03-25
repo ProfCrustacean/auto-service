@@ -62,7 +62,7 @@ async function loadTeams() {
 
 async function loadTeamStates(teamId) {
   const data = await requestGraphQL(
-    `query TeamStates($id: ID!) {
+    `query TeamStates($id: String!) {
       team(id: $id) {
         id
         key
@@ -112,7 +112,7 @@ async function loadTeamIssues(teamId) {
 
 async function moveIssueToState(issueId, stateId) {
   const data = await requestGraphQL(
-    `mutation MoveIssue($id: ID!, $stateId: ID!) {
+    `mutation MoveIssue($id: String!, $stateId: String!) {
       issueUpdate(id: $id, input: { stateId: $stateId }) {
         success
         issue { id identifier state { id name type } }
