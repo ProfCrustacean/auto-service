@@ -1,4 +1,4 @@
-const https = require('https');
+import https from "node:https";
 
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY;
 const CUTOFF_UTC = process.env.LINEAR_CLEAR_CUTOFF_UTC || new Date().toISOString();
