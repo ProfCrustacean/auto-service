@@ -27,6 +27,11 @@ Status:
   - production validation passed: curl runtime checks, `APP_BASE_URL=https://auto-service-foundation.onrender.com npm run smoke`, and browser E2E dashboard -> dispatch board.
 
 Most recent completed non-trivial slice:
+- 2026-03-25 — Linear backlog reset (`linear-clear-once-20260325`) completed:
+  - added deterministic utility `scripts/linear-clear-all.js` (close issues created before cutoff into `Canceled`/`Completed` state),
+  - local direct Linear GraphQL access was blocked (`RESTRICTED_COUNTRY_BLOCKED`), so execution used temporary Render cron runtime,
+  - successful execution log shows `movedToClosed=13`, `failed=0` for team `AUT`,
+  - temporary cron services were cleaned up (deleted) after completion.
 - 2026-03-25 — Restore dispatch calendar (`restore-dispatch-calendar`) completed:
   - dispatch page/API/mutations/assets restored (`/dispatch/board`, `/api/v1/dispatch/board`, mutation routes, Event Calendar assets),
   - dashboard dispatch entry re-enabled and runtime wiring restored,

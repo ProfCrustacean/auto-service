@@ -89,6 +89,11 @@ Core-reset baseline is delivered: keep only product-core scheduling/intake/work-
 
 ## Last accepted milestones
 
+- 2026-03-25: Linear backlog reset executed for clean restart:
+  - implemented `scripts/linear-clear-all.js` for deterministic bulk close-by-cutoff flow,
+  - direct local Linear API remained blocked in this environment (`RESTRICTED_COUNTRY_BLOCKED`), so execution used temporary Render cron runtime,
+  - successful run log (`12:45 UTC`) reports: `scanned=128`, `matchedBeforeCutoff=13`, `movedToClosed=13`, `failed=0` for team `AUT`,
+  - temporary Render cron services used for this operation were deleted after completion.
 - 2026-03-25: Dispatch calendar restoration deployed and production-validated:
   - commit: `1d0f9186a416de610a2f50ec3a3b5528ff27a4cc`,
   - deploy id: `dep-d71sp4n5r7bs73e46qsg` (`status=live`),
