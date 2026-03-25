@@ -1,1 +1,18 @@
-No build output captured yet.
+Render deploy + QA run summary
+Timestamp (UTC): 2026-03-25T00:52:04Z
+
+Render deploy command:
+- npm run verify:render -- --deploy
+
+Key deploy verification results:
+- git preflight: passed (clean worktree, remote sync)
+- manual deploy policy check: passed
+- deploy id: dep-d71j32f5gffc73fstq10
+- deploy status: live
+- deploy commit: 318516b63efeb8db1ad4ac79082acab53bd9205d
+- commit parity: passed
+- smoke + non-destructive scenarios: passed
+- post-deploy log audit: passed (warn=0, error=0, repoAccessWarning=0)
+
+Reference artifacts:
+- evidence/render-log-audit-summary.json

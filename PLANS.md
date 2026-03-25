@@ -6,22 +6,21 @@ Hot-path execution plan file for current non-trivial work.
 
 Historical completed plans live in `PLANS_ARCHIVE.md`.
 
-## Active Plan — Phase 4 Render deploy + QA + fix (`phase4-render-deploy-qa-fix`)
+## Active Plan — None
 
-Objective:
-- Deploy the current Phase 4 baseline to Render with deploy-mode verification, run full QA, and close any discovered issues with proof-loop evidence.
+No active multi-step implementation plan is open right now.
 
-Steps:
-1. Freeze spec and align task artifacts (`phase4-render-deploy-qa-fix`) with explicit ACs/constraints.
-2. Run full local QA gate (`secrets`, `lint`, `hygiene`, `test`, `verify`, `audit:bloat`) and capture raw outputs.
-3. Execute deploy-mode Render verification (`npm run verify:render -- --deploy`) and inspect smoke/scenario/log-audit outcomes.
-4. Fix any discovered issues using smallest safe changes, then rerun affected local + deploy checks.
-5. Update proof artifacts (`evidence.*`, `verdict.json`, `problems.md`) and synchronize `STATUS.md` + `PLANS.md`.
-
-Status:
-- In progress (2026-03-25): init complete, spec freeze complete, QA/deploy/fix loop in progress.
+Create a new active plan before the next non-trivial feature/refactor/deployment slice.
 
 Most recent completed non-trivial slice:
+- 2026-03-25 — Phase 4 deploy-mode Render QA/fix loop (`phase4-render-deploy-qa-fix`) completed:
+  - task initialized and frozen in `.agent/tasks/phase4-render-deploy-qa-fix/`,
+  - full local QA gate passed (`secrets`, `lint`, `hygiene`, `test`, `verify`, `audit:bloat`),
+  - deploy-mode Render verification passed (`npm run verify:render -- --deploy`),
+  - deploy id: `dep-d71j32f5gffc73fstq10`,
+  - deploy commit parity passed for `318516b63efeb8db1ad4ac79082acab53bd9205d`,
+  - smoke + non-destructive scenario checks passed and post-deploy log audit passed (`warn=0`, `error=0`, `repoAccessWarning=0`),
+  - no additional code fixes were required in this QA pass.
 - 2026-03-25 — Phase 4 end-to-end baseline (`phase4-e2e-implementation`) delivered:
   - persistence migration `010` adds `work_order_payments` plus `labor_total_rub` / `outside_service_cost_rub`,
   - payment flow implemented across service/API/UI (`/api/v1/work-orders/:id/payments`, `/work-orders/:id/payments`),
@@ -70,6 +69,7 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-24 — Unified dashboard queues table + production deploy verification
 - 2026-03-24 — Dashboard day-load no-scroll/date-label UX patch + deploy verification
 - 2026-03-25 — Phase 4 end-to-end baseline implementation (`phase4-e2e-implementation`)
+- 2026-03-25 — Phase 4 deploy-mode Render QA/fix loop (`phase4-render-deploy-qa-fix`)
 - 2026-03-24 — Repo task proof-loop bootstrap initialization (`proof-loop-bootstrap`)
 
 ## Completed Plan — Linear harness simplification: Playwright-only full rewrite (2026-03-24)

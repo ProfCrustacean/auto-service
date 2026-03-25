@@ -1,20 +1,92 @@
 {
   "task_id": "phase4-render-deploy-qa-fix",
-  "overall_status": "UNKNOWN",
+  "overall_status": "PASS",
   "acceptance_criteria": [
     {
       "id": "AC1",
-      "text": "TODO",
-      "status": "UNKNOWN",
-      "proof": [],
-      "gaps": [
-        "Not yet populated."
-      ]
+      "text": "Render deployment is executed via repository harness in deploy mode and completes with a successful deploy verification result.",
+      "status": "PASS",
+      "proof": [
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/build.txt",
+        "evidence/render-log-audit-summary.json"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC2",
+      "text": "Full QA gate for this slice passes locally and deploy-aware verification passes against Render.",
+      "status": "PASS",
+      "proof": [
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/secrets-scan.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/lint.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/hygiene-check.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/test-unit.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/test-integration.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/audit-bloat.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-lint.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-hygiene.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-audit-bloat.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-render-skip-deploy.txt",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/build.txt"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC3",
+      "text": "Any issues discovered during local QA, deploy verification, smoke/scenario checks, or Render log audit are fixed with the smallest safe change set and regression-tested.",
+      "status": "PASS",
+      "proof": [
+        "evidence/render-log-audit-summary.json",
+        ".agent/tasks/phase4-render-deploy-qa-fix/raw/build.txt"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC4",
+      "text": "Proof-loop artifacts are updated with concrete command evidence and repository state docs are synchronized.",
+      "status": "PASS",
+      "proof": [
+        ".agent/tasks/phase4-render-deploy-qa-fix/spec.md",
+        ".agent/tasks/phase4-render-deploy-qa-fix/evidence.md",
+        ".agent/tasks/phase4-render-deploy-qa-fix/evidence.json",
+        ".agent/tasks/phase4-render-deploy-qa-fix/verdict.json",
+        ".agent/tasks/phase4-render-deploy-qa-fix/problems.md",
+        "PLANS.md",
+        "STATUS.md"
+      ],
+      "gaps": []
     }
   ],
-  "changed_files": [],
-  "commands_for_fresh_verifier": [],
-  "known_gaps": [
-    "Evidence not yet populated."
-  ]
+  "changed_files": [
+    ".agent/tasks/phase4-render-deploy-qa-fix/spec.md",
+    ".agent/tasks/phase4-render-deploy-qa-fix/evidence.md",
+    ".agent/tasks/phase4-render-deploy-qa-fix/evidence.json",
+    ".agent/tasks/phase4-render-deploy-qa-fix/verdict.json",
+    ".agent/tasks/phase4-render-deploy-qa-fix/problems.md",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/build.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/secrets-scan.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/lint.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/hygiene-check.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/test-unit.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/test-integration.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/audit-bloat.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-lint.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-hygiene.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-audit-bloat.txt",
+    ".agent/tasks/phase4-render-deploy-qa-fix/raw/verifier-render-skip-deploy.txt",
+    "PLANS.md",
+    "STATUS.md",
+    "evidence/render-log-audit-summary.json"
+  ],
+  "commands_for_fresh_verifier": [
+    "npm run secrets:scan",
+    "npm run lint",
+    "npm run hygiene:check",
+    "npm test",
+    "npm run verify",
+    "npm run audit:bloat",
+    "npm run verify:render -- --deploy",
+    "RENDER_VERIFY_REQUIRE_CLEAN_WORKTREE=0 npm run verify:render -- --skip-deploy"
+  ],
+  "known_gaps": []
 }

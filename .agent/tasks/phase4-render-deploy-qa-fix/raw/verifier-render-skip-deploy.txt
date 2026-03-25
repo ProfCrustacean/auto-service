@@ -1,0 +1,16 @@
+
+> auto-service@0.1.0 verify:render
+> node scripts/verify-render.js --skip-deploy
+
+{"status":"render_verify_started","serviceId":"srv-d6vcmt7diees73d0j04g","skipDeploy":true,"includeScenario":true,"includeIntakeBookingScenario":true,"includeIntakeWalkInScenario":true,"includePartsScenario":true,"includeDispatchBoardScenario":true,"requireCleanWorktree":false,"requireRemoteSync":true,"requireManualDeploy":true,"verifyCommitParity":true,"enableLogAudit":true,"logAuditMode":"balanced","harnessLogLevel":"summary","deployMode":"skip","api":{"baseUrl":"https://api.render.com/v1","useResolve":true,"resolveIp":"216.24.57.7"},"git":{"remote":"origin","branch":"main","expectedCommitSource":"git"},"smoke":{"maxAttempts":3},"logAudit":{"writeRawAuditLogs":false,"gzipRawAuditOutput":true,"summaryOutputPath":"/Users/ian/auto-service/evidence/render-log-audit-summary.json","rawOutputPath":"/Users/ian/auto-service/evidence/render-log-audit.raw.ndjson","logLimit":200,"logInitialLimit":200,"maxWarnings":0,"maxErrors":0,"maxRepoWarnings":0,"failOnLogTruncation":true}}
+{"status":"render_verify_step_skipped","step":"deploy_commit_parity","reason":"skip_deploy_enabled"}
+{"status":"render_verify_step_skipped","step":"git_preflight","reason":"skip_deploy_enabled"}
+{"status":"render_verify_step_skipped","step":"render_service_policy_check","reason":"skip_deploy_enabled"}
+{"status":"render_verify_step_started","step":"smoke","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":true,"deployId":null}
+{"status":"render_verify_step_started","step":"scenario_intake_page_booking_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":true}
+{"status":"render_verify_step_started","step":"scenario_intake_page_walkin_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":true}
+{"status":"render_verify_step_started","step":"scenario_scheduling_walkin_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":true}
+{"status":"render_verify_step_started","step":"scenario_parts_flow_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":true}
+{"status":"render_verify_step_started","step":"scenario_dispatch_board_non_destructive","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":true}
+{"status":"render_verify_step_skipped","step":"post_deploy_log_audit","reason":"skip_deploy_enabled"}
+{"status":"render_verify_passed","serviceId":"srv-d6vcmt7diees73d0j04g","baseUrl":"https://auto-service-foundation.onrender.com","skipDeploy":true,"includeScenario":true,"includeIntakeBookingScenario":true,"includeIntakeWalkInScenario":true,"includePartsScenario":true,"includeDispatchBoardScenario":true,"verifyCommitParity":true,"enableLogAudit":true,"deployId":null,"deployStatus":null,"deployCommitId":null}

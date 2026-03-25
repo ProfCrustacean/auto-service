@@ -127,6 +127,13 @@ Phase 4 baseline (payments + reporting) is delivered and locally/remote-validate
 
 ## Last accepted milestones
 
+- 2026-03-25: Phase 4 deploy-mode Render QA/fix loop completed:
+  - deploy verification command: `npm run verify:render -- --deploy`,
+  - deploy id: `dep-d71j32f5gffc73fstq10`,
+  - deployed commit parity: `318516b63efeb8db1ad4ac79082acab53bd9205d`,
+  - smoke + non-destructive booking/walk-in/scheduling/parts/dispatch scenarios: passed,
+  - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`),
+  - local QA gate (`secrets`, `lint`, `hygiene`, `test`, `verify`, `audit:bloat`) passed.
 - 2026-03-25: Phase 4 end-to-end baseline delivered (payments + reporting):
   - migration `010` adds payment table and work-order financial fields,
   - payment flow delivered across service/API/UI with balance invariants and conflict guards,
@@ -192,6 +199,7 @@ Most recent local gate results:
 - `npm test`: passed
 - `npm run verify`: passed
 - `npm run lint`: passed
+- `npm run hygiene:check`: passed
 - `npm run audit:bloat`: passed
 - `npm run secrets:scan`: passed
 - `task_loop.py validate --task-id proof-loop-bootstrap`: passed
@@ -199,11 +207,10 @@ Most recent local gate results:
 - `node --test tests/persistence.test.js tests/workOrderLifecycleApi.test.js tests/workOrderLifecyclePage.test.js tests/dashboardService.test.js tests/http.test.js tests/mutationPolicy.test.js tests/authzPolicyParity.test.js`: passed
 
 Most recent deploy-aware gate results:
-- `npm run verify:render -- --skip-deploy`: passed
-- `npm run verify:render`: passed
+- `npm run verify:render -- --deploy`: passed
   - deploy + commit parity + deployed smoke + non-destructive scenarios: passed
-  - latest deploy id: `dep-d71g48i4d50c73bnetl0`
-  - latest commit parity: `3666c40b7676e9cf9b89ba6e61e7b78fa7761ef5`
+  - latest deploy id: `dep-d71j32f5gffc73fstq10`
+  - latest commit parity: `318516b63efeb8db1ad4ac79082acab53bd9205d`
   - deployed smoke + non-destructive scenarios (booking, walk-in, scheduling/walk-in, parts-flow, dispatch-board): passed
   - post-deploy log audit: passed (`warn=0`, `error=0`, `repoAccessWarning=0`)
 - latest non-deploy remote verification (Phase 4 branch state):
@@ -215,6 +222,7 @@ Primary evidence pointers:
 - `evidence/bloat-audit-latest.json`
 - `evidence/linear-aut73-81-done-sync.json`
 - `.agent/tasks/proof-loop-bootstrap/` (spec/evidence/verdict/problem artifacts + raw placeholders)
+- `.agent/tasks/phase4-render-deploy-qa-fix/` (deploy QA/fix proof-loop artifacts + raw command logs)
 - Linear sync audit (AUT-89..AUT-96): `/tmp/linear-aut89-96-sync-result.json`
 - Linear apply audit (Pico backlog AUT-120..AUT-132): `/tmp/pico-ui-baseline-apply.json`
 
