@@ -29,22 +29,22 @@
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0922Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0937Z.png",
           "summary": "Browser screenshot for dashboard route /."
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0922Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0937Z.png",
           "summary": "Browser screenshot for /appointments/new."
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0924Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0937Z.png",
           "summary": "Browser screenshot for /appointments/new?mode=walkin."
         },
         {
           "type": "artifact",
-          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0928Z.png",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0937Z.png",
           "summary": "Browser screenshot for /work-orders/active."
         },
         {
@@ -99,7 +99,10 @@
     ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0926Z.txt",
     ".agent/tasks/core-reset-render-deploy-validation/raw/remote-route-text-checks.txt",
     ".agent/tasks/core-reset-render-deploy-validation/raw/test-integration.txt",
-    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0928Z.png"
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0937Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0937Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0937Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0937Z.png"
   ],
   "commands_for_fresh_verifier": [
     "APP_BASE_URL='https://auto-service-foundation.onrender.com' npm run smoke",
