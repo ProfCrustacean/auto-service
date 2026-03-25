@@ -1,0 +1,5 @@
+
+> auto-service@0.1.0 smoke
+> node scripts/smoke.js
+
+{"status":"smoke_passed","baseUrl":"https://auto-service-foundation.onrender.com","checks":["healthz","dashboard_api","appointments_api","work_orders_api","search_api","dashboard_ui","booking_ui","walkin_ui","work_orders_active_ui"]}

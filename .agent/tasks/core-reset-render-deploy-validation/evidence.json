@@ -1,0 +1,110 @@
+{
+  "task_id": "core-reset-render-deploy-validation",
+  "overall_status": "PASS",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Latest repository commit (fd151d53e1529f9d746e23d745adc0fcfc39bee5) is deployed to Render web service auto-service-foundation (srv-d6vcmt7diees73d0j04g) and reaches live status.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0926Z.txt",
+          "summary": "Latest deploy dep-d71qhcogjchc739nj70g is live and points to commit fd151d53e1529f9d746e23d745adc0fcfc39bee5."
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC2",
+      "text": "Remote runtime validation passes against https://auto-service-foundation.onrender.com with smoke checks and browser QA for dashboard, booking, walk-in, and active work-orders pages including expected Russian UI text.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "command",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/test-integration.txt",
+          "command": "APP_BASE_URL='https://auto-service-foundation.onrender.com' npm run smoke",
+          "exit_code": 0,
+          "summary": "Smoke checks health/api/core UI routes passed."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0922Z.png",
+          "summary": "Browser screenshot for dashboard route /."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0922Z.png",
+          "summary": "Browser screenshot for /appointments/new."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0924Z.png",
+          "summary": "Browser screenshot for /appointments/new?mode=walkin."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0928Z.png",
+          "summary": "Browser screenshot for /work-orders/active."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/remote-route-text-checks.txt",
+          "summary": "Remote route content checks for Russian headings and walk-in control text passed."
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC3",
+      "text": "Post-deploy operational checks show no critical warnings/errors in recent Render service logs that indicate deployment/runtime failure.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-logs-deploy-20260325T0920Z.txt",
+          "summary": "Deploy window logs show checkout of target commit, successful build, server start, and live transition."
+        },
+        {
+          "type": "artifact",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0926Z.txt",
+          "summary": "Warn/error filtered query returned logs=null for deploy window."
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC4",
+      "text": "Proof-loop artifacts are updated and task_loop validate/status report PASS with no missing required files.",
+      "status": "PASS",
+      "proof": [
+        {
+          "type": "command",
+          "path": ".agent/tasks/core-reset-render-deploy-validation/raw/validate-status.txt",
+          "command": "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py validate --task-id core-reset-render-deploy-validation && /Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id core-reset-render-deploy-validation",
+          "exit_code": 0,
+          "summary": "Validation and status checks returned PASS."
+        }
+      ],
+      "gaps": []
+    }
+  ],
+  "changed_files": [
+    ".agent/tasks/core-reset-render-deploy-validation/evidence.md",
+    ".agent/tasks/core-reset-render-deploy-validation/evidence.json",
+    ".agent/tasks/core-reset-render-deploy-validation/verdict.json",
+    ".agent/tasks/core-reset-render-deploy-validation/problems.md",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0926Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-logs-deploy-20260325T0920Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0926Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/remote-route-text-checks.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/test-integration.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0928Z.png"
+  ],
+  "commands_for_fresh_verifier": [
+    "APP_BASE_URL='https://auto-service-foundation.onrender.com' npm run smoke",
+    "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py validate --task-id core-reset-render-deploy-validation",
+    "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id core-reset-render-deploy-validation"
+  ],
+  "known_gaps": []
+}

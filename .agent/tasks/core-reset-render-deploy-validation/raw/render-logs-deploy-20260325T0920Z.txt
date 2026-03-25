@@ -1,0 +1,18 @@
+Render log evidence for service srv-d6vcmt7diees73d0j04g (auto-service-foundation)
+Deploy window queried: 2026-03-25T09:19:00Z to 2026-03-25T09:26:00Z
+
+MCP query 1:
+- Tool: mcp__render__list_logs
+- Params: resource=["srv-d6vcmt7diees73d0j04g"], startTime="2026-03-25T09:19:00Z", endTime="2026-03-25T09:26:00Z", direction="forward", limit=200
+- Key observed lines:
+  - "Checking out commit fd151d53e1529f9d746e23d745adc0fcfc39bee5 in branch main"
+  - "Build successful"
+  - "Running 'npm start'"
+  - "event":"db_bootstrap_complete" ... "currentVersion":"010"
+  - "event":"server_started" ... "port":10000
+  - "Your service is live"
+
+MCP query 2:
+- Tool: mcp__render__list_logs
+- Params: same window with level=["warn","error"]
+- Result: logs=null, hasMore=false (no warning/error entries in queried deploy window)

@@ -1,0 +1,32 @@
+$ /Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py validate --task-id core-reset-render-deploy-validation
+{
+  "repo_root": "/Users/ian/auto-service",
+  "task_id": "core-reset-render-deploy-validation",
+  "task_dir": "/Users/ian/auto-service/.agent/tasks/core-reset-render-deploy-validation",
+  "valid": true,
+  "missing_files": [],
+  "errors": []
+}
+
+$ /Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id core-reset-render-deploy-validation
+{
+  "repo_root": "/Users/ian/auto-service",
+  "task_id": "core-reset-render-deploy-validation",
+  "task_dir": "/Users/ian/auto-service/.agent/tasks/core-reset-render-deploy-validation",
+  "exists": true,
+  "required_files_present": {
+    "spec.md": true,
+    "evidence.md": true,
+    "evidence.json": true,
+    "verdict.json": true,
+    "problems.md": true,
+    "raw/build.txt": true,
+    "raw/test-unit.txt": true,
+    "raw/test-integration.txt": true,
+    "raw/lint.txt": true,
+    "raw/screenshot-1.png": true
+  },
+  "evidence_overall_status": "PASS",
+  "verdict_overall_status": "PASS",
+  "non_pass_criteria": []
+}

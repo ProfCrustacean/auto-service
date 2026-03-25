@@ -1,0 +1,43 @@
+{
+  "task_id": "core-reset-render-deploy-validation",
+  "overall_verdict": "PASS",
+  "criteria": [
+    {
+      "id": "AC1",
+      "status": "PASS",
+      "reason": "Render deploy dep-d71qhcogjchc739nj70g is live and pinned to commit fd151d53e1529f9d746e23d745adc0fcfc39bee5."
+    },
+    {
+      "id": "AC2",
+      "status": "PASS",
+      "reason": "Remote smoke checks passed and browser screenshots plus route text assertions confirm required pages and Russian UI content."
+    },
+    {
+      "id": "AC3",
+      "status": "PASS",
+      "reason": "Deploy-window logs show successful build/start/live events and warn/error-filtered query returned no entries."
+    },
+    {
+      "id": "AC4",
+      "status": "PASS",
+      "reason": "Required proof-loop files exist, evidence is populated, and task_loop validate/status checks pass."
+    }
+  ],
+  "commands_run": [
+    "APP_BASE_URL='https://auto-service-foundation.onrender.com' npm run smoke",
+    "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py validate --task-id core-reset-render-deploy-validation",
+    "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id core-reset-render-deploy-validation"
+  ],
+  "artifacts_used": [
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-deploy-status-20260325T0926Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/test-integration.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-home-20260325T0922Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-booking-20260325T0922Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-walkin-20260325T0924Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-e2e-active-20260325T0928Z.png",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/remote-route-text-checks.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-logs-deploy-20260325T0920Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/render-warn-error-check-20260325T0926Z.txt",
+    ".agent/tasks/core-reset-render-deploy-validation/raw/validate-status.txt"
+  ]
+}

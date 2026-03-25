@@ -1,0 +1,21 @@
+Base URL: https://auto-service-foundation.onrender.com
+Checked at: 2026-03-25T09:27:38Z
+
+[1] / contains dashboard heading
+6:  <title>Автосервис Саранск — Операционная доска</title>
+18:        <h1>Автосервис Саранск</h1>
+PASS
+
+[2] /appointments/new contains booking heading
+6:  <title>Новая запись</title>
+16:      <h1>Новая запись</h1>
+PASS
+
+[3] /appointments/new?mode=walkin contains walk-in mode control
+19:        <a class="btn primary" href="/appointments/new?mode=walkin">Принять сейчас</a>
+PASS
+
+[4] /work-orders/active contains active queue heading
+6:  <title>Активная очередь заказ-нарядов</title>
+16:      <h1>Активная очередь заказ-нарядов</h1>
+PASS
