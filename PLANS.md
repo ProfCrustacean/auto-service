@@ -31,6 +31,7 @@ Most recent completed non-trivial slice:
   - added deterministic utility `scripts/linear-clear-all.js` (close issues created before cutoff into `Canceled`/`Completed` state),
   - local direct Linear GraphQL access was blocked (`RESTRICTED_COUNTRY_BLOCKED`), so execution used temporary Render cron runtime,
   - successful execution log shows `movedToClosed=13`, `failed=0` for team `AUT`,
+  - follow-up full-scope verification run (cutoff `2100-01-01`) shows `matchedBeforeCutoff=0`, `movedToClosed=0`, `failed=0`,
   - temporary cron services were cleaned up (deleted) after completion.
 - 2026-03-25 — Restore dispatch calendar (`restore-dispatch-calendar`) completed:
   - dispatch page/API/mutations/assets restored (`/dispatch/board`, `/api/v1/dispatch/board`, mutation routes, Event Calendar assets),
