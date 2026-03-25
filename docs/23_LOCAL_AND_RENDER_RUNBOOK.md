@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define deterministic bootstrap, local verification, and Render deployment path for the Phase 0 foundation slice.
+Define deterministic bootstrap, local verification, and Render deployment path for the current product baseline.
 
 ## Local bootstrap
 

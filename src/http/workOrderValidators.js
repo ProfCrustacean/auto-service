@@ -84,6 +84,74 @@ function normalizeWorkOrderPaymentMethod(value, field, errors) {
   });
 }
 
+const WORK_ORDER_UPDATE_ALLOWED_FIELDS = [
+  "status",
+  "bayId",
+  "primaryAssignee",
+  "complaint",
+  "findings",
+  "internalNotes",
+  "customerNotes",
+  "balanceDueRub",
+  "laborTotalRub",
+  "outsideServiceCostRub",
+  "reason",
+  "changedBy",
+];
+
+const WORK_ORDER_UPDATE_MUTABLE_FIELDS = [
+  "status",
+  "bayId",
+  "primaryAssignee",
+  "complaint",
+  "findings",
+  "internalNotes",
+  "customerNotes",
+  "balanceDueRub",
+  "laborTotalRub",
+  "outsideServiceCostRub",
+];
+
+const PARTS_REQUEST_UPDATE_ALLOWED_FIELDS = [
+  "status",
+  "supplierName",
+  "expectedArrivalDateLocal",
+  "requestedQty",
+  "requestedUnitCostRub",
+  "salePriceRub",
+  "isBlocking",
+  "notes",
+  "reason",
+  "replacementPartName",
+  "replacementRequestedQty",
+  "replacementSupplierName",
+  "changedBy",
+];
+
+const PARTS_REQUEST_UPDATE_MUTABLE_FIELDS = [
+  "status",
+  "supplierName",
+  "expectedArrivalDateLocal",
+  "requestedQty",
+  "requestedUnitCostRub",
+  "salePriceRub",
+  "isBlocking",
+  "notes",
+  "replacementPartName",
+  "replacementRequestedQty",
+  "replacementSupplierName",
+];
+
+function appendUnknownFieldErrors(body, allowedFields, errors) {
+  for (const field of collectUnknownFields(body, allowedFields)) {
+    errors.push({ field, message: "unknown field" });
+  }
+}
+
+function hasAnyOwnField(value, fields) {
+  return fields.some((field) => Object.hasOwn(value, field));
+}
+
 export function validateListWorkOrdersQuery(query) {
   const errors = [];
   const pagination = normalizePaginationQuery(query, errors);
@@ -199,36 +267,8 @@ export function validateWorkOrderUpdate(body) {
     value.changedBy = changedBy;
   }
 
-  const unknownFields = collectUnknownFields(body, [
-    "status",
-    "bayId",
-    "primaryAssignee",
-    "complaint",
-    "findings",
-    "internalNotes",
-    "customerNotes",
-    "balanceDueRub",
-    "laborTotalRub",
-    "outsideServiceCostRub",
-    "reason",
-    "changedBy",
-  ]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown field" });
-  }
-
-  const hasMutableField = [
-    "status",
-    "bayId",
-    "primaryAssignee",
-    "complaint",
-    "findings",
-    "internalNotes",
-    "customerNotes",
-    "balanceDueRub",
-    "laborTotalRub",
-    "outsideServiceCostRub",
-  ].some((field) => Object.hasOwn(value, field));
+  appendUnknownFieldErrors(body, WORK_ORDER_UPDATE_ALLOWED_FIELDS, errors);
+  const hasMutableField = hasAnyOwnField(value, WORK_ORDER_UPDATE_MUTABLE_FIELDS);
 
   if (!hasMutableField) {
     errors.push({ field: "body", message: "at least one updatable field is required" });
@@ -255,10 +295,7 @@ export function validateConvertAppointmentToWorkOrder(body) {
     value.changedBy = changedBy;
   }
 
-  const unknownFields = collectUnknownFields(body, ["reason", "changedBy"]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown field" });
-  }
+  appendUnknownFieldErrors(body, ["reason", "changedBy"], errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -449,38 +486,8 @@ export function validateUpdatePartsRequest(body) {
     value.changedBy = changedBy;
   }
 
-  const unknownFields = collectUnknownFields(body, [
-    "status",
-    "supplierName",
-    "expectedArrivalDateLocal",
-    "requestedQty",
-    "requestedUnitCostRub",
-    "salePriceRub",
-    "isBlocking",
-    "notes",
-    "reason",
-    "replacementPartName",
-    "replacementRequestedQty",
-    "replacementSupplierName",
-    "changedBy",
-  ]);
-  for (const field of unknownFields) {
-    errors.push({ field, message: "unknown field" });
-  }
-
-  const hasMutableField = [
-    "status",
-    "supplierName",
-    "expectedArrivalDateLocal",
-    "requestedQty",
-    "requestedUnitCostRub",
-    "salePriceRub",
-    "isBlocking",
-    "notes",
-    "replacementPartName",
-    "replacementRequestedQty",
-    "replacementSupplierName",
-  ].some((field) => Object.hasOwn(value, field));
+  appendUnknownFieldErrors(body, PARTS_REQUEST_UPDATE_ALLOWED_FIELDS, errors);
+  const hasMutableField = hasAnyOwnField(value, PARTS_REQUEST_UPDATE_MUTABLE_FIELDS);
 
   if (!hasMutableField) {
     errors.push({ field: "body", message: "at least one updatable field is required" });

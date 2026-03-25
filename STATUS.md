@@ -94,6 +94,10 @@ Phase 4 baseline (payments + reporting) is delivered and locally/remote-validate
   - dispatch mutation HTTP path now runs through `src/http/dispatchBoardRouteFactory.js`,
   - dispatch board UI split into template/styles/client modules (`dispatchBoardPageTemplate/styles/client`),
   - `verify-render` split into `scripts/render-verify/{config,api,deployFlow,scenarioFlow,logAuditFlow}.js`.
+- Hot-path LOC cleanup hardening completed for recent work-order flows:
+  - validator field-list drift risk reduced by centralizing allowed/mutable field lists in `src/http/workOrderValidators.js`,
+  - repetitive optional payload assignment reduced in `src/http/workOrderPageRoutes.js`,
+  - repeated payment-label hydration and patch-field assignment reduced in `src/services/workOrderService.js`.
 - Render log audit now defaults to `balanced` fetch mode (narrow first pass + auto-escalation on risk signals), reducing default log pull volume.
 - App request logging now supports `APP_REQUEST_LOG_MODE=all|mutations|errors` so production can reduce request-log noise at the source.
 - Deploy-aware gate now enforces strict preflight before deploy trigger:
@@ -127,6 +131,10 @@ Phase 4 baseline (payments + reporting) is delivered and locally/remote-validate
 
 ## Last accepted milestones
 
+- 2026-03-25: LOC cleanup hardening completed (`cleanup-brittle-outdated-loc`):
+  - targeted brittle/unoptimized LOC cleanup delivered in `workOrderValidators`, `workOrderPageRoutes`, and `workOrderService`,
+  - outdated baseline wording cleaned in `README.md` and `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
+  - local gate (`lint`, `hygiene`, `test`, `verify`, `audit:bloat`) passed with no behavior regressions.
 - 2026-03-25: Phase 4 deploy-mode Render QA/fix loop completed:
   - deploy verification command: `npm run verify:render -- --deploy`,
   - deploy id: `dep-d71j32f5gffc73fstq10`,
@@ -223,6 +231,7 @@ Primary evidence pointers:
 - `evidence/linear-aut73-81-done-sync.json`
 - `.agent/tasks/proof-loop-bootstrap/` (spec/evidence/verdict/problem artifacts + raw placeholders)
 - `.agent/tasks/phase4-render-deploy-qa-fix/` (deploy QA/fix proof-loop artifacts + raw command logs)
+- `.agent/tasks/cleanup-brittle-outdated-loc/` (cleanup spec/evidence/verdict + raw verification logs)
 - Linear sync audit (AUT-89..AUT-96): `/tmp/linear-aut89-96-sync-result.json`
 - Linear apply audit (Pico backlog AUT-120..AUT-132): `/tmp/pico-ui-baseline-apply.json`
 

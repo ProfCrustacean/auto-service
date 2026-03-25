@@ -13,6 +13,12 @@ No active multi-step implementation plan is open right now.
 Create a new active plan before the next non-trivial feature/refactor/deployment slice.
 
 Most recent completed non-trivial slice:
+- 2026-03-25 — LOC cleanup hardening (`cleanup-brittle-outdated-loc`) completed:
+  - reduced brittle validator drift by centralizing allowed/mutable field lists and unknown-field handling in `src/http/workOrderValidators.js`,
+  - reduced repetitive payload-normalization LOC via shared optional-field assignment helpers in `src/http/workOrderPageRoutes.js`,
+  - reduced repeated payment-label mapping and patch-field assignment boilerplate in `src/services/workOrderService.js`,
+  - updated outdated baseline wording in `README.md` and `docs/23_LOCAL_AND_RENDER_RUNBOOK.md`,
+  - verification commands passed: `npm run lint`, `npm run hygiene:check`, `npm test`, `npm run verify`, `npm run audit:bloat`.
 - 2026-03-25 — Phase 4 deploy-mode Render QA/fix loop (`phase4-render-deploy-qa-fix`) completed:
   - task initialized and frozen in `.agent/tasks/phase4-render-deploy-qa-fix/`,
   - full local QA gate passed (`secrets`, `lint`, `hygiene`, `test`, `verify`, `audit:bloat`),
@@ -70,6 +76,7 @@ Quick index of older completed plans moved to `PLANS_ARCHIVE.md`.
 - 2026-03-24 — Dashboard day-load no-scroll/date-label UX patch + deploy verification
 - 2026-03-25 — Phase 4 end-to-end baseline implementation (`phase4-e2e-implementation`)
 - 2026-03-25 — Phase 4 deploy-mode Render QA/fix loop (`phase4-render-deploy-qa-fix`)
+- 2026-03-25 — LOC cleanup hardening (`cleanup-brittle-outdated-loc`)
 - 2026-03-24 — Repo task proof-loop bootstrap initialization (`proof-loop-bootstrap`)
 
 ## Completed Plan — Linear harness simplification: Playwright-only full rewrite (2026-03-24)

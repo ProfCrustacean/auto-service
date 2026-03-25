@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "generatedAt": "2026-03-25T00:56:58.222Z",
+  "generatedAt": "2026-03-25T01:12:54.671Z",
   "configPath": "data/bloat/budgets.json",
   "reportPath": "evidence/bloat-audit-latest.json",
   "allowRegression": false,
@@ -23,14 +23,14 @@
   },
   "metrics": {
     "tracked": {
-      "totalBytes": 1196524,
+      "totalBytes": 1202218,
       "byArea": {
-        "src": 527854,
+        "src": 526456,
         "tests": 160974,
         "scripts": 214993,
         "docs": 84991,
         "evidence": 7638,
-        "other": 200074
+        "other": 207166
       }
     },
     "topTrackedFiles": [
@@ -48,7 +48,7 @@
       },
       {
         "path": "src/http/workOrderPageRoutes.js",
-        "bytes": 28678
+        "bytes": 27828
       },
       {
         "path": "src/ui/dispatchBoardPageClient.js",
@@ -56,7 +56,7 @@
       },
       {
         "path": "src/services/workOrderService.js",
-        "bytes": 27079
+        "bytes": 26383
       },
       {
         "path": "src/persistence/seedDatabase.js",
@@ -75,12 +75,12 @@
         "bytes": 19315
       },
       {
-        "path": "src/http/workOrderValidators.js",
-        "bytes": 18693
+        "path": "STATUS.md",
+        "bytes": 19285
       },
       {
-        "path": "STATUS.md",
-        "bytes": 18375
+        "path": "src/http/workOrderValidators.js",
+        "bytes": 18841
       },
       {
         "path": "src/persistence/migrations.js",
@@ -104,7 +104,7 @@
       },
       {
         "path": "README.md",
-        "bytes": 13747
+        "bytes": 13741
       },
       {
         "path": "src/http/appointmentPageRoutes.js",
@@ -127,17 +127,17 @@
     "docs": {
       "lineCounts": {
         "README": 320,
-        "STATUS": 269,
-        "PLANS": 223
+        "STATUS": 278,
+        "PLANS": 230
       }
     },
     "duplication": {
-      "percentage": 5.05,
-      "duplicatedLines": 1277,
-      "clones": 95,
+      "percentage": 4.96,
+      "duplicatedLines": 1250,
+      "clones": 93,
       "sources": 138,
-      "lines": 25272,
-      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-70hvDz/report/jscpd-report.json"
+      "lines": 25217,
+      "reportPath": "/var/folders/9v/ytsn2vpj24vfxwpbgnfv01tm0000gn/T/auto-service-jscpd-mLhvUx/report/jscpd-report.json"
     }
   },
   "violations": []

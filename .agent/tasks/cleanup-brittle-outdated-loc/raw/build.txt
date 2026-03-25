@@ -1,0 +1,25 @@
+Cleanup slice summary (unoptimized/brittle/outdated LOC)
+Timestamp (UTC): 2026-03-25T01:11:00Z
+
+Targeted cleanup changes:
+1) src/http/workOrderValidators.js
+- Added shared helpers for unknown-field error emission and owned-field checks.
+- Centralized work-order/parts-update allowed and mutable field lists.
+- Removed duplicated inline field arrays that can drift when new fields are added.
+
+2) src/http/workOrderPageRoutes.js
+- Added shared optional-field assignment helpers for string/integer payload fields.
+- Removed repeated conditional assignment blocks in parts/payment/purchase payload normalizers.
+
+3) src/services/workOrderService.js
+- Added shared payment label hydration helper.
+- Added shared patch assignment helper + central work-order patch field list.
+- Removed repeated mapping/assignment boilerplate in payment and update flows.
+
+4) Outdated wording cleanup
+- README: renamed "Phase 1 reference-data APIs" section label to "Core operational APIs".
+- docs/23 runbook: updated purpose line from Phase 0 wording to current baseline wording.
+
+Behavioral intent:
+- No API, UI, or role-policy contract changes.
+- Refactor-only cleanup with reduced duplication and drift risk.

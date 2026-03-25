@@ -25,6 +25,16 @@ import {
 } from "../domain/workOrderPayment.js";
 
 const APPOINTMENT_BLOCKED_STATUSES = new Set(["cancelled", "no-show"]);
+const WORK_ORDER_PATCH_COPY_FIELDS = [
+  "primaryAssignee",
+  "complaint",
+  "findings",
+  "internalNotes",
+  "customerNotes",
+  "balanceDueRub",
+  "laborTotalRub",
+  "outsideServiceCostRub",
+];
 
 function toId(prefix) {
   return `${prefix}-${randomUUID().split("-")[0]}`;
@@ -63,6 +73,20 @@ function isPositiveInteger(value) {
 
 function isNonNegativeInteger(value) {
   return Number.isInteger(value) && value >= 0;
+}
+
+function assignDefinedField(target, source, field) {
+  if (source[field] !== undefined) {
+    target[field] = source[field];
+  }
+}
+
+function hydratePaymentLabels(payment) {
+  return {
+    ...payment,
+    paymentTypeLabelRu: getWorkOrderPaymentTypeLabel(payment.paymentType),
+    paymentMethodLabelRu: getWorkOrderPaymentMethodLabel(payment.paymentMethod),
+  };
 }
 
 function buildWorkOrderStatusPatch(existing, nextStatus, nowIso) {
@@ -138,11 +162,7 @@ export class WorkOrderService {
     const statusHistory = this.repository.listWorkOrderStatusHistory(id);
     const partsRequests = this.hydratePartsRequests(id, { includeResolved: true });
     const partsHistory = this.repository.listWorkOrderPartsHistory(id);
-    const payments = this.repository.listWorkOrderPayments(id).map((payment) => ({
-      ...payment,
-      paymentTypeLabelRu: getWorkOrderPaymentTypeLabel(payment.paymentType),
-      paymentMethodLabelRu: getWorkOrderPaymentMethodLabel(payment.paymentMethod),
-    }));
+    const payments = this.repository.listWorkOrderPayments(id).map(hydratePaymentLabels);
     const openBlockingRequestsCount = partsRequests.filter(
       (request) => request.isBlocking && isBlockingPartsRequestStatus(request.status),
     ).length;
@@ -213,36 +233,8 @@ export class WorkOrderService {
       }
     }
 
-    if (updates.primaryAssignee !== undefined) {
-      patch.primaryAssignee = updates.primaryAssignee;
-    }
-
-    if (updates.complaint !== undefined) {
-      patch.complaint = updates.complaint;
-    }
-
-    if (updates.findings !== undefined) {
-      patch.findings = updates.findings;
-    }
-
-    if (updates.internalNotes !== undefined) {
-      patch.internalNotes = updates.internalNotes;
-    }
-
-    if (updates.customerNotes !== undefined) {
-      patch.customerNotes = updates.customerNotes;
-    }
-
-    if (updates.balanceDueRub !== undefined) {
-      patch.balanceDueRub = updates.balanceDueRub;
-    }
-
-    if (updates.laborTotalRub !== undefined) {
-      patch.laborTotalRub = updates.laborTotalRub;
-    }
-
-    if (updates.outsideServiceCostRub !== undefined) {
-      patch.outsideServiceCostRub = updates.outsideServiceCostRub;
+    for (const field of WORK_ORDER_PATCH_COPY_FIELDS) {
+      assignDefinedField(patch, updates, field);
     }
 
     const statusChanged = nextStatus !== existing.status;
@@ -284,11 +276,7 @@ export class WorkOrderService {
       return null;
     }
 
-    return this.repository.listWorkOrderPayments(workOrderId).map((payment) => ({
-      ...payment,
-      paymentTypeLabelRu: getWorkOrderPaymentTypeLabel(payment.paymentType),
-      paymentMethodLabelRu: getWorkOrderPaymentMethodLabel(payment.paymentMethod),
-    }));
+    return this.repository.listWorkOrderPayments(workOrderId).map(hydratePaymentLabels);
   }
 
   createWorkOrderPayment(
@@ -348,11 +336,7 @@ export class WorkOrderService {
     });
 
     return {
-      item: {
-        ...payment,
-        paymentTypeLabelRu: getWorkOrderPaymentTypeLabel(payment.paymentType),
-        paymentMethodLabelRu: getWorkOrderPaymentMethodLabel(payment.paymentMethod),
-      },
+      item: hydratePaymentLabels(payment),
       workOrder: this.getWorkOrderById(workOrderId),
     };
   }

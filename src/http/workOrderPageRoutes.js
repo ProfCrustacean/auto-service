@@ -61,6 +61,20 @@ function normalizeOptionalValue(value) {
   return normalized.length > 0 ? normalized : undefined;
 }
 
+function assignOptionalStringField(target, field, value) {
+  const normalized = normalizeOptionalValue(value);
+  if (normalized !== undefined) {
+    target[field] = normalized;
+  }
+}
+
+function assignOptionalIntegerField(target, field, value) {
+  const normalized = parseIntegerOrRaw(value);
+  if (normalized !== undefined) {
+    target[field] = normalized;
+  }
+}
+
 function buildWorkOrderFormValues(body = {}, item = null) {
   const status = normalizeFormValue(body.status) || item?.status || "";
   const bayId = normalizeFormValue(body.bayId);
@@ -137,30 +151,11 @@ function normalizePartsCreatePayload(values) {
     isBlocking: parseBooleanOrRaw(values.isBlocking, true),
   };
 
-  const supplierName = normalizeOptionalValue(values.supplierName);
-  if (supplierName !== undefined) {
-    payload.supplierName = supplierName;
-  }
-
-  const expectedArrivalDateLocal = normalizeOptionalValue(values.expectedArrivalDateLocal);
-  if (expectedArrivalDateLocal !== undefined) {
-    payload.expectedArrivalDateLocal = expectedArrivalDateLocal;
-  }
-
-  const notes = normalizeOptionalValue(values.notes);
-  if (notes !== undefined) {
-    payload.notes = notes;
-  }
-
-  const reason = normalizeOptionalValue(values.reason);
-  if (reason !== undefined) {
-    payload.reason = reason;
-  }
-
-  const replacementForRequestId = normalizeOptionalValue(values.replacementForRequestId);
-  if (replacementForRequestId !== undefined) {
-    payload.replacementForRequestId = replacementForRequestId;
-  }
+  assignOptionalStringField(payload, "supplierName", values.supplierName);
+  assignOptionalStringField(payload, "expectedArrivalDateLocal", values.expectedArrivalDateLocal);
+  assignOptionalStringField(payload, "notes", values.notes);
+  assignOptionalStringField(payload, "reason", values.reason);
+  assignOptionalStringField(payload, "replacementForRequestId", values.replacementForRequestId);
 
   return payload;
 }
@@ -181,30 +176,11 @@ function normalizePartsUpdatePayload(values) {
     status: values.status,
   };
 
-  const notes = normalizeOptionalValue(values.notes);
-  if (notes !== undefined) {
-    payload.notes = notes;
-  }
-
-  const reason = normalizeOptionalValue(values.reason);
-  if (reason !== undefined) {
-    payload.reason = reason;
-  }
-
-  const replacementPartName = normalizeOptionalValue(values.replacementPartName);
-  if (replacementPartName !== undefined) {
-    payload.replacementPartName = replacementPartName;
-  }
-
-  const replacementRequestedQty = parseIntegerOrRaw(values.replacementRequestedQty);
-  if (replacementRequestedQty !== undefined) {
-    payload.replacementRequestedQty = replacementRequestedQty;
-  }
-
-  const replacementSupplierName = normalizeOptionalValue(values.replacementSupplierName);
-  if (replacementSupplierName !== undefined) {
-    payload.replacementSupplierName = replacementSupplierName;
-  }
+  assignOptionalStringField(payload, "notes", values.notes);
+  assignOptionalStringField(payload, "reason", values.reason);
+  assignOptionalStringField(payload, "replacementPartName", values.replacementPartName);
+  assignOptionalIntegerField(payload, "replacementRequestedQty", values.replacementRequestedQty);
+  assignOptionalStringField(payload, "replacementSupplierName", values.replacementSupplierName);
 
   return payload;
 }
@@ -228,25 +204,10 @@ function normalizePurchaseActionPayload(values) {
     status: values.status,
   };
 
-  const supplierName = normalizeOptionalValue(values.supplierName);
-  if (supplierName !== undefined) {
-    payload.supplierName = supplierName;
-  }
-
-  const supplierReference = normalizeOptionalValue(values.supplierReference);
-  if (supplierReference !== undefined) {
-    payload.supplierReference = supplierReference;
-  }
-
-  const notes = normalizeOptionalValue(values.notes);
-  if (notes !== undefined) {
-    payload.notes = notes;
-  }
-
-  const reason = normalizeOptionalValue(values.reason);
-  if (reason !== undefined) {
-    payload.reason = reason;
-  }
+  assignOptionalStringField(payload, "supplierName", values.supplierName);
+  assignOptionalStringField(payload, "supplierReference", values.supplierReference);
+  assignOptionalStringField(payload, "notes", values.notes);
+  assignOptionalStringField(payload, "reason", values.reason);
 
   return payload;
 }
@@ -268,15 +229,8 @@ function normalizePaymentPayload(values) {
     amountRub: parseIntegerOrRaw(values.amountRub),
   };
 
-  const note = normalizeOptionalValue(values.note);
-  if (note !== undefined) {
-    payload.note = note;
-  }
-
-  const recordedAt = normalizeOptionalValue(values.recordedAt);
-  if (recordedAt !== undefined) {
-    payload.recordedAt = recordedAt;
-  }
+  assignOptionalStringField(payload, "note", values.note);
+  assignOptionalStringField(payload, "recordedAt", values.recordedAt);
 
   return payload;
 }

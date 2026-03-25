@@ -1,0 +1,51 @@
+{
+  "task_id": "cleanup-brittle-outdated-loc",
+  "overall_verdict": "PASS",
+  "criteria": [
+    {
+      "id": "AC1",
+      "status": "PASS",
+      "reason": "Validator field-list duplication and unknown-field boilerplate were consolidated, reducing drift risk."
+    },
+    {
+      "id": "AC2",
+      "status": "PASS",
+      "reason": "Repeated optional payload mapping and payment-label mapping LOC were reduced without behavior changes."
+    },
+    {
+      "id": "AC3",
+      "status": "PASS",
+      "reason": "Lint, hygiene, test, verify, and bloat audit all passed after cleanup."
+    },
+    {
+      "id": "AC4",
+      "status": "PASS",
+      "reason": "Task artifacts and repository status/plan records were updated and validated."
+    }
+  ],
+  "commands_run": [
+    "npm run lint",
+    "npm run hygiene:check",
+    "npm test",
+    "npm run verify",
+    "npm run audit:bloat",
+    "npm test",
+    "npm run hygiene:check",
+    "npm run audit:bloat",
+    "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py validate --task-id cleanup-brittle-outdated-loc",
+    "/Users/ian/.codex/skills/repo-task-proof-loop/scripts/task_loop.py status --task-id cleanup-brittle-outdated-loc"
+  ],
+  "artifacts_used": [
+    ".agent/tasks/cleanup-brittle-outdated-loc/evidence.md",
+    ".agent/tasks/cleanup-brittle-outdated-loc/evidence.json",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/build.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/lint.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/hygiene-check.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/test-unit.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/test-integration.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/audit-bloat.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-test-unit.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-hygiene-check.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-audit-bloat.txt"
+  ]
+}

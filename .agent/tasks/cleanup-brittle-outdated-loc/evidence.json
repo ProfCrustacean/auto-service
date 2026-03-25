@@ -1,0 +1,93 @@
+{
+  "task_id": "cleanup-brittle-outdated-loc",
+  "overall_status": "PASS",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Brittle field-list drift risks are reduced in validators by removing duplicated field-list logic and centralizing allowed/mutable field definitions.",
+      "status": "PASS",
+      "proof": [
+        "src/http/workOrderValidators.js",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/build.txt"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC2",
+      "text": "Unoptimized repetitive LOC in work-order page payload normalization and payment-label mapping is reduced without changing API/UI behavior.",
+      "status": "PASS",
+      "proof": [
+        "src/http/workOrderPageRoutes.js",
+        "src/services/workOrderService.js",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/build.txt"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC3",
+      "text": "Full repo gates relevant to this cleanup pass succeed after the refactor.",
+      "status": "PASS",
+      "proof": [
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/lint.txt",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/hygiene-check.txt",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/test-unit.txt",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/test-integration.txt",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/audit-bloat.txt",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-test-unit.txt",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-hygiene-check.txt",
+        ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-audit-bloat.txt"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "AC4",
+      "text": "Cleanup results are documented in proof-loop artifacts with explicit changed files, commands, and verifier verdict.",
+      "status": "PASS",
+      "proof": [
+        ".agent/tasks/cleanup-brittle-outdated-loc/spec.md",
+        ".agent/tasks/cleanup-brittle-outdated-loc/evidence.md",
+        ".agent/tasks/cleanup-brittle-outdated-loc/evidence.json",
+        ".agent/tasks/cleanup-brittle-outdated-loc/verdict.json",
+        ".agent/tasks/cleanup-brittle-outdated-loc/problems.md",
+        "PLANS.md",
+        "STATUS.md"
+      ],
+      "gaps": []
+    }
+  ],
+  "changed_files": [
+    "src/http/workOrderValidators.js",
+    "src/http/workOrderPageRoutes.js",
+    "src/services/workOrderService.js",
+    "README.md",
+    "docs/23_LOCAL_AND_RENDER_RUNBOOK.md",
+    "PLANS.md",
+    "STATUS.md",
+    ".agent/tasks/cleanup-brittle-outdated-loc/spec.md",
+    ".agent/tasks/cleanup-brittle-outdated-loc/evidence.md",
+    ".agent/tasks/cleanup-brittle-outdated-loc/evidence.json",
+    ".agent/tasks/cleanup-brittle-outdated-loc/verdict.json",
+    ".agent/tasks/cleanup-brittle-outdated-loc/problems.md",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/build.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/lint.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/hygiene-check.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/test-unit.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/test-integration.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/audit-bloat.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-test-unit.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-hygiene-check.txt",
+    ".agent/tasks/cleanup-brittle-outdated-loc/raw/verifier-audit-bloat.txt",
+    "evidence/bloat-audit-latest.json"
+  ],
+  "commands_for_fresh_verifier": [
+    "npm run lint",
+    "npm run hygiene:check",
+    "npm test",
+    "npm run verify",
+    "npm run audit:bloat",
+    "npm test",
+    "npm run hygiene:check",
+    "npm run audit:bloat"
+  ],
+  "known_gaps": []
+}

@@ -148,7 +148,7 @@ Open:
 - `http://127.0.0.1:3000/api/v1/dashboard/today`
 - `http://127.0.0.1:3000/appointments/new` (единая страница записи; `?mode=walkin` для приема без записи)
 
-Phase 1 reference-data APIs:
+Core operational APIs:
 - `GET|POST /api/v1/employees`
 - `GET|PATCH|DELETE /api/v1/employees/:id`
 - `GET|POST /api/v1/bays`
